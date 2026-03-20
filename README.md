@@ -3,18 +3,24 @@
 The project can be run using docker compose.
 
 ## Architecture
-The project consists of a router and a end-user dashboard.
+The project consists of a router and an end-user dashboard.
 
 ### Router
 TBD
+
 Any request to a LLM is stored in a database using OpenTelemetry standards (e.g. Tempo).
 
-### Dashboard
+### [Dashboard](dashboard/ReadMe.md)
 The dashboard is structured into backend and frontend.
 The backend consumes traces based on the [OTEL standard](https://opentelemetry.io/docs/specs/semconv/gen-ai/) and transforms them for the frontend.
 
-The frontend consumes the previously hold conversations and shows their consumption and metadata.
-Additionally a chat window is available, which calls the router for inference.
+The frontend consumes the previous conversations and shows their consumption and metadata.
+Additionally, a chat window is available, which calls the router for inference.
+
+## Deployment
+The project will build docker images, which are run with the docker-compose.prod.yml provided.
+
+A GitHub Token is required to pull the docker images from the GitHub Container Registry.
 
 ## Evaluation CSV datasets (`evaluation_data/`)
 

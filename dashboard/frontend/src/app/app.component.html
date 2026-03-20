@@ -1,0 +1,282 @@
+<div class="app-shell" [class.dark-mode]="darkMode()">
+  <header class="navbar">
+    <h2 class="nav-title">Frugal AI Dashboard</h2>
+    <button
+      type="button"
+      class="theme-toggle"
+      role="switch"
+      [attr.aria-checked]="darkMode()"
+      [attr.aria-label]="darkMode() ? 'Switch to light mode' : 'Switch to dark mode'"
+      (click)="setDarkMode(!darkMode())"
+    >
+      <span class="mode-icon sun" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <circle cx="12" cy="12" r="4"></circle>
+          <line x1="12" y1="1.5" x2="12" y2="5"></line>
+          <line x1="12" y1="19" x2="12" y2="22.5"></line>
+          <line x1="1.5" y1="12" x2="5" y2="12"></line>
+          <line x1="19" y1="12" x2="22.5" y2="12"></line>
+          <line x1="4.2" y1="4.2" x2="6.9" y2="6.9"></line>
+          <line x1="17.1" y1="17.1" x2="19.8" y2="19.8"></line>
+          <line x1="17.1" y1="6.9" x2="19.8" y2="4.2"></line>
+          <line x1="4.2" y1="19.8" x2="6.9" y2="17.1"></line>
+        </svg>
+      </span>
+      <span class="mode-icon moon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M19 3.5a8.75 8.75 0 1 0 1.5 17.25A9.75 9.75 0 1 1 19 3.5z"></path>
+        </svg>
+      </span>
+      <span class="toggle-thumb" aria-hidden="true"></span>
+    </button>
+  </header>
+
+  <main class="layout">
+    <p-card class="hero card-shell">
+      <div class="hero-main">
+        <div class="hero-copy">
+          <p class="eyebrow">Frugal AI Observatory</p>
+          <div class="hero-title-row">
+            <h1>Request & Sustainability Dashboard</h1>
+            <div class="tree-savings">
+              <span class="tree-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M12 2.5 6.5 10h3l-3 4.5h3L6.5 19h4.2V22h2.6v-3h4.2l-3-4.5h3L14.5 10h3z"></path>
+                </svg>
+              </span>
+              <p>You saved {{ formatTreesSaved(treesSaved()) }} trees by using Frugal AI</p>
+            </div>
+          </div>
+          <p class="subtitle">
+            Track handled prompts, compare model behavior, and estimate power, CO2, water, token usage, and request duration.
+          </p>
+        </div>
+        <div class="selectors">
+          <label>
+            Comparison Model
+            <p-select
+              [options]="modelOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="comparisonModel()"
+              (ngModelChange)="setComparisonModel($event)"
+              styleClass="w-full"
+            />
+          </label>
+
+          <label>
+            Routing Method
+            <p-multiselect
+              [options]="routingOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="selectedRoutingMethods()"
+              (ngModelChange)="setSelectedRoutingMethods($event)"
+              display="chip"
+              [showClear]="false"
+              styleClass="w-full"
+            />
+          </label>
+
+          <label>
+            Minimum User Score
+            <input
+              type="text"
+              inputmode="decimal"
+              [ngModel]="minimumUserScoreInput()"
+              (ngModelChange)="setMinimumUserScoreInput($event)"
+            />
+          </label>
+
+          <label>
+            Timezone
+            <select [ngModel]="timeZone()" (ngModelChange)="setTimeZone($event)">
+              <option *ngFor="let zone of timeZoneOptions" [value]="zone">{{ zone }}</option>
+            </select>
+          </label>
+
+          <label>
+            Start Time
+            <input
+              type="datetime-local"
+              [ngModel]="startDateTimeInput()"
+              (ngModelChange)="setStartDateTimeInput($event)"
+            />
+          </label>
+
+          <label>
+            End Time
+            <input
+              type="datetime-local"
+              [ngModel]="endDateTimeInput()"
+              (ngModelChange)="setEndDateTimeInput($event)"
+            />
+          </label>
+        </div>
+      </div>
+    </p-card>
+
+    <section class="stats-groups">
+      <div class="stats-block">
+        <div class="section-head">
+          <h2>Sustainability Metrics</h2>
+          <span>Resource consumption totals</span>
+        </div>
+        <div class="stats">
+          <p-card styleClass="stat card-shell">
+            <p>Power</p>
+            <strong>{{ totalPowerWh().toFixed(1) }} Wh</strong>
+            <small class="comparison-line">Comparison: {{ totalComparisonPowerWh().toFixed(1) }} Wh</small>
+          </p-card>
+          <p-card styleClass="stat card-shell">
+            <p>CO2</p>
+            <strong>{{ totalCo2().toFixed(1) }} g</strong>
+            <small class="comparison-line">Comparison: {{ totalComparisonCo2().toFixed(1) }} g</small>
+          </p-card>
+          <p-card styleClass="stat card-shell">
+            <p>Water</p>
+            <strong>{{ totalWaterMl().toFixed(0) }} ml</strong>
+            <small class="comparison-line">Comparison: {{ totalComparisonWaterMl().toFixed(0) }} ml</small>
+          </p-card>
+          <p-card styleClass="stat card-shell">
+            <p>Total Cost</p>
+            <strong>{{ formatCost(totalCostUsd()) }}</strong>
+            <small class="comparison-line">Comparison: {{ formatCost(totalComparisonCostUsd()) }}</small>
+          </p-card>
+        </div>
+      </div>
+
+      <div class="stats-block">
+        <div class="section-head">
+          <h2>General Metrics</h2>
+          <span>Request and quality overview</span>
+        </div>
+        <div class="stats">
+          <p-card styleClass="stat card-shell">
+            <p>Total Requests</p>
+            <strong>{{ visibleRequests().length }}</strong>
+          </p-card>
+          <p-card styleClass="stat card-shell">
+            <p>Input Tokens</p>
+            <strong>{{ totalInputTokens() }}</strong>
+          </p-card>
+          <p-card styleClass="stat card-shell">
+            <p>Output Tokens</p>
+            <strong>{{ totalOutputTokens() }}</strong>
+          </p-card>
+          <p-card styleClass="stat card-shell">
+            <p>Avg Duration</p>
+            <strong>{{ formatDuration(avgDurationMs()) }}</strong>
+          </p-card>
+          <p-card styleClass="stat card-shell">
+            <p>Validation Score</p>
+            <strong>{{ formatScore(avgValidationScore()) }}</strong>
+          </p-card>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <p-card styleClass="table-card card-shell">
+        <div class="section-head">
+          <h2>Handled Requests</h2>
+          <span>Filtered by selected routing methods</span>
+        </div>
+
+        <div class="table-wrap">
+          <p-table [value]="visibleRequests()" [tableStyle]="{ 'min-width': '1020px' }" size="small" sortMode="multiple">
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="prompt">Request <p-sortIcon field="prompt" /></th>
+                <th pSortableColumn="model">Model <p-sortIcon field="model" /></th>
+                <th pSortableColumn="routingMethod">Routing <p-sortIcon field="routingMethod" /></th>
+                <th class="col-tablet" pSortableColumn="powerWh">Power <p-sortIcon field="powerWh" /></th>
+                <th class="col-tablet" pSortableColumn="co2">CO2 <p-sortIcon field="co2" /></th>
+                <th class="col-tablet" pSortableColumn="waterMl">Water <p-sortIcon field="waterMl" /></th>
+                <th class="col-desktop" pSortableColumn="inputTokens">Input <p-sortIcon field="inputTokens" /></th>
+                <th class="col-desktop" pSortableColumn="outputTokens">Output <p-sortIcon field="outputTokens" /></th>
+                <th class="col-tablet" pSortableColumn="durationMs">Duration <p-sortIcon field="durationMs" /></th>
+                <th class="col-tablet" pSortableColumn="costUsd">Cost <p-sortIcon field="costUsd" /></th>
+                <th class="col-tablet" pSortableColumn="validationScore">Validation <p-sortIcon field="validationScore" /></th>
+                <th pSortableColumn="createdAt">Time <p-sortIcon field="createdAt" /></th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-req>
+              <tr>
+                <td>
+                  <p class="prompt">{{ req.prompt }}</p>
+                  <p class="model-delta">{{ modelDelta(req) }}</p>
+                </td>
+                <td>{{ req.model }}</td>
+                <td>{{ req.routingMethod }}</td>
+                <td class="col-tablet">{{ req.powerWh.toFixed(1) }} Wh</td>
+                <td class="col-tablet">{{ req.co2.toFixed(1) }} g</td>
+                <td class="col-tablet">{{ req.waterMl }} ml</td>
+                <td class="col-desktop">{{ req.inputTokens }}</td>
+                <td class="col-desktop">{{ req.outputTokens }}</td>
+                <td class="col-tablet">{{ formatDuration(req.durationMs) }}</td>
+                <td class="col-tablet">{{ formatCost(req.costUsd) }}</td>
+                <td class="col-tablet">{{ formatScore(req.validationScore) }}</td>
+                <td>{{ formatTimestamp(req.createdAt) }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </p-card>
+    </section>
+
+    <section class="graph-section">
+      <div class="section-head">
+        <h2>Sustainability Charts</h2>
+        <span>Per routing method and metric</span>
+      </div>
+
+      <div *ngIf="sustainabilityChartSections().length; else noCharts">
+        <section class="routing-section" *ngFor="let section of sustainabilityChartSections()">
+          <div class="section-head">
+            <h2>Routing: {{ section.routingMethod }}</h2>
+          </div>
+
+          <div class="comparison-grid">
+            <p-card styleClass="chart-card card-shell" *ngFor="let chart of section.charts">
+              <div class="section-head">
+                <h2>{{ chart.title }}</h2>
+                <span>{{ chart.subtitle }}</span>
+              </div>
+              <div echarts [options]="chart.options" class="chart chart-small"></div>
+            </p-card>
+          </div>
+        </section>
+      </div>
+
+      <ng-template #noCharts>
+        <p-card styleClass="card-shell">
+          <p>Select at least one routing method to view charts.</p>
+        </p-card>
+      </ng-template>
+    </section>
+  </main>
+
+  <button pButton type="button" class="chat-launcher" (click)="toggleChat()">
+    {{ chatOpen() ? 'Close Chat' : 'Open Chat' }}
+  </button>
+
+  <p-card styleClass="chat-floating card-shell" *ngIf="chatOpen()">
+    <div class="section-head">
+      <h2>Chat Window</h2>
+      <span>Send a new request</span>
+    </div>
+
+    <textarea
+      pTextarea
+      rows="6"
+      [ngModel]="chatPrompt()"
+      (ngModelChange)="chatPrompt.set($event)"
+      [placeholder]="'Type your next prompt here...'"
+    ></textarea>
+
+    <button pButton type="button" (click)="sendPrompt()" [disabled]="!chatPrompt().trim()">
+      Submit Request
+    </button>
+  </p-card>
+</div>

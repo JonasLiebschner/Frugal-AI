@@ -1,0 +1,42 @@
+http:
+  routers:
+    dashboard-api:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/api`)"
+      entryPoints:
+        - websecure
+      service: dashboard-api
+      tls:
+        certResolver: letsencrypt
+
+    dashboard-web:
+      rule: "Host(`srv1513085.hstgr.cloud`)"
+      entryPoints:
+        - websecure
+      service: dashboard-web
+      tls:
+        certResolver: letsencrypt
+
+    http-catchall:
+      rule: "HostRegexp(`{host:.+}`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: noop@internal
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    dashboard-api:
+      loadBalancer:
+        servers:
+          - url: "http://dashboard-backend:8080"
+
+    dashboard-web:
+      loadBalancer:
+        servers:
+          - url: "http://dashboard-frontend:4200"
