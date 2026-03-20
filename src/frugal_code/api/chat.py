@@ -94,16 +94,25 @@ async def stream_completion(
     yield "data: [DONE]\n\n"
 
 
-@router.post("/v1/chat/completions")
+@router.post(
+    "/v1/chat/completions",
+    response_model=ChatCompletionResponse,
+    tags=["Chat"],
+    summary="Create chat completion",
+    response_description="The completion response with the model's reply and token usage",
+)
 async def chat_completions(request: ChatCompletionRequest):
     """
     OpenAI-compatible chat completions endpoint with smart routing.
 
-    Flow:
-    1. Classify request complexity (if no explicit model)
-    2. Route to appropriate model
-    3. Call LiteLLM
-    4. Return response
+    If no `model` is specified, the proxy classifies the prompt complexity
+    and routes to the appropriate model tier:
+
+    - **Simple** prompts (short questions, lookups) → cheap/fast model
+    - **Complex** prompts (analysis, code, multi-step) → powerful model
+
+    You can override routing by setting `model` explicitly.
+    Set `stream: true` for Server-Sent Events streaming.
     """
     classification = None
     routing_reason = ""

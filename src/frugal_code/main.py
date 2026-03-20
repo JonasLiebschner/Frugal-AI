@@ -35,9 +35,19 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Frugal-AI",
-    description="Complexity-aware LLM proxy",
+    description=(
+        "Complexity-aware LLM proxy that classifies prompt complexity and routes "
+        "to the most cost-effective model. OpenAI-compatible API."
+    ),
     version="0.1.0",
     lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_tags=[
+        {"name": "Chat", "description": "OpenAI-compatible chat completions with smart routing"},
+        {"name": "Feedback", "description": "Rate responses and suggest complexity overrides"},
+        {"name": "Health", "description": "Service health checks"},
+    ],
 )
 
 # Instrument FastAPI for auto-tracing
@@ -48,7 +58,7 @@ app.include_router(chat_router)
 app.include_router(feedback_router)
 
 
-@app.get("/health")
+@app.get("/health", tags=["Health"])
 async def health():
     """Health check endpoint."""
     return {
