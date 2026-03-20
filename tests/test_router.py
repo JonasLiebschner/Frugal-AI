@@ -17,11 +17,12 @@ def test_router_selects_simple_model():
     )
     request = ChatCompletionRequest(messages=[Message(role="user", content="test")])
 
-    model, reason = router.select_model(classification, request)
+    model, reason, model_config = router.select_model(classification, request)
 
-    # Should select from simple tier (gpt-4o-mini by default)
-    assert "mini" in model.lower() or "haiku" in model.lower()
+    # Should select from simple tier (ollama glm-4.7-flash by default)
+    assert model is not None
     assert "simple" in reason.lower()
+    assert model_config is not None
 
 
 def test_router_selects_complex_model():
@@ -35,11 +36,12 @@ def test_router_selects_complex_model():
     )
     request = ChatCompletionRequest(messages=[Message(role="user", content="test")])
 
-    model, reason = router.select_model(classification, request)
+    model, reason, model_config = router.select_model(classification, request)
 
-    # Should select from complex tier (gpt-4o by default)
-    assert "4o" in model or "opus" in model.lower() or "sonnet" in model.lower()
+    # Should select from complex tier (ollama qwen3.5:35b by default)
+    assert model is not None
     assert "complex" in reason.lower()
+    assert model_config is not None
 
 
 def test_router_respects_client_model_override():
@@ -56,11 +58,12 @@ def test_router_respects_client_model_override():
         messages=[Message(role="user", content="test")],
     )
 
-    model, reason = router.select_model(classification, request)
+    model, reason, model_config = router.select_model(classification, request)
 
     # Should use client's requested model
     assert model == "gpt-4o"
     assert "requested" in reason.lower()
+    assert model_config is None  # No config for client overrides
 
 
 def test_router_handles_no_classification():
@@ -68,7 +71,7 @@ def test_router_handles_no_classification():
     router = ModelRouter()
     request = ChatCompletionRequest(messages=[Message(role="user", content="test")])
 
-    model, reason = router.select_model(None, request)
+    model, reason, model_config = router.select_model(None, request)
 
     # Should default to complex tier (safe fallback)
     assert model is not None

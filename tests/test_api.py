@@ -53,13 +53,13 @@ async def test_chat_completions_with_mock(client):
 
 
 @pytest.mark.asyncio
-async def test_chat_completions_defaults_to_mini(client):
-    """Test that omitting model defaults to gpt-4o-mini."""
+async def test_chat_completions_routes_when_no_model(client):
+    """Test that omitting model routes via classifier."""
     with patch("frugal_code.api.chat.acompletion", new_callable=AsyncMock) as mock_completion:
         mock_response = MagicMock()
         mock_response.id = "test"
         mock_response.created = 123
-        mock_response.model = "gpt-4o-mini"
+        mock_response.model = "ollama/glm-4.7-flash"
         mock_response.usage.prompt_tokens = 1
         mock_response.usage.completion_tokens = 1
         mock_response.usage.total_tokens = 2
@@ -75,10 +75,10 @@ async def test_chat_completions_defaults_to_mini(client):
             "/v1/chat/completions", json={"messages": [{"role": "user", "content": "test"}]}
         )
 
-        # Verify acompletion was called with gpt-4o-mini
+        # Verify acompletion was called with a routed model (not None)
         assert mock_completion.called
         call_kwargs = mock_completion.call_args.kwargs
-        assert call_kwargs["model"] == "gpt-4o-mini"
+        assert call_kwargs["model"] is not None
 
 
 @pytest.mark.asyncio

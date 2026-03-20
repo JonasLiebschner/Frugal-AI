@@ -4,6 +4,7 @@ import time
 import uuid
 from typing import AsyncIterator
 
+import litellm
 from fastapi import APIRouter, HTTPException
 from litellm import acompletion
 from sse_starlette.sse import EventSourceResponse
@@ -27,6 +28,9 @@ from ..telemetry import (
     trace_completion,
 )
 
+# Drop unsupported params automatically (e.g., presence_penalty for Ollama)
+litellm.drop_params = True
+
 router = APIRouter()
 
 # Initialize classifier and router
@@ -34,7 +38,12 @@ classifier = HeuristicClassifier()
 model_router = ModelRouter()
 
 
-async def stream_completion(request: ChatCompletionRequest, model: str) -> AsyncIterator[str]:
+async def stream_completion(
+    request: ChatCompletionRequest,
+    model: str,
+    api_key: str | None = None,
+    api_base: str | None = None,
+) -> AsyncIterator[str]:
     """Stream completion chunks as SSE."""
     request_id = f"chatcmpl-{uuid.uuid4().hex[:24]}"
     created = int(time.time())
@@ -50,11 +59,8 @@ async def stream_completion(request: ChatCompletionRequest, model: str) -> Async
         presence_penalty=request.presence_penalty,
         stop=request.stop,
         stream=True,
-        api_key=(
-            settings.get_api_key(model.split("/")[0])
-            if "/" not in model
-            else settings.openai_api_key
-        ),
+        api_key=api_key,
+        api_base=api_base,
     )
 
     async for chunk in response:
@@ -109,7 +115,21 @@ async def chat_completions(request: ChatCompletionRequest):
             add_classification_attributes(classify_span, classification)
 
     # Select model based on classification (or client override)
-    model, routing_reason = model_router.select_model(classification, request)
+    model, routing_reason, model_config = model_router.select_model(classification, request)
+
+    # Resolve API key and base URL from model config
+    api_key = None
+    api_base = None
+    if model_config:
+        api_key = model_config.api_key or settings.get_api_key(model_config.provider)
+        api_base = model_config.base_url
+    else:
+        # Client override — try to infer provider from model name
+        provider = model.split("/")[0] if "/" in model else "openai"
+        api_key = settings.get_api_key(provider)
+        # Fall back to global base URL for known providers
+        if provider == "ollama" and settings.ollama_base_url:
+            api_base = settings.ollama_base_url
 
     # Log routing decision
     print(f"🎯 Routing: {routing_reason} → {model}")
@@ -118,7 +138,9 @@ async def chat_completions(request: ChatCompletionRequest):
 
     try:
         if request.stream:
-            return EventSourceResponse(stream_completion(request, model))
+            return EventSourceResponse(
+                stream_completion(request, model, api_key=api_key, api_base=api_base)
+            )
 
         # Non-streaming with tracing
         with trace_completion(model) as completion_span:
@@ -132,11 +154,8 @@ async def chat_completions(request: ChatCompletionRequest):
                 presence_penalty=request.presence_penalty,
                 stop=request.stop,
                 stream=False,
-                api_key=(
-                    settings.get_api_key(model.split("/")[0])
-                    if "/" not in model
-                    else settings.openai_api_key
-                ),
+                api_key=api_key,
+                api_base=api_base,
             )
 
             # Add telemetry attributes

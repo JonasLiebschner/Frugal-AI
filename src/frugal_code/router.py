@@ -25,7 +25,7 @@ class ModelRouter:
         self,
         classification: ClassificationResult | None,
         request: ChatCompletionRequest,
-    ) -> tuple[str, str]:
+    ) -> tuple[str, str, ModelConfig | None]:
         """
         Select the appropriate model.
 
@@ -34,11 +34,11 @@ class ModelRouter:
             request: Original request
 
         Returns:
-            Tuple of (model_name, reason)
+            Tuple of (model_name, reason, model_config_or_none)
         """
         # Client explicitly requested a model?
         if request.model:
-            return (request.model, f"Client requested: {request.model}")
+            return (request.model, f"Client requested: {request.model}", None)
 
         # No classification? Default to complex tier (safe fallback)
         if classification is None:
@@ -73,7 +73,7 @@ class ModelRouter:
         # Format model name for LiteLLM
         model_name = self._format_model_name(selected)
 
-        return (model_name, reason)
+        return (model_name, reason, selected)
 
     def _format_model_name(self, model_config: ModelConfig) -> str:
         """Format model name for LiteLLM."""
