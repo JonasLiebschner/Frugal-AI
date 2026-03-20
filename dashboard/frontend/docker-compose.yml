@@ -1,0 +1,9 @@
+services:
+  dashboard:
+    build: .
+    ports:
+      - '4200:4200'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: pnpm start
