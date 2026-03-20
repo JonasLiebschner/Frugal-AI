@@ -39,4 +39,4 @@ http:
     dashboard-web:
       loadBalancer:
         servers:
-          - url: "http://dashboard-frontend:4200"
+          - url: "http://dashboard-frontend:80"
