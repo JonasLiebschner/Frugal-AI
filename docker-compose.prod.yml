@@ -1,9 +1,9 @@
 services:
   dashboard-backend:
-    image: ghcr.io/JonasLiebschner/frugal-ai.dashboard.backend
+    image: ghcr.io/jonasliebschner/frugal-ai.dashboard.backend
 
   dashboard-frontend:
-    image: ghcr.io/JonasLiebschner/frugal-ai.dashboard.frontend
+    image: ghcr.io/jonasliebschner/frugal-ai.dashboard.frontend
 
   reverse-proxy:
     image: traefik:v3.3
