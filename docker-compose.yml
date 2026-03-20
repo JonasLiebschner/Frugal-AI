@@ -1,0 +1,22 @@
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  frugal-ai:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_ENABLED=true
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - jaeger
+    volumes:
+      - ./data:/app/data
