@@ -1,0 +1,9 @@
+services:
+  dashboard-backend:
+    build: dashboard/backend
+    ports:
+      - "8080:8080"
+  dashboard-frontend:
+    build: dashboard/frontend
+    ports:
+      - "4200:4200"

@@ -10,4 +10,4 @@ RUN pnpm install
 COPY . .
 
 EXPOSE 4200
-CMD ["pnpm", "start"]
+CMD ["sh", "-c", "pnpm run start"]

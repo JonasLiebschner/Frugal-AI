@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.6.5",
   "scripts": {
-    "start": "ng serve --host 0.0.0.0 --port 4200",
+    "start": "ng serve --host 0.0.0.0 --port 4200 --configuration development",
     "build": "ng build",
     "test": "ng test"
   },

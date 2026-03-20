@@ -29,7 +29,6 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseCors("Frontend");
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 

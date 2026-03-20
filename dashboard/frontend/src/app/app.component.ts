@@ -10,6 +10,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
+import {environment} from "../environments/environment";
 
 type ApiAiRequest = {
   id: string;
@@ -87,7 +88,7 @@ type LocalDateTimeParts = {
 })
 export class AppComponent {
   private readonly darkModeStorageKey = 'frugal-ai-dashboard.darkMode';
-  private readonly apiBaseUrl = 'http://localhost:5112/api/requests';
+  private readonly apiBaseUrl = environment.api_url + '/api/requests';
   private readonly comparisonModelsUrl = `${this.apiBaseUrl}/comparison-models`;
   private readonly co2GramsPerTree = 21_770;
 

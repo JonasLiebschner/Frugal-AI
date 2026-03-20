@@ -1,0 +1,16 @@
+services:
+  dashboard-backend:
+    image: ghcr.io/JonasLiebschner/frugal-ai.dashboard.backend
+
+  dashboard-frontend:
+    image: ghcr.io/JonasLiebschner/frugal-ai.dashboard.frontend
+
+  reverse-proxy:
+    image: traefik:v3.3
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/app.yml:/etc/traefik/dynamic/app.yml:ro
+      - ./traefik/acme.json:/letsencrypt/acme.json

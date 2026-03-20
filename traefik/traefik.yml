@@ -1,0 +1,17 @@
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  file:
+    filename: /etc/traefik/dynamic/app.yml
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@srv1513085.hstgr.cloud
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
