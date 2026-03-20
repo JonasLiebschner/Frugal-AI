@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import type { EChartsOption } from 'echarts';
@@ -10,24 +11,51 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
 
-type RoutingMethod = 'round-robin' | 'latency-first' | 'cost-optimized';
-type SustainabilityMetricKey = 'powerWh' | 'co2g' | 'waterMl' | 'costUsd';
-
-type RequestLog = {
+type ApiAiRequest = {
   id: string;
   model: string;
-  comparisonModel: string;
-  routingMethod: RoutingMethod;
+  routingMethod: string;
   prompt: string;
-  powerWh: number;
-  co2g: number;
-  waterMl: number;
   inputTokens: number;
   outputTokens: number;
   durationMs: number;
-  costUsd: number;
   validationScore: number;
+  created: string;
+  comparison: RequestMetadata;
+  actual: RequestMetadata;
+};
+
+type RequestMetadata = {
+  powerWh: number;
+  co2: number;
+  waterMl: number;
+  costUsd: number;
+};
+
+type AiRequest = ApiAiRequest & {
   createdAt: string;
+  powerWh: number;
+  co2: number;
+  waterMl: number;
+  costUsd: number;
+};
+
+type CreateRequestDto = {
+  prompt: string;
+  comparisonModel: string;
+  routingMethod?: string;
+};
+
+type ChartMetricPoint = {
+  requestId: string;
+  actual: number;
+  comparison: number;
+};
+
+type ChartMetric = {
+  metricKey: 'powerWh' | 'co2' | 'waterMl' | 'costUsd';
+  metricLabel: string;
+  points: ChartMetricPoint[];
 };
 
 type SustainabilityChartCard = {
@@ -38,8 +66,16 @@ type SustainabilityChartCard = {
 };
 
 type RoutingMethodChartSection = {
-  routingMethod: RoutingMethod;
+  routingMethod: string;
   charts: SustainabilityChartCard[];
+};
+
+type LocalDateTimeParts = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
 };
 
 @Component({
@@ -51,127 +87,60 @@ type RoutingMethodChartSection = {
 })
 export class AppComponent {
   private readonly darkModeStorageKey = 'frugal-ai-dashboard.darkMode';
-  private readonly modelEfficiency: Record<string, { power: number; co2: number; water: number; cost: number }> = {
-    'gpt-4.1-mini': { power: 1.0, co2: 1.0, water: 1.0, cost: 1.0 },
-    'gpt-4.1': { power: 1.55, co2: 1.52, water: 1.45, cost: 3.2 },
-    'gpt-4o-mini': { power: 1.12, co2: 1.1, water: 1.08, cost: 1.35 },
-    'claude-3.7-sonnet': { power: 1.42, co2: 1.38, water: 1.33, cost: 2.8 },
-    'llama-3.3-70b': { power: 1.9, co2: 1.86, water: 1.75, cost: 1.9 }
-  };
-  private readonly sustainabilityMetrics: Array<{ key: SustainabilityMetricKey; label: string; color: string }> = [
-    { key: 'powerWh', label: 'Power (Wh)', color: '#f05d23' },
-    { key: 'co2g', label: 'CO2 (g)', color: '#2b7fff' },
-    { key: 'waterMl', label: 'Water (ml)', color: '#18a46c' },
-    { key: 'costUsd', label: 'Cost ($)', color: '#b256d9' }
-  ];
+  private readonly apiBaseUrl = 'http://localhost:5112/api/requests';
+  private readonly comparisonModelsUrl = `${this.apiBaseUrl}/comparison-models`;
+  private readonly co2GramsPerTree = 21_770;
 
-  protected readonly models = ['gpt-4.1-mini', 'gpt-4.1', 'gpt-4o-mini', 'claude-3.7-sonnet', 'llama-3.3-70b'];
-  protected readonly routingMethods: RoutingMethod[] = ['round-robin', 'latency-first', 'cost-optimized'];
+  private requestToken = 0;
 
-  protected readonly modelOptions = this.models.map((model) => ({ label: model, value: model }));
-  protected readonly routingOptions = this.routingMethods.map((routingMethod) => ({ label: routingMethod, value: routingMethod }));
+  protected readonly models = signal<string[]>(['gpt-4.1', 'gpt-4.1-mini']);
+  protected readonly routingMethods = signal<string[]>(['round-robin', 'latency-first', 'cost-optimized']);
+
+  protected readonly modelOptions = computed(() => this.models().map((model) => ({ label: model, value: model })));
+  protected readonly routingOptions = computed(() => this.routingMethods().map((routingMethod) => ({ label: routingMethod, value: routingMethod })));
 
   protected readonly comparisonModel = signal<string>('gpt-4.1');
-  protected readonly selectedRoutingMethods = signal<RoutingMethod[]>([...this.routingMethods]);
+  protected readonly selectedRoutingMethods = signal<string[]>([]);
   protected readonly minimumUserScoreInput = signal<string>('0');
+  protected readonly timeZone = signal<string>(this.detectLocalTimeZone());
+  protected readonly startDateTimeInput = signal<string>(this.getDefaultLocalDateTimeInput(-60));
+  protected readonly endDateTimeInput = signal<string>(this.getDefaultLocalDateTimeInput(0));
   protected readonly chatPrompt = signal<string>('');
   protected readonly chatOpen = signal<boolean>(false);
   protected readonly darkMode = signal<boolean>(false);
 
-  private readonly requests = signal<RequestLog[]>([
-    {
-      id: 'REQ-5001',
-      model: 'gpt-4.1-mini',
-      comparisonModel: 'gpt-4.1',
-      routingMethod: 'round-robin',
-      prompt: 'Summarize vendor invoices',
-      powerWh: 2.2,
-      co2g: 1.1,
-      waterMl: 16,
-      inputTokens: 68,
-      outputTokens: 104,
-      durationMs: 1850,
-      costUsd: 0.0005,
-      validationScore: 4.4,
-      createdAt: '2026-03-20T08:05:00Z'
-    },
-    {
-      id: 'REQ-5002',
-      model: 'claude-3.7-sonnet',
-      comparisonModel: 'gpt-4.1',
-      routingMethod: 'latency-first',
-      prompt: 'Create sprint release notes',
-      powerWh: 2.8,
-      co2g: 1.5,
-      waterMl: 19,
-      inputTokens: 87,
-      outputTokens: 136,
-      durationMs: 2460,
-      costUsd: 0.0007,
-      validationScore: 4.1,
-      createdAt: '2026-03-20T08:40:00Z'
-    },
-    {
-      id: 'REQ-5003',
-      model: 'gpt-4o-mini',
-      comparisonModel: 'gpt-4.1',
-      routingMethod: 'cost-optimized',
-      prompt: 'Draft customer response email',
-      powerWh: 1.6,
-      co2g: 0.8,
-      waterMl: 11,
-      inputTokens: 54,
-      outputTokens: 89,
-      durationMs: 1410,
-      costUsd: 0.0004,
-      validationScore: 4.6,
-      createdAt: '2026-03-20T09:12:00Z'
-    },
-    {
-      id: 'REQ-5004',
-      model: 'llama-3.3-70b',
-      comparisonModel: 'gpt-4.1',
-      routingMethod: 'latency-first',
-      prompt: 'Explain churn trend by region',
-      powerWh: 3.7,
-      co2g: 2.1,
-      waterMl: 26,
-      inputTokens: 118,
-      outputTokens: 177,
-      durationMs: 3120,
-      costUsd: 0.001,
-      validationScore: 3.9,
-      createdAt: '2026-03-20T10:21:00Z'
-    },
-    {
-      id: 'REQ-5005',
-      model: 'gpt-4.1-mini',
-      comparisonModel: 'gpt-4.1',
-      routingMethod: 'round-robin',
-      prompt: 'Refactor SQL query',
-      powerWh: 2.0,
-      co2g: 1.0,
-      waterMl: 14,
-      inputTokens: 62,
-      outputTokens: 93,
-      durationMs: 1680,
-      costUsd: 0.0005,
-      validationScore: 4.3,
-      createdAt: '2026-03-20T11:37:00Z'
-    }
-  ]);
+  protected readonly loading = signal<boolean>(false);
+  protected readonly error = signal<string>('');
 
-  public constructor() {
-    if (typeof window === 'undefined') {
-      return;
+  private readonly dashboardData = signal<AiRequest[] | null>(null);
+  private readonly metricDefinitions: Array<{ key: ChartMetric['metricKey']; label: string }> = [
+    { key: 'powerWh', label: 'Power (Wh)' },
+    { key: 'co2', label: 'CO2 (g)' },
+    { key: 'waterMl', label: 'Water (ml)' },
+    { key: 'costUsd', label: 'Cost (USD)' }
+  ];
+  protected readonly timeZoneOptions = [
+    'UTC',
+    'Europe/Berlin',
+    'America/New_York',
+    'America/Chicago',
+    'America/Denver',
+    'America/Los_Angeles',
+    'Asia/Tokyo'
+  ];
+
+  public constructor(private readonly http: HttpClient) {
+    if (typeof window !== 'undefined') {
+      const persisted = window.localStorage.getItem(this.darkModeStorageKey);
+      if (persisted === 'true' || persisted === 'false') {
+        this.setDarkMode(persisted === 'true');
+      } else {
+        this.setDarkMode(false);
+      }
     }
 
-    const persisted = window.localStorage.getItem(this.darkModeStorageKey);
-    if (persisted === 'true' || persisted === 'false') {
-      this.setDarkMode(persisted === 'true');
-    } else {
-      this.setDarkMode(false);
-    }
+    this.loadComparisonModels();
+    this.loadDashboardData();
   }
 
   protected readonly minimumUserScore = computed<number>(() => {
@@ -184,143 +153,133 @@ export class AppComponent {
     return Number(clamped.toFixed(1));
   });
 
-  protected readonly visibleRequests = computed(() => {
-    const selectedRoutingMethods = this.selectedRoutingMethods();
-    if (!selectedRoutingMethods.length) {
-      return [];
-    }
-    return this.requests().filter((item) => selectedRoutingMethods.includes(item.routingMethod) && item.validationScore >= this.minimumUserScore());
-  });
+  protected readonly visibleRequests = computed(() => this.dashboardData() ?? []);
 
-  protected readonly totalPowerWh = computed(() => this.visibleRequests().reduce((acc, item) => acc + item.powerWh, 0));
-  protected readonly totalCo2g = computed(() => this.visibleRequests().reduce((acc, item) => acc + item.co2g, 0));
-  protected readonly totalWaterMl = computed(() => this.visibleRequests().reduce((acc, item) => acc + item.waterMl, 0));
-  protected readonly totalInputTokens = computed(() => this.visibleRequests().reduce((acc, item) => acc + item.inputTokens, 0));
-  protected readonly totalOutputTokens = computed(() => this.visibleRequests().reduce((acc, item) => acc + item.outputTokens, 0));
-  protected readonly totalCostUsd = computed(() => this.visibleRequests().reduce((acc, item) => acc + item.costUsd, 0));
-  protected readonly avgValidationScore = computed(() => {
-    const items = this.visibleRequests();
-    if (!items.length) {
-      return 0;
-    }
-    return items.reduce((acc, item) => acc + item.validationScore, 0) / items.length;
+  protected readonly totalPowerWh = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.actual.powerWh, 0) ?? 0);
+  protected readonly totalCo2 = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.actual.co2, 0) ?? 0);
+  protected readonly totalWaterMl = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.actual.waterMl, 0) ?? 0);
+  protected readonly totalCostUsd = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.actual.costUsd, 0) ?? 0);
+  protected readonly totalComparisonPowerWh = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.comparison.powerWh, 0) ?? 0);
+  protected readonly totalComparisonCo2 = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.comparison.co2, 0) ?? 0);
+  protected readonly totalComparisonWaterMl = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.comparison.waterMl, 0) ?? 0);
+  protected readonly totalComparisonCostUsd = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.comparison.costUsd, 0) ?? 0);
+  protected readonly totalInputTokens = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.inputTokens, 0) ?? 0);
+  protected readonly totalOutputTokens = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.outputTokens, 0) ?? 0);
+  protected readonly treesSaved = computed(() => {
+    const co2Delta = this.totalComparisonCo2() - this.totalCo2();
+    return Math.max(0, co2Delta / this.co2GramsPerTree);
   });
-  protected readonly avgDurationMs = computed(() => {
-    const items = this.visibleRequests();
-    if (!items.length) {
-      return 0;
-    }
-    return items.reduce((acc, item) => acc + item.durationMs, 0) / items.length;
-  });
+  protected readonly avgValidationScore = computed(() => this.dashboardData()?.length ? this.dashboardData()!.reduce((sum, r) => sum + r.validationScore, 0) / this.dashboardData()!.length : 0);
+  protected readonly avgDurationMs = computed(() => this.dashboardData()?.length ? this.dashboardData()!.reduce((sum, r) => sum + r.durationMs, 0) / this.dashboardData()!.length : 0);
 
   protected readonly sustainabilityChartSections = computed<RoutingMethodChartSection[]>(() => {
-    const comparisonModel = this.comparisonModel();
-    const selectedRoutingMethods = this.selectedRoutingMethods();
-    const isDark = this.darkMode();
-    const all = this.visibleRequests();
-
-    const sections: RoutingMethodChartSection[] = [];
-
-    for (const routingMethod of selectedRoutingMethods) {
-      const points = all
-        .filter((req) => req.routingMethod === routingMethod)
-        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-
-      const labels = points.map((req) => req.id);
-      const estimated = points.map((req) => this.estimateComparisonMetric(req, comparisonModel));
-      const charts: SustainabilityChartCard[] = [];
-
-      for (const metric of this.sustainabilityMetrics) {
-        charts.push({
-          key: `${routingMethod}-${metric.key}`,
-          title: metric.label,
-          subtitle: `Actual vs ${comparisonModel}`,
-          options: {
-            tooltip: { trigger: 'axis' },
-            legend: {
-              top: 4,
-              textStyle: { color: isDark ? '#c4d1df' : '#56544f' }
-            },
-            grid: { left: 24, right: 18, top: 42, bottom: 22, containLabel: true },
-            xAxis: {
-              type: 'category',
-              axisTick: { show: false },
-              axisLine: { lineStyle: { color: isDark ? '#5f7288' : '#b7b0a2' } },
-              axisLabel: { color: isDark ? '#c4d1df' : '#56544f' },
-              data: labels
-            },
-            yAxis: {
-              type: 'value',
-              axisLabel: { color: isDark ? '#c4d1df' : '#56544f' },
-              splitLine: { lineStyle: { color: isDark ? '#374859' : '#dfd7c8' } }
-            },
-            series: [
-              {
-                type: 'line',
-                smooth: true,
-                symbol: 'circle',
-                symbolSize: 6,
-                name: `${metric.label} Actual`,
-                itemStyle: { color: metric.color },
-                lineStyle: { color: metric.color, width: 2 },
-                data: points.map((req) => req[metric.key])
-              },
-              {
-                type: 'line',
-                smooth: true,
-                symbol: 'circle',
-                symbolSize: 6,
-                name: `${metric.label} Comparison`,
-                itemStyle: { color: metric.color },
-                lineStyle: { color: metric.color, width: 2, type: 'dashed' },
-                data: estimated.map((item) => item[metric.key])
-              }
-            ]
-          }
-        });
-      }
-
-      sections.push({
-        routingMethod,
-        charts
-      });
+    const data = this.dashboardData();
+    if (!data) {
+      return [];
     }
 
-    return sections;
+    const isDark = this.darkMode();
+    const groupedByRouting = new Map<string, AiRequest[]>();
+    for (const request of data) {
+      const existing = groupedByRouting.get(request.routingMethod);
+      if (existing) {
+        existing.push(request);
+      } else {
+        groupedByRouting.set(request.routingMethod, [request]);
+      }
+    }
+
+    return Array.from(groupedByRouting.entries()).map(([routingMethod, requests]) => {
+      const metrics: ChartMetric[] = this.metricDefinitions.map((metricDefinition) => ({
+        metricKey: metricDefinition.key,
+        metricLabel: metricDefinition.label,
+        points: requests
+          .slice()
+          .reverse()
+          .map((request) => ({
+            requestId: request.id,
+            actual: request.actual[metricDefinition.key],
+            comparison: request.comparison[metricDefinition.key]
+          }))
+      }));
+
+      return {
+        routingMethod,
+        charts: metrics.map((metric) => {
+          const color = this.metricColor(metric.metricKey);
+          return {
+            key: `${routingMethod}-${metric.metricKey}`,
+            title: metric.metricLabel,
+            subtitle: `Actual vs ${this.comparisonModel()}`,
+            options: {
+              tooltip: { trigger: 'axis' },
+              legend: {
+                top: 4,
+                textStyle: { color: isDark ? '#c4d1df' : '#56544f' }
+              },
+              grid: { left: 24, right: 18, top: 42, bottom: 22, containLabel: true },
+              xAxis: {
+                type: 'category',
+                axisTick: { show: false },
+                axisLine: { lineStyle: { color: isDark ? '#5f7288' : '#b7b0a2' } },
+                axisLabel: { color: isDark ? '#c4d1df' : '#56544f' },
+                data: metric.points.map((point) => point.requestId)
+              },
+              yAxis: {
+                type: 'value',
+                axisLabel: { color: isDark ? '#c4d1df' : '#56544f' },
+                splitLine: { lineStyle: { color: isDark ? '#374859' : '#dfd7c8' } }
+              },
+              series: [
+                {
+                  type: 'line',
+                  smooth: true,
+                  symbol: 'circle',
+                  symbolSize: 6,
+                  name: `${metric.metricLabel} Actual`,
+                  itemStyle: { color },
+                  lineStyle: { color, width: 2 },
+                  data: metric.points.map((point) => point.actual)
+                },
+                {
+                  type: 'line',
+                  smooth: true,
+                  symbol: 'circle',
+                  symbolSize: 6,
+                  name: `${metric.metricLabel} Comparison`,
+                  itemStyle: { color },
+                  lineStyle: { color, width: 2, type: 'dashed' },
+                  data: metric.points.map((point) => point.comparison)
+                }
+              ]
+            }
+          };
+        })
+      };
+    });
   });
 
   protected sendPrompt(): void {
-    const text = this.chatPrompt().trim();
-
-    if (!text) {
+    const prompt = this.chatPrompt().trim();
+    if (!prompt) {
       return;
     }
 
-    const created = new Date();
-    const requestModel = 'gpt-4.1-mini';
-    const routingMethod = this.selectedRoutingMethods()[0] ?? this.routingMethods[0];
-    const isLight = requestModel.includes('mini');
-    const inputTokens = Math.max(20, Math.round(text.length * 1.15));
-    const outputTokens = Math.round((Math.max(20, text.length) * (isLight ? 1.6 : 2.1)) + Math.random() * 30);
-    const next: RequestLog = {
-      id: `REQ-${5000 + this.requests().length + 1}`,
-      model: requestModel,
+    const payload: CreateRequestDto = {
+      prompt,
       comparisonModel: this.comparisonModel(),
-      routingMethod,
-      prompt: text,
-      powerWh: Number((isLight ? 1.3 : 2.6 + Math.random()).toFixed(1)),
-      co2g: Number((isLight ? 0.7 : 1.4 + Math.random()).toFixed(1)),
-      waterMl: Math.round(isLight ? 10 + Math.random() * 6 : 16 + Math.random() * 10),
-      inputTokens,
-      outputTokens,
-      durationMs: Math.round((isLight ? 1200 : 2100) + Math.random() * 1800),
-      costUsd: Number((((inputTokens / 1_000_000) * 0.15) + ((outputTokens / 1_000_000) * 0.6)).toFixed(6)),
-      validationScore: Number((isLight ? 4.2 + Math.random() * 0.6 : 3.6 + Math.random() * 0.9).toFixed(1)),
-      createdAt: created.toISOString()
+      routingMethod: this.selectedRoutingMethods()[0]
     };
 
-    this.requests.update((old) => [next, ...old]);
-    this.chatPrompt.set('');
+    this.http.post(this.apiBaseUrl, payload).subscribe({
+      next: () => {
+        this.chatPrompt.set('');
+        this.loadDashboardData();
+      },
+      error: () => {
+        this.error.set('Failed to submit request.');
+      }
+    });
   }
 
   protected toggleChat(): void {
@@ -339,6 +298,32 @@ export class AppComponent {
 
   protected setMinimumUserScoreInput(value: unknown): void {
     this.minimumUserScoreInput.set(String(value ?? ''));
+    this.loadDashboardData();
+  }
+
+  protected setTimeZone(value: string): void {
+    this.timeZone.set(value);
+    this.loadDashboardData();
+  }
+
+  protected setStartDateTimeInput(value: unknown): void {
+    this.startDateTimeInput.set(String(value ?? ''));
+    this.loadDashboardData();
+  }
+
+  protected setEndDateTimeInput(value: unknown): void {
+    this.endDateTimeInput.set(String(value ?? ''));
+    this.loadDashboardData();
+  }
+
+  protected setComparisonModel(value: string): void {
+    this.comparisonModel.set(value);
+    this.loadDashboardData();
+  }
+
+  protected setSelectedRoutingMethods(value: string[]): void {
+    this.selectedRoutingMethods.set(value);
+    this.loadDashboardData();
   }
 
   protected formatTimestamp(iso: string): string {
@@ -357,20 +342,211 @@ export class AppComponent {
     return `${score.toFixed(1)} / 5`;
   }
 
-  private estimateComparisonMetric(req: RequestLog, comparisonModel: string): Pick<RequestLog, SustainabilityMetricKey> {
-    const baseline = this.modelEfficiency['gpt-4.1-mini'];
-    const current = this.modelEfficiency[req.model] ?? baseline;
-    const comparison = this.modelEfficiency[comparisonModel] ?? baseline;
+  protected formatTreesSaved(treesSaved: number): string {
+    if (treesSaved === 0) {
+      return '0';
+    }
+    return treesSaved < 1 ? treesSaved.toFixed(2) : treesSaved.toFixed(1);
+  }
 
+  protected modelDelta(request: AiRequest): string {
+    return `${request.model} vs ${this.comparisonModel()}`;
+  }
+
+  private loadDashboardData(): void {
+    const currentToken = ++this.requestToken;
+
+    let params = new HttpParams()
+      .set('comparisonModel', this.comparisonModel())
+      .set('minValidationScore', String(this.minimumUserScore()));
+
+    const since = this.toApiDateTimeOffset(this.startDateTimeInput(), this.timeZone());
+    if (since) {
+      params = params.set('since', since);
+    }
+
+    const until = this.toApiDateTimeOffset(this.endDateTimeInput(), this.timeZone());
+    if (until) {
+      params = params.set('until', until);
+    }
+
+    for (const routing of this.selectedRoutingMethods()) {
+      params = params.append('routingMethods', routing);
+    }
+
+    this.loading.set(true);
+    this.error.set('');
+
+    this.http.get<ApiAiRequest[]>(this.apiBaseUrl, { params }).subscribe({
+      next: (data) => {
+        if (currentToken !== this.requestToken) {
+          return;
+        }
+
+        const requests = data.map((request) => this.toViewModel(request));
+        this.dashboardData.set(requests);
+
+        const routingMethods = this.uniqueStrings(requests.map((request) => request.routingMethod));
+
+        if (routingMethods.length > 0) {
+          this.routingMethods.set(routingMethods);
+          this.selectedRoutingMethods.update((selected) => {
+            if (selected.length === 0) {
+              return routingMethods;
+            }
+            return selected.filter((routingMethod) => routingMethods.includes(routingMethod));
+          });
+        }
+      },
+      error: () => {
+        if (currentToken !== this.requestToken) {
+          return;
+        }
+        this.error.set('Failed to load dashboard data from backend.');
+      },
+      complete: () => {
+        if (currentToken !== this.requestToken) {
+          return;
+        }
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private loadComparisonModels(): void {
+    this.http.get<string[]>(this.comparisonModelsUrl).subscribe({
+      next: (models) => {
+        const availableModels = this.uniqueStrings(models);
+        if (availableModels.length === 0) {
+          return;
+        }
+
+        this.models.set(availableModels);
+        if (!availableModels.includes(this.comparisonModel())) {
+          this.comparisonModel.set(availableModels[0]);
+          this.loadDashboardData();
+        }
+      }
+    });
+  }
+
+  private toViewModel(request: ApiAiRequest): AiRequest {
     return {
-      powerWh: Number((req.powerWh * (comparison.power / current.power)).toFixed(3)),
-      co2g: Number((req.co2g * (comparison.co2 / current.co2)).toFixed(3)),
-      waterMl: Number((req.waterMl * (comparison.water / current.water)).toFixed(3)),
-      costUsd: Number((req.costUsd * (comparison.cost / current.cost)).toFixed(6))
+      ...request,
+      createdAt: request.created,
+      powerWh: request.actual.powerWh,
+      co2: request.actual.co2,
+      waterMl: request.actual.waterMl,
+      costUsd: request.actual.costUsd
     };
   }
 
-  protected modelDelta(request: RequestLog): string {
-    return request.model === request.comparisonModel ? 'same' : `${request.model} vs ${request.comparisonModel}`;
+  private uniqueStrings(values: string[]): string[] {
+    return Array.from(new Set(values));
+  }
+
+  private getDefaultLocalDateTimeInput(offsetMinutesFromNow: number): string {
+    const date = new Date(Date.now() + offsetMinutesFromNow * 60_000);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hour}:${minute}`;
+  }
+
+  private detectLocalTimeZone(): string {
+    try {
+      const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      return resolved || 'UTC';
+    } catch {
+      return 'UTC';
+    }
+  }
+
+  private toApiDateTimeOffset(localDateTime: string, timeZone: string): string | null {
+    if (!localDateTime) {
+      return null;
+    }
+
+    const parts = this.parseLocalDateTime(localDateTime);
+    if (!parts) {
+      return null;
+    }
+
+    let instantMs = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, 0);
+    const wallClockMs = instantMs;
+
+    // Resolve the UTC instant that maps to the requested wall-clock datetime in the selected timezone.
+    for (let i = 0; i < 3; i += 1) {
+      const offsetMinutes = this.getOffsetMinutes(timeZone, new Date(instantMs));
+      instantMs = wallClockMs - offsetMinutes * 60_000;
+    }
+
+    const offsetMinutes = this.getOffsetMinutes(timeZone, new Date(instantMs));
+    const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+    const absoluteOffset = Math.abs(offsetMinutes);
+    const offsetHours = Math.floor(absoluteOffset / 60);
+    const offsetMins = absoluteOffset % 60;
+    const offset = `${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMins).padStart(2, '0')}`;
+
+    return `${localDateTime}:00${offset}`;
+  }
+
+  private parseLocalDateTime(value: string): LocalDateTimeParts | null {
+    const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+    if (!match) {
+      return null;
+    }
+
+    const [, year, month, day, hour, minute] = match;
+    return {
+      year: Number(year),
+      month: Number(month),
+      day: Number(day),
+      hour: Number(hour),
+      minute: Number(minute)
+    };
+  }
+
+  private getOffsetMinutes(timeZone: string, date: Date): number {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      hour12: false,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    const parts = formatter.formatToParts(date);
+    const values: Record<string, string> = {};
+    for (const part of parts) {
+      if (part.type !== 'literal') {
+        values[part.type] = part.value;
+      }
+    }
+
+    const utcFromTimeZoneClock = Date.UTC(
+      Number(values['year']),
+      Number(values['month']) - 1,
+      Number(values['day']),
+      Number(values['hour']),
+      Number(values['minute']),
+      Number(values['second'])
+    );
+
+    return (utcFromTimeZoneClock - date.getTime()) / 60_000;
+  }
+
+  private metricColor(metricKey: ChartMetric['metricKey']): string {
+    return metricKey === 'powerWh'
+      ? '#f05d23'
+      : metricKey === 'co2'
+        ? '#2b7fff'
+        : metricKey === 'waterMl'
+          ? '#18a46c'
+          : '#b256d9';
   }
 }

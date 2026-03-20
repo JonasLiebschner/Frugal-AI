@@ -124,9 +124,27 @@
 .hero {
   display: grid;
   gap: 14px;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: 1fr;
   align-items: start;
   min-width: 0;
+}
+
+.hero-main {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hero-copy {
+  min-width: 0;
+}
+
+.hero-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .eyebrow {
@@ -145,6 +163,41 @@ h1 {
 .subtitle {
   margin: 0;
   color: var(--text-muted);
+}
+
+.tree-savings {
+  margin-top: 0;
+  margin-left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-radial-b) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  white-space: nowrap;
+}
+
+.tree-savings p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.tree-icon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #189a4f;
+}
+
+.tree-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
 }
 
 .active-model {
@@ -193,6 +246,17 @@ label {
   display: block;
   margin-top: 6px;
   font-size: 1.35rem;
+}
+
+.comparison-line {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+:host ::ng-deep .stat.p-card .p-card-body {
+  min-height: 126px;
 }
 
 .content-grid {
@@ -309,7 +373,9 @@ label {
   width: 100%;
 }
 
-.selectors input[type='text'] {
+.selectors input[type='text'],
+.selectors input[type='datetime-local'],
+.selectors select {
   width: 100%;
   padding: 0.65rem 0.75rem;
   border-radius: 0.5rem;
@@ -368,6 +434,11 @@ label {
   .selectors {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+
+  .tree-savings {
+    white-space: normal;
+    border-radius: 0.65rem;
   }
 
   .stats {

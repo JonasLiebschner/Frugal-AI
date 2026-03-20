@@ -9,6 +9,13 @@ namespace FrugalApi.Dashboard.Api.Controllers;
 [Route("api/[controller]")]
 public sealed class RequestsController(IDashboardDataService service) : ControllerBase
 {
+    [HttpGet("comparison-models")]
+    [ProducesResponseType<IEnumerable<string>>(StatusCodes.Status200OK)]
+    public ActionResult<List<string>> GetComparisonModels()
+    {
+        return service.GetAvailableComparisonModels();
+    }
+
     [HttpGet]
     [ProducesResponseType<IEnumerable<AiRequest>>(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<AiRequest>> GetRequests(

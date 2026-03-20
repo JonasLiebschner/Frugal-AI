@@ -70,6 +70,11 @@ public sealed class DashboardDataService : IDashboardDataService
                 14, 0.0005 )
         )
     ];
+
+    public List<string> GetAvailableComparisonModels()
+    {
+        return ModelEfficiency.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
+    }
     
     public List<AiRequest> GetAllRequests(
         string comparisonModel,

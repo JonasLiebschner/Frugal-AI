@@ -4,6 +4,8 @@ namespace FrugalApi.Dashboard.Api.Services;
 
 public interface IDashboardDataService
 {
+    List<string> GetAvailableComparisonModels();
+
     List<AiRequest> GetAllRequests(
         string comparisonModel,
         IReadOnlyCollection<string>? routingMethods,

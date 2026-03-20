@@ -28,8 +28,8 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = "swagger";
 });
 
-app.UseHttpsRedirection();
 app.UseCors("Frontend");
+app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 

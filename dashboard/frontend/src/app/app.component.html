@@ -33,50 +33,86 @@
 
   <main class="layout">
     <p-card class="hero card-shell">
-      <div>
-        <p class="eyebrow">Frugal AI Observatory</p>
-        <h1>Request & Sustainability Dashboard</h1>
-        <p class="subtitle">
-          Track handled prompts, compare model behavior, and estimate power, CO2, water, token usage, and request duration.
-        </p>
-      </div>
+      <div class="hero-main">
+        <div class="hero-copy">
+          <p class="eyebrow">Frugal AI Observatory</p>
+          <div class="hero-title-row">
+            <h1>Request & Sustainability Dashboard</h1>
+            <div class="tree-savings">
+              <span class="tree-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M12 2.5 6.5 10h3l-3 4.5h3L6.5 19h4.2V22h2.6v-3h4.2l-3-4.5h3L14.5 10h3z"></path>
+                </svg>
+              </span>
+              <p>You saved {{ formatTreesSaved(treesSaved()) }} trees by using Frugal AI</p>
+            </div>
+          </div>
+          <p class="subtitle">
+            Track handled prompts, compare model behavior, and estimate power, CO2, water, token usage, and request duration.
+          </p>
+        </div>
+        <div class="selectors">
+          <label>
+            Comparison Model
+            <p-select
+              [options]="modelOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="comparisonModel()"
+              (ngModelChange)="setComparisonModel($event)"
+              styleClass="w-full"
+            />
+          </label>
 
-      <div class="selectors">
-        <label>
-          Comparison Model
-          <p-select
-            [options]="modelOptions"
-            optionLabel="label"
-            optionValue="value"
-            [ngModel]="comparisonModel()"
-            (ngModelChange)="comparisonModel.set($event)"
-            styleClass="w-full"
-          />
-        </label>
+          <label>
+            Routing Method
+            <p-multiselect
+              [options]="routingOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="selectedRoutingMethods()"
+              (ngModelChange)="setSelectedRoutingMethods($event)"
+              display="chip"
+              [showClear]="false"
+              styleClass="w-full"
+            />
+          </label>
 
-        <label>
-          Routing Method
-          <p-multiselect
-            [options]="routingOptions"
-            optionLabel="label"
-            optionValue="value"
-            [ngModel]="selectedRoutingMethods()"
-            (ngModelChange)="selectedRoutingMethods.set($event)"
-            display="chip"
-            [showClear]="false"
-            styleClass="w-full"
-          />
-        </label>
+          <label>
+            Minimum User Score
+            <input
+              type="text"
+              inputmode="decimal"
+              [ngModel]="minimumUserScoreInput()"
+              (ngModelChange)="setMinimumUserScoreInput($event)"
+            />
+          </label>
 
-        <label>
-          Minimum User Score
-          <input
-            type="text"
-            inputmode="decimal"
-            [ngModel]="minimumUserScoreInput()"
-            (ngModelChange)="setMinimumUserScoreInput($event)"
-          />
-        </label>
+          <label>
+            Timezone
+            <select [ngModel]="timeZone()" (ngModelChange)="setTimeZone($event)">
+              <option *ngFor="let zone of timeZoneOptions" [value]="zone">{{ zone }}</option>
+            </select>
+          </label>
+
+          <label>
+            Start Time
+            <input
+              type="datetime-local"
+              [ngModel]="startDateTimeInput()"
+              (ngModelChange)="setStartDateTimeInput($event)"
+            />
+          </label>
+
+          <label>
+            End Time
+            <input
+              type="datetime-local"
+              [ngModel]="endDateTimeInput()"
+              (ngModelChange)="setEndDateTimeInput($event)"
+            />
+          </label>
+        </div>
       </div>
     </p-card>
 
@@ -90,18 +126,22 @@
           <p-card styleClass="stat card-shell">
             <p>Power</p>
             <strong>{{ totalPowerWh().toFixed(1) }} Wh</strong>
+            <small class="comparison-line">Comparison: {{ totalComparisonPowerWh().toFixed(1) }} Wh</small>
           </p-card>
           <p-card styleClass="stat card-shell">
             <p>CO2</p>
-            <strong>{{ totalCo2g().toFixed(1) }} g</strong>
+            <strong>{{ totalCo2().toFixed(1) }} g</strong>
+            <small class="comparison-line">Comparison: {{ totalComparisonCo2().toFixed(1) }} g</small>
           </p-card>
           <p-card styleClass="stat card-shell">
             <p>Water</p>
             <strong>{{ totalWaterMl().toFixed(0) }} ml</strong>
+            <small class="comparison-line">Comparison: {{ totalComparisonWaterMl().toFixed(0) }} ml</small>
           </p-card>
           <p-card styleClass="stat card-shell">
             <p>Total Cost</p>
             <strong>{{ formatCost(totalCostUsd()) }}</strong>
+            <small class="comparison-line">Comparison: {{ formatCost(totalComparisonCostUsd()) }}</small>
           </p-card>
         </div>
       </div>
@@ -151,7 +191,7 @@
                 <th pSortableColumn="model">Model <p-sortIcon field="model" /></th>
                 <th pSortableColumn="routingMethod">Routing <p-sortIcon field="routingMethod" /></th>
                 <th class="col-tablet" pSortableColumn="powerWh">Power <p-sortIcon field="powerWh" /></th>
-                <th class="col-tablet" pSortableColumn="co2g">CO2 <p-sortIcon field="co2g" /></th>
+                <th class="col-tablet" pSortableColumn="co2">CO2 <p-sortIcon field="co2" /></th>
                 <th class="col-tablet" pSortableColumn="waterMl">Water <p-sortIcon field="waterMl" /></th>
                 <th class="col-desktop" pSortableColumn="inputTokens">Input <p-sortIcon field="inputTokens" /></th>
                 <th class="col-desktop" pSortableColumn="outputTokens">Output <p-sortIcon field="outputTokens" /></th>
@@ -170,7 +210,7 @@
                 <td>{{ req.model }}</td>
                 <td>{{ req.routingMethod }}</td>
                 <td class="col-tablet">{{ req.powerWh.toFixed(1) }} Wh</td>
-                <td class="col-tablet">{{ req.co2g.toFixed(1) }} g</td>
+                <td class="col-tablet">{{ req.co2.toFixed(1) }} g</td>
                 <td class="col-tablet">{{ req.waterMl }} ml</td>
                 <td class="col-desktop">{{ req.inputTokens }}</td>
                 <td class="col-desktop">{{ req.outputTokens }}</td>
