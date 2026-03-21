@@ -9,12 +9,13 @@ namespace FrugalApi.Dashboard.Api.Services;
 internal class OpenSearchTraceDataService(
     HttpClient httpClient,
     IOptions<OpenSearchOptions> options,
-    ILogger<OpenSearchTraceDataService> logger) : ITraceDataService
+    ILogger<OpenSearchTraceDataService> logger,
+    IStarsService starsService) : ITraceDataService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly OpenSearchOptions _options = options.Value;
-    private Dictionary<string, (double Input, double Output)> _modelCosts = new()
+    private readonly Dictionary<string, (double Input, double Output)> _modelCosts = new()
     {
         ["deepseek-v3.1:latest"] = (0.15d / 1_000_000d, 0.75d / 1_000_000d),
         ["devstral-2:latest"] = (0.4d / 1_000_000d, 2.0d / 1_000_000d),
@@ -122,10 +123,7 @@ internal class OpenSearchTraceDataService(
                 "span.attributes.gen_ai.response.duration_ms",
                 "duration_ms")
                 ?? (int)Math.Round((GetDouble(source, "duration") ?? 0) * 1000);
-
-
-            var validationScore = GetDouble(source, "validation.score") ?? 0;
-
+            
             var costUsd = GetDouble(source,"operation_cost") ?? GetViaModel(model, inputTokens, outputTokens);
 
             if (string.IsNullOrWhiteSpace(model))
@@ -149,7 +147,7 @@ internal class OpenSearchTraceDataService(
                 inputTokens,
                 outputTokens,
                 durationMs,
-                validationScore,
+                await starsService.GetStars(id),
                 createdAt,
                 environmentalMetric));
         }

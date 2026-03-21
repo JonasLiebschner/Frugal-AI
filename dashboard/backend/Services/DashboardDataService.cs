@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 
 namespace FrugalApi.Dashboard.Api.Services;
 
-public sealed class DashboardDataService(ITraceDataService traceDataService, 
+internal sealed class DashboardDataService(ITraceDataService traceDataService, 
     IOptions<ModelEnvironmentalMetricsOptions> environmentalMetricsOptions) : IDashboardDataService
 {
     public List<string> GetAvailableComparisonModels()

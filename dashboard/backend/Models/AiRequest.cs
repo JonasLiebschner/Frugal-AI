@@ -18,7 +18,7 @@ public record AiRequestBase(
     [property: JsonPropertyName("inputTokens")] int InputTokens,
     [property: JsonPropertyName("outputTokens")] int OutputTokens,
     [property: JsonPropertyName("durationMs")] int DurationMs,
-    [property: JsonPropertyName("validationScore")] double ValidationScore,
+    [property: JsonPropertyName("validationScore")] int? ValidationScore,
     [property: JsonPropertyName("created")] DateTimeOffset CreatedAt,
     [property: JsonPropertyName("actual")] RequestMetadata ActualMetadata
 );

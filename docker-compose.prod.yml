@@ -1,6 +1,8 @@
 services:
   dashboard-backend:
     image: ghcr.io/jonasliebschner/frugal-ai.dashboard.backend
+    volumes:
+      - ./dashboard-backend:/data
 
   dashboard-frontend:
     image: ghcr.io/jonasliebschner/frugal-ai.dashboard.frontend

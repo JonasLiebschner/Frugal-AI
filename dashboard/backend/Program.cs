@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddTransient<IDashboardDataService, DashboardDataService>();
+builder.Services.AddSingleton<IStarsService, StarsService>();
 builder.Services
     .AddOptions<OpenSearchOptions>()
     .Bind(builder.Configuration.GetSection(OpenSearchOptions.SectionName))
