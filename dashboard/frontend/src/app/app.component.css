@@ -326,6 +326,10 @@ label {
   height: 260px;
 }
 
+.chart-wide {
+  height: 320px;
+}
+
 .chart-small {
   height: 300px;
 }

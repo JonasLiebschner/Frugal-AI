@@ -228,10 +228,25 @@
     <section class="graph-section">
       <div class="section-head">
         <h2>Sustainability Charts</h2>
-        <span>Per routing method and metric</span>
+        <span>Combined routing comparisons and per-method detail</span>
       </div>
 
-      <div *ngIf="sustainabilityChartSections().length; else noCharts">
+      <ng-container *ngIf="sustainabilityChartSections().length; else noCharts">
+        <div class="comparison-grid">
+          <p-card styleClass="chart-card card-shell" *ngFor="let chart of combinedRoutingCharts()">
+            <div class="section-head">
+              <h2>{{ chart.title }}</h2>
+              <span>{{ chart.subtitle }}</span>
+            </div>
+            <div echarts [options]="chart.options" class="chart chart-wide"></div>
+          </p-card>
+        </div>
+
+        <div class="section-head">
+          <h2>Routing Breakdown</h2>
+          <span>Per routing method and metric</span>
+        </div>
+
         <section class="routing-section" *ngFor="let section of sustainabilityChartSections()">
           <div class="section-head">
             <h2>Routing: {{ section.routingMethod }}</h2>
@@ -247,7 +262,7 @@
             </p-card>
           </div>
         </section>
-      </div>
+      </ng-container>
 
       <ng-template #noCharts>
         <p-card styleClass="card-shell">
