@@ -87,30 +87,30 @@ describe("HeuristicClassifier", () => {
     });
   });
 
-  describe("details field", () => {
-    test("always returns details.classification", () => {
-      const { details } = classifier.classify("What is TypeScript?");
-      expect(details?.classification).toBeDefined();
+  describe("additionalData field", () => {
+    test("always returns additionalData.classification", () => {
+      const { additionalData } = classifier.classify("What is TypeScript?");
+      expect(additionalData?.classification).toBeDefined();
     });
 
     test("classifier_type is heuristic", () => {
-      const { details } = classifier.classify("What is TypeScript?");
-      expect((details?.classification as any).classifier_type).toBe("heuristic");
+      const { additionalData } = classifier.classify("What is TypeScript?");
+      expect((additionalData?.classification as any).classifier_type).toBe("heuristic");
     });
 
     test("score is between 0 and 1", () => {
       for (const query of ["Sort array", "Compare REST and GraphQL", "Explain garbage collection"]) {
-        const { details } = classifier.classify(query);
-        const score = (details?.classification as any).score as number;
+        const { additionalData } = classifier.classify(query);
+        const score = (additionalData?.classification as any).score as number;
         expect(score).toBeGreaterThanOrEqual(0);
         expect(score).toBeLessThanOrEqual(1);
       }
     });
 
     test("reason is a non-empty string", () => {
-      const { details } = classifier.classify("Implement a binary search tree");
-      expect(typeof (details?.classification as any).reason).toBe("string");
-      expect((details?.classification as any).reason.length).toBeGreaterThan(0);
+      const { additionalData } = classifier.classify("Implement a binary search tree");
+      expect(typeof (additionalData?.classification as any).reason).toBe("string");
+      expect((additionalData?.classification as any).reason.length).toBeGreaterThan(0);
     });
   });
 });

@@ -58,7 +58,7 @@ export class OnnxClassifier implements Classifier {
 
     return {
       result,
-      details: {
+      additionalData: {
         classification: {
           score: Math.round(confidence * 1000) / 1000,
           reason: `ONNX confidence: ${(confidence * 100).toFixed(1)}% (label_idx: ${labelIdx})`,

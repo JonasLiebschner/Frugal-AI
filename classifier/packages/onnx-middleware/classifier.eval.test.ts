@@ -65,8 +65,8 @@ describe("OnnxClassifier vs llm_router_dataset-synth", () => {
     }[] = [];
 
     for (const { prompt, expected } of samples) {
-      const { result, details } = await classifier.classify(prompt);
-      const score = (details?.classification as any)?.score ?? 0;
+      const { result, additionalData } = await classifier.classify(prompt);
+      const score = (additionalData?.classification as any)?.score ?? 0;
       if (result === expected) {
         correct++;
       } else {

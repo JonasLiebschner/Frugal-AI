@@ -45,17 +45,17 @@ describe("OnnxClassifier", () => {
     expect(result).toBe(QueryComplexity.Large);
   });
 
-  test("details contain probs summing to ~1", async () => {
+  test("additionalData contain probs summing to ~1", async () => {
     const c = await buildClassifier(-2.0, 2.0);
-    const { details } = await c.classify("some query");
-    const probs = (details?.classification as any).probs as { small: number; large: number };
+    const { additionalData } = await c.classify("some query");
+    const probs = (additionalData?.classification as any).probs as { small: number; large: number };
     expect(probs.small + probs.large).toBeCloseTo(1.0, 2);
   });
 
-  test("details.classification has expected fields", async () => {
+  test("additionalData.classification has expected fields", async () => {
     const c = await buildClassifier(-2.0, 2.0);
-    const { details } = await c.classify("some query");
-    const cls = details?.classification as Record<string, unknown>;
+    const { additionalData } = await c.classify("some query");
+    const cls = additionalData?.classification as Record<string, unknown>;
     expect(cls.classifier_type).toBe("onnx");
     expect(typeof cls.score).toBe("number");
     expect(typeof cls.reason).toBe("string");
