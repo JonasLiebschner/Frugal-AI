@@ -10,6 +10,8 @@ require_relative 'lib/router'
 
 set :port, 3003
 set :protection, false
+set :host_authorization, { permitted_hosts: [] }
+set :bind, '0.0.0.0'
 
 configure :development do
   register Sinatra::Reloader
