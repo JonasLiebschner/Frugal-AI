@@ -1,6 +1,8 @@
 services:
   dashboard-backend:
     image: ghcr.io/jonasliebschner/frugal-ai.dashboard.backend
+    volumes:
+      - ./dashboard-backend:/data
 
   dashboard-frontend:
     image: ghcr.io/jonasliebschner/frugal-ai.dashboard.frontend
@@ -42,30 +44,17 @@ services:
       - ./traefik/app.yml:/etc/traefik/dynamic/app.yml:ro
       - ./traefik/acme.json:/letsencrypt/acme.json
 
-  # --- Observability stack ---
-  opensearch:
-    image: opensearchproject/opensearch:3.5.0
-    environment:
-      - discovery.type=single-node
-      - DISABLE_SECURITY_PLUGIN=true
+  victoriatraces:
+    image: victoriametrics/victoria-traces:latest
+    container_name: victoriatraces
+    command:
+      - "-storageDataPath=/storage"
+      - "-retentionPeriod=14d"
+    volumes:
+      - ./vt-data:/storage
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          'curl -sf http://localhost:9200/_cluster/health | grep -qE ''"status":"(green|yellow)"''',
-        ]
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:10428/health"]
       interval: 10s
       timeout: 5s
-      retries: 6
-
-  jaeger:
-    image: jaegertracing/all-in-one:1.76.0
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-      - QUERY_BASE_PATH=/jaeger
-    healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://localhost:14269/ || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 15s
+      retries: 3
+      start_period: 5s
