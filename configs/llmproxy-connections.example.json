@@ -1,0 +1,116 @@
+{
+  "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+  "source_api_url": "https://llmproxy.frugalai.haupt.dev/api/llmproxy/admin/state",
+  "captured_at_utc": "2026-03-21T14:26:33.495Z",
+  "notes": "Live website-derived inventory snapshot across all currently enabled dashboard connections.",
+  "settings": {
+    "request_timeout_ms": 600000,
+    "queue_timeout_ms": 30000,
+    "health_check_interval_ms": 10000,
+    "recent_request_limit": 1000,
+    "mcp_enabled": true
+  },
+  "connections": [
+    {
+      "connection_id": "llmproxy-boplus",
+      "connection_name": "llmproxy-boplus",
+      "connection_type": "openai-compatible",
+      "connector": "openai",
+      "base_url": "https://llmproxy.dd.gw.bo.plus",
+      "health_path": "/v1/models",
+      "max_concurrency": 3,
+      "enabled": true,
+      "healthy": true,
+      "models": [
+        "gpt-5.4-2026-03-05",
+        "qwen3.5-35b-a3b",
+        "qwen3:30b-a3b-thinking-2507-q4_K_M"
+      ]
+    },
+    {
+      "connection_id": "hackathon-1",
+      "connection_name": "Hackathon 2x RTX6000 SE",
+      "connection_type": "ollama",
+      "connector": "ollama",
+      "base_url": "http://host.docker.internal:11434",
+      "max_concurrency": 10,
+      "enabled": true,
+      "healthy": true,
+      "models": [
+        "lfm2.5-thinking:latest",
+        "ministral-3:latest",
+        "nemotron-3-nano:latest",
+        "translategemma:latest",
+        "nemotron-3-super:latest",
+        "devstral-2:latest",
+        "qwen3.5:35b",
+        "glm-4.7-flash:latest"
+      ]
+    },
+    {
+      "connection_id": "hackathon-2",
+      "connection_name": "Hackathon 4xH200",
+      "connection_type": "ollama",
+      "connector": "ollama",
+      "base_url": "http://host.docker.internal:11435",
+      "max_concurrency": 10,
+      "enabled": true,
+      "healthy": true,
+      "models": [
+        "deepseek-v3.1:latest",
+        "frob/kimi-k2.5:latest",
+        "ministral-3:latest",
+        "lfm2.5-thinking:latest",
+        "glm-4.7-flash:latest",
+        "qwen3.5:35b",
+        "devstral-2:latest",
+        "mxbai-embed-large:latest",
+        "nomic-embed-text:latest",
+        "llama3.1:70b"
+      ]
+    },
+    {
+      "connection_id": "dsi-experimente",
+      "connection_name": "dsi-experimente",
+      "connection_type": "openai-compatible",
+      "connector": "openai",
+      "base_url": "https://ai-gateway.dsi-experimente.de",
+      "health_path": "/v1/models",
+      "max_concurrency": 1,
+      "enabled": true,
+      "healthy": true,
+      "models": [
+        "glm-4.7",
+        "openai-gpt-oss-120b",
+        "qwen3-32b",
+        "teuken-7b-instruct-research",
+        "qwen3-30b-a3b-instruct-2507",
+        "meta-llama-3.1-8b-instruct"
+      ]
+    }
+  ],
+  "unique_models": [
+    "deepseek-v3.1:latest",
+    "devstral-2:latest",
+    "frob/kimi-k2.5:latest",
+    "glm-4.7",
+    "glm-4.7-flash:latest",
+    "gpt-5.4-2026-03-05",
+    "lfm2.5-thinking:latest",
+    "llama3.1:70b",
+    "meta-llama-3.1-8b-instruct",
+    "ministral-3:latest",
+    "mxbai-embed-large:latest",
+    "nemotron-3-nano:latest",
+    "nemotron-3-super:latest",
+    "nomic-embed-text:latest",
+    "openai-gpt-oss-120b",
+    "qwen3-30b-a3b-instruct-2507",
+    "qwen3-32b",
+    "qwen3.5-35b-a3b",
+    "qwen3.5:35b",
+    "qwen3:30b-a3b-thinking-2507-q4_K_M",
+    "teuken-7b-instruct-research",
+    "translategemma:latest"
+  ]
+}

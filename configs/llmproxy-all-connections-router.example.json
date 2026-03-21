@@ -1,0 +1,62 @@
+{
+  "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+  "source_inventory_file": "configs/llmproxy-connections.example.json",
+  "notes": "Example routing inventory spanning all currently enabled website connections, not only llmproxy-boplus.",
+  "connections": [
+    {
+      "connection_id": "llmproxy-boplus",
+      "base_url": "https://llmproxy.dd.gw.bo.plus",
+      "provider": "openai-compatible",
+      "models": [
+        "gpt-5.4-2026-03-05",
+        "qwen3.5-35b-a3b",
+        "qwen3:30b-a3b-thinking-2507-q4_K_M"
+      ]
+    },
+    {
+      "connection_id": "hackathon-1",
+      "base_url": "http://host.docker.internal:11434",
+      "provider": "ollama",
+      "models": [
+        "lfm2.5-thinking:latest",
+        "ministral-3:latest",
+        "nemotron-3-nano:latest",
+        "translategemma:latest",
+        "nemotron-3-super:latest",
+        "devstral-2:latest",
+        "qwen3.5:35b",
+        "glm-4.7-flash:latest"
+      ]
+    },
+    {
+      "connection_id": "hackathon-2",
+      "base_url": "http://host.docker.internal:11435",
+      "provider": "ollama",
+      "models": [
+        "deepseek-v3.1:latest",
+        "frob/kimi-k2.5:latest",
+        "ministral-3:latest",
+        "lfm2.5-thinking:latest",
+        "glm-4.7-flash:latest",
+        "qwen3.5:35b",
+        "devstral-2:latest",
+        "mxbai-embed-large:latest",
+        "nomic-embed-text:latest",
+        "llama3.1:70b"
+      ]
+    },
+    {
+      "connection_id": "dsi-experimente",
+      "base_url": "https://ai-gateway.dsi-experimente.de",
+      "provider": "openai-compatible",
+      "models": [
+        "glm-4.7",
+        "openai-gpt-oss-120b",
+        "qwen3-32b",
+        "teuken-7b-instruct-research",
+        "qwen3-30b-a3b-instruct-2507",
+        "meta-llama-3.1-8b-instruct"
+      ]
+    }
+  ]
+}

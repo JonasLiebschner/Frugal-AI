@@ -1,0 +1,119 @@
+{
+  "notes": "Self-contained package-local mapping for the Arena-Hard SVC middleware. Designed to work when this package is copied into the upstream classifier workspace without depending on repo-root config files.",
+  "response_mode": "model",
+  "include_additional_data": false,
+  "classifier_model_path": "../models/model.joblib",
+  "registry_file": "router_registry.website_connections.json",
+  "criteria_strategy": "arena_hard_hband_weighted_escalation",
+  "hardness_banding": {
+    "min_band": 1,
+    "max_band": 7,
+    "clamp_zero_to_h1": true
+  },
+  "weighted_escalation_thresholds": {
+    "small_ok_max_exclusive": 0.34,
+    "mid_needed_max_exclusive": 0.64
+  },
+  "criteria_vector_routing": {
+    "base_trait_weights": {
+      "quality": 0.3,
+      "reliability": 0.25,
+      "reasoning": 0.2,
+      "long_context": 0.15,
+      "speed": 0.1
+    },
+    "criterion_importance": {
+      "specificity": 0.1,
+      "domain_knowledge": 0.15,
+      "complexity": 0.25,
+      "problem_solving": 0.18,
+      "creativity": 0.07,
+      "technical_accuracy": 0.18,
+      "real_world": 0.07
+    },
+    "criterion_trait_weights": {
+      "specificity": {
+        "reliability": 0.45,
+        "structured_output": 0.3,
+        "quality": 0.25
+      },
+      "domain_knowledge": {
+        "quality": 0.45,
+        "reasoning": 0.35,
+        "long_context": 0.2
+      },
+      "complexity": {
+        "reasoning": 0.45,
+        "long_context": 0.3,
+        "quality": 0.25
+      },
+      "problem_solving": {
+        "reasoning": 0.55,
+        "quality": 0.3,
+        "coding": 0.15
+      },
+      "creativity": {
+        "quality": 0.5,
+        "translation": 0.2,
+        "long_context": 0.15,
+        "reasoning": 0.15
+      },
+      "technical_accuracy": {
+        "reliability": 0.4,
+        "quality": 0.35,
+        "reasoning": 0.25
+      },
+      "real_world": {
+        "reliability": 0.35,
+        "quality": 0.3,
+        "long_context": 0.2,
+        "reasoning": 0.15
+      }
+    }
+  },
+  "models_by_hardness_band_and_escalation": {
+    "H1": {
+      "small_ok": ["meta-llama-3.1-8b-instruct", "teuken-7b-instruct-research", "lfm2.5-thinking:latest"],
+      "mid_needed": ["ministral-3:latest", "qwen3-30b-a3b-instruct-2507", "glm-4.7"],
+      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "gpt-5.4-2026-03-05"]
+    },
+    "H2": {
+      "small_ok": ["meta-llama-3.1-8b-instruct", "lfm2.5-thinking:latest", "ministral-3:latest"],
+      "mid_needed": ["ministral-3:latest", "qwen3-30b-a3b-instruct-2507", "qwen3-32b", "glm-4.7"],
+      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "gpt-5.4-2026-03-05"]
+    },
+    "H3": {
+      "small_ok": ["ministral-3:latest", "meta-llama-3.1-8b-instruct"],
+      "mid_needed": ["qwen3-30b-a3b-instruct-2507", "qwen3-32b", "glm-4.7", "nemotron-3-nano:latest"],
+      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "gpt-5.4-2026-03-05"]
+    },
+    "H4": {
+      "small_ok": ["ministral-3:latest", "nemotron-3-nano:latest"],
+      "mid_needed": ["qwen3-32b", "glm-4.7", "qwen3-30b-a3b-instruct-2507", "openai-gpt-oss-120b"],
+      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "gpt-5.4-2026-03-05"]
+    },
+    "H5": {
+      "small_ok": ["nemotron-3-nano:latest", "glm-4.7"],
+      "mid_needed": ["qwen3-32b", "glm-4.7", "qwen3-30b-a3b-instruct-2507", "openai-gpt-oss-120b", "llama3.1:70b"],
+      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "llama3.1:70b", "gpt-5.4-2026-03-05"]
+    },
+    "H6": {
+      "small_ok": ["glm-4.7"],
+      "mid_needed": ["qwen3.5-35b-a3b", "qwen3-32b", "glm-4.7", "llama3.1:70b"],
+      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "llama3.1:70b", "gpt-5.4-2026-03-05"]
+    },
+    "H7": {
+      "small_ok": ["glm-4.7"],
+      "mid_needed": ["qwen3.5-35b-a3b", "llama3.1:70b", "glm-4.7"],
+      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "llama3.1:70b", "gpt-5.4-2026-03-05"]
+    }
+  },
+  "fallback_model": "qwen3.5-35b-a3b",
+  "middleware_requirements": {
+    "return_model_only": true,
+    "support_additional_data_debug": true,
+    "support_health_endpoint": true,
+    "support_readiness_check": true,
+    "support_config_reload": false
+  }
+}

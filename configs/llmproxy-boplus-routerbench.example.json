@@ -1,0 +1,26 @@
+{
+  "provider": "openai-compatible",
+  "base_url": "https://llmproxy.dd.gw.bo.plus",
+  "tasks": [
+    "hellaswag",
+    "arc_challenge",
+    "winogrande",
+    "gsm8k",
+    "mmlu:professional_law",
+    "mmlu:clinical_knowledge"
+  ],
+  "samples_per_task": 25,
+  "shots": 5,
+  "seed": 42,
+  "models": [
+    "gpt-5.4-2026-03-05",
+    "qwen3.5-35b-a3b",
+    "qwen3:30b-a3b-thinking-2507-q4_K_M"
+  ],
+  "pricing_file": "configs/model_pricing.example.json",
+  "temperature": 0.0,
+  "num_predict": 256,
+  "max_workers": 1,
+  "timeout_seconds": 300,
+  "notes": "Example benchmark config for the llmproxy-boplus connection models currently visible on the dashboard connections page."
+}

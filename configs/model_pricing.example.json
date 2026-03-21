@@ -1,0 +1,145 @@
+{
+  "description": "Hosted-equivalent token pricing proxies for the current website and local model inventory. Prices are USD per 1M tokens and should be treated as estimates or placeholders, not true billed inference cost.",
+  "models": {
+    "lfm2.5-thinking:latest": {
+      "pricing_model_name": "liquid/lfm-2.5-1.2b-thinking:free",
+      "pricing_source_url": "https://openrouter.ai/liquid/lfm-2.5-1.2b-thinking:free",
+      "input_price_per_million_usd": 0.0,
+      "output_price_per_million_usd": 0.0,
+      "notes": "Free-route proxy pricing on OpenRouter; useful for comparison only."
+    },
+    "ministral-3:latest": {
+      "pricing_model_name": "mistralai/ministral-8b-2512",
+      "pricing_source_url": "https://openrouter.ai/mistralai/ministral-8b-2512",
+      "input_price_per_million_usd": 0.15,
+      "output_price_per_million_usd": 0.15,
+      "notes": "Used as a hosted-equivalent proxy for local Ministral 3."
+    },
+    "glm-4.7-flash:latest": {
+      "pricing_model_name": "z-ai/glm-4.7-flash",
+      "pricing_source_url": "https://openrouter.ai/z-ai/glm-4.7-flash",
+      "input_price_per_million_usd": 0.06,
+      "output_price_per_million_usd": 0.4,
+      "notes": "Hosted-equivalent proxy for local GLM-4.7-Flash."
+    },
+    "glm-4.7": {
+      "pricing_model_name": "z-ai/glm-4.7",
+      "pricing_source_url": "https://openrouter.ai/z-ai/glm-4.7",
+      "input_price_per_million_usd": 0.38,
+      "output_price_per_million_usd": 1.7,
+      "notes": "Hosted-equivalent proxy for the DSI gateway GLM-4.7 run."
+    },
+    "qwen3.5:35b": {
+      "pricing_model_name": "qwen/qwen3.5-35b-a3b",
+      "pricing_source_url": "https://openrouter.ai/qwen/qwen3.5-35b-a3b/api",
+      "input_price_per_million_usd": 0.25,
+      "output_price_per_million_usd": 2.0,
+      "notes": "Hosted-equivalent proxy for local Qwen 3.5 35B."
+    },
+    "qwen3.5-35b-a3b": {
+      "pricing_model_name": "qwen/qwen3.5-35b-a3b",
+      "pricing_source_url": "https://openrouter.ai/qwen/qwen3.5-35b-a3b/api",
+      "input_price_per_million_usd": 0.25,
+      "output_price_per_million_usd": 2.0,
+      "notes": "Hosted-equivalent proxy for the llmproxy-boplus Qwen 3.5 35B A3B model."
+    },
+    "gpt-5.4-2026-03-05": {
+      "pricing_model_name": "gpt-5.4-2026-03-05",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Pricing placeholder for the llmproxy-boplus GPT-5.4 model. Fill in a hosted-equivalent price when you choose the billing source to mirror."
+    },
+    "qwen3:30b-a3b-thinking-2507-q4_K_M": {
+      "pricing_model_name": "qwen3:30b-a3b-thinking-2507-q4_K_M",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Pricing placeholder for the llmproxy-boplus Qwen thinking model. Fill in a hosted-equivalent proxy when you decide which external pricing source to mirror."
+    },
+    "openai-gpt-oss-120b": {
+      "pricing_model_name": "openai/gpt-oss-120b",
+      "pricing_source_url": "https://openrouter.ai/openai/gpt-oss-120b",
+      "input_price_per_million_usd": 0.039,
+      "output_price_per_million_usd": 0.19,
+      "notes": "Hosted-equivalent proxy for the DSI gateway GPT-OSS-120B run."
+    },
+    "devstral-2:latest": {
+      "pricing_model_name": "mistralai/devstral-2512",
+      "pricing_source_url": "https://openrouter.ai/mistralai/devstral-2512/api",
+      "input_price_per_million_usd": 0.4,
+      "output_price_per_million_usd": 2.0,
+      "notes": "Hosted-equivalent proxy for local Devstral 2."
+    },
+    "deepseek-v3.1:latest": {
+      "pricing_model_name": "deepseek-v3.1:latest",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Website-inventory placeholder for the hackathon-2 DeepSeek V3.1 model. Fill in a hosted-equivalent source when you settle pricing policy."
+    },
+    "frob/kimi-k2.5:latest": {
+      "pricing_model_name": "frob/kimi-k2.5:latest",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Website-inventory placeholder for the hackathon-2 Kimi K2.5 model."
+    },
+    "llama3.1:70b": {
+      "pricing_model_name": "llama3.1:70b",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Website-inventory placeholder for the hackathon-2 Llama 3.1 70B model."
+    },
+    "nemotron-3-nano:latest": {
+      "pricing_model_name": "nemotron-3-nano:latest",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Website-inventory placeholder for the hackathon-1 Nemotron 3 Nano model."
+    },
+    "nemotron-3-super:latest": {
+      "pricing_model_name": "nemotron-3-super:latest",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Website-inventory placeholder for the hackathon-1 Nemotron 3 Super model."
+    },
+    "qwen3-32b": {
+      "pricing_model_name": "qwen3-32b",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Website-inventory placeholder for the DSI gateway Qwen3 32B model."
+    },
+    "qwen3-30b-a3b-instruct-2507": {
+      "pricing_model_name": "qwen3-30b-a3b-instruct-2507",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Website-inventory placeholder for the DSI gateway Qwen3 30B A3B instruct model."
+    },
+    "meta-llama-3.1-8b-instruct": {
+      "pricing_model_name": "meta-llama-3.1-8b-instruct",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Website-inventory placeholder for the DSI gateway Meta Llama 3.1 8B instruct model."
+    },
+    "teuken-7b-instruct-research": {
+      "pricing_model_name": "teuken-7b-instruct-research",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Website-inventory placeholder for the DSI gateway Teuken 7B instruct research model."
+    },
+    "translategemma:latest": {
+      "pricing_model_name": "translategemma:latest",
+      "pricing_source_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+      "input_price_per_million_usd": null,
+      "output_price_per_million_usd": null,
+      "notes": "Website-inventory placeholder for the hackathon-1 TranslateGemma model."
+    }
+  }
+}

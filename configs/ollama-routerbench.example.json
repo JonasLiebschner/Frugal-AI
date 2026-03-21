@@ -1,0 +1,21 @@
+{
+  "base_url": "http://172.26.32.29:11434",
+  "tasks": [
+    "hellaswag",
+    "arc_challenge",
+    "winogrande",
+    "gsm8k",
+    "mmlu:professional_law",
+    "mmlu:clinical_knowledge"
+  ],
+  "samples_per_task": 25,
+  "shots": 5,
+  "seed": 42,
+  "models": [
+    "installed"
+  ],
+  "pricing_file": "configs/model_pricing.example.json",
+  "temperature": 0.0,
+  "num_predict": 256,
+  "max_workers": 1
+}

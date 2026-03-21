@@ -1,0 +1,284 @@
+{
+  "models": [
+    {
+      "id": "lfm2.5-thinking:latest",
+      "traits": {
+        "quality": 0.54,
+        "reasoning": 0.74,
+        "coding": 0.34,
+        "translation": 0.4,
+        "speed": 0.82,
+        "cost": 0.96,
+        "structured_output": 0.38,
+        "reliability": 0.6,
+        "long_context": 0.56
+      }
+    },
+    {
+      "id": "ministral-3:latest",
+      "traits": {
+        "quality": 0.69,
+        "reasoning": 0.61,
+        "coding": 0.48,
+        "translation": 0.62,
+        "speed": 0.73,
+        "cost": 0.84,
+        "structured_output": 0.72,
+        "reliability": 0.71,
+        "long_context": 0.6
+      }
+    },
+    {
+      "id": "glm-4.7-flash:latest",
+      "traits": {
+        "quality": 0.58,
+        "reasoning": 0.5,
+        "coding": 0.36,
+        "translation": 0.55,
+        "speed": 0.9,
+        "cost": 0.88,
+        "structured_output": 0.63,
+        "reliability": 0.46,
+        "long_context": 0.92
+      }
+    },
+    {
+      "id": "qwen3.5:35b",
+      "traits": {
+        "quality": 0.76,
+        "reasoning": 0.81,
+        "coding": 0.62,
+        "translation": 0.7,
+        "speed": 0.46,
+        "cost": 0.52,
+        "structured_output": 0.44,
+        "reliability": 0.67,
+        "long_context": 0.88
+      }
+    },
+    {
+      "id": "devstral-2:latest",
+      "traits": {
+        "quality": 0.82,
+        "reasoning": 0.78,
+        "coding": 0.94,
+        "translation": 0.52,
+        "speed": 0.34,
+        "cost": 0.36,
+        "structured_output": 0.66,
+        "reliability": 0.79,
+        "long_context": 0.82
+      }
+    },
+    {
+      "id": "glm-4.7",
+      "traits": {
+        "quality": 0.79,
+        "reasoning": 0.77,
+        "coding": 0.56,
+        "translation": 0.7,
+        "speed": 0.71,
+        "cost": 0.58,
+        "structured_output": 0.7,
+        "reliability": 0.62,
+        "long_context": 0.89
+      }
+    },
+    {
+      "id": "gpt-5.4-2026-03-05",
+      "traits": {
+        "quality": 0.96,
+        "reasoning": 0.97,
+        "coding": 0.93,
+        "translation": 0.92,
+        "speed": 0.52,
+        "cost": 0.22,
+        "structured_output": 0.94,
+        "reliability": 0.94,
+        "long_context": 0.96
+      }
+    },
+    {
+      "id": "qwen3.5-35b-a3b",
+      "traits": {
+        "quality": 0.78,
+        "reasoning": 0.82,
+        "coding": 0.64,
+        "translation": 0.72,
+        "speed": 0.49,
+        "cost": 0.46,
+        "structured_output": 0.4,
+        "reliability": 0.68,
+        "long_context": 0.88
+      }
+    },
+    {
+      "id": "qwen3:30b-a3b-thinking-2507-q4_K_M",
+      "traits": {
+        "quality": 0.7,
+        "reasoning": 0.86,
+        "coding": 0.58,
+        "translation": 0.64,
+        "speed": 0.4,
+        "cost": 0.6,
+        "structured_output": 0.34,
+        "reliability": 0.58,
+        "long_context": 0.84
+      }
+    },
+    {
+      "id": "nemotron-3-nano:latest",
+      "traits": {
+        "quality": 0.74,
+        "reasoning": 0.72,
+        "coding": 0.55,
+        "translation": 0.66,
+        "speed": 0.54,
+        "cost": 0.5,
+        "structured_output": 0.66,
+        "reliability": 0.7,
+        "long_context": 0.84
+      }
+    },
+    {
+      "id": "translategemma:latest",
+      "traits": {
+        "quality": 0.56,
+        "reasoning": 0.4,
+        "coding": 0.18,
+        "translation": 0.92,
+        "speed": 0.83,
+        "cost": 0.9,
+        "structured_output": 0.3,
+        "reliability": 0.72,
+        "long_context": 0.46
+      }
+    },
+    {
+      "id": "nemotron-3-super:latest",
+      "traits": {
+        "quality": 0.88,
+        "reasoning": 0.9,
+        "coding": 0.7,
+        "translation": 0.78,
+        "speed": 0.28,
+        "cost": 0.26,
+        "structured_output": 0.76,
+        "reliability": 0.82,
+        "long_context": 0.92
+      }
+    },
+    {
+      "id": "deepseek-v3.1:latest",
+      "traits": {
+        "quality": 0.94,
+        "reasoning": 0.95,
+        "coding": 0.9,
+        "translation": 0.83,
+        "speed": 0.24,
+        "cost": 0.18,
+        "structured_output": 0.79,
+        "reliability": 0.8,
+        "long_context": 0.97
+      }
+    },
+    {
+      "id": "frob/kimi-k2.5:latest",
+      "traits": {
+        "quality": 0.91,
+        "reasoning": 0.93,
+        "coding": 0.76,
+        "translation": 0.8,
+        "speed": 0.22,
+        "cost": 0.14,
+        "structured_output": 0.7,
+        "reliability": 0.76,
+        "long_context": 0.98
+      }
+    },
+    {
+      "id": "llama3.1:70b",
+      "traits": {
+        "quality": 0.83,
+        "reasoning": 0.84,
+        "coding": 0.68,
+        "translation": 0.74,
+        "speed": 0.31,
+        "cost": 0.33,
+        "structured_output": 0.48,
+        "reliability": 0.75,
+        "long_context": 0.86
+      }
+    },
+    {
+      "id": "openai-gpt-oss-120b",
+      "traits": {
+        "quality": 0.73,
+        "reasoning": 0.72,
+        "coding": 0.58,
+        "translation": 0.66,
+        "speed": 0.63,
+        "cost": 0.74,
+        "structured_output": 0.42,
+        "reliability": 0.54,
+        "long_context": 0.8
+      }
+    },
+    {
+      "id": "qwen3-32b",
+      "traits": {
+        "quality": 0.8,
+        "reasoning": 0.83,
+        "coding": 0.66,
+        "translation": 0.74,
+        "speed": 0.47,
+        "cost": 0.44,
+        "structured_output": 0.46,
+        "reliability": 0.69,
+        "long_context": 0.86
+      }
+    },
+    {
+      "id": "teuken-7b-instruct-research",
+      "traits": {
+        "quality": 0.61,
+        "reasoning": 0.56,
+        "coding": 0.31,
+        "translation": 0.58,
+        "speed": 0.82,
+        "cost": 0.88,
+        "structured_output": 0.6,
+        "reliability": 0.63,
+        "long_context": 0.54
+      }
+    },
+    {
+      "id": "qwen3-30b-a3b-instruct-2507",
+      "traits": {
+        "quality": 0.77,
+        "reasoning": 0.79,
+        "coding": 0.63,
+        "translation": 0.7,
+        "speed": 0.53,
+        "cost": 0.49,
+        "structured_output": 0.47,
+        "reliability": 0.7,
+        "long_context": 0.84
+      }
+    },
+    {
+      "id": "meta-llama-3.1-8b-instruct",
+      "traits": {
+        "quality": 0.67,
+        "reasoning": 0.6,
+        "coding": 0.45,
+        "translation": 0.61,
+        "speed": 0.8,
+        "cost": 0.86,
+        "structured_output": 0.52,
+        "reliability": 0.71,
+        "long_context": 0.66
+      }
+    }
+  ]
+}

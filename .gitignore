@@ -1,0 +1,37 @@
+# Python cache and test noise
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.ipynb_checkpoints/
+
+# Local environments
+.venv/
+.venv*/
+env/
+ENV/
+.env
+.env.*
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Generated local outputs
+artifacts/
+runs/
+reports/
+manifests/
+data/routerbench/
+data/arena_hard_training*/
+tmp_*.js
+
+# Logs
+*.log
+*.out
+*.err

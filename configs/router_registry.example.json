@@ -1,0 +1,715 @@
+{
+  "defaults": {
+    "context_low_tokens": 1200,
+    "context_high_tokens": 6000,
+    "complexity_medium_threshold": 0.42,
+    "complexity_high_threshold": 0.68
+  },
+  "categories": [
+    {
+      "id": "coding",
+      "description": "Code generation, debugging, refactoring, API work, and implementation-heavy requests.",
+      "feature_weights": {
+        "code_signal": 0.56,
+        "reasoning_signal": 0.16,
+        "structured_output_signal": 0.08,
+        "long_context_signal": 0.08,
+        "complexity_score": 0.12
+      },
+      "preferred_capabilities": ["tools", "structured_output"],
+      "complexity_bias": {
+        "medium": 0.05,
+        "high": 0.08
+      },
+      "keywords_any": ["code", "python", "javascript", "typescript", "sql", "bug", "stack trace", "refactor", "api", "unit test"],
+      "negative_keywords": ["translate", "summary", "summarize"],
+      "model_trait_weights": {
+        "coding": 0.42,
+        "reasoning": 0.20,
+        "quality": 0.18,
+        "speed": 0.08,
+        "cost": 0.06,
+        "structured_output": 0.06
+      }
+    },
+    {
+      "id": "reasoning",
+      "description": "Analysis, planning, tradeoff evaluation, multi-step reasoning, and decision support.",
+      "feature_weights": {
+        "reasoning_signal": 0.46,
+        "complexity_score": 0.22,
+        "safety_signal": 0.10,
+        "long_context_signal": 0.10,
+        "classification_signal": 0.06,
+        "code_signal": 0.06
+      },
+      "preferred_capabilities": [],
+      "complexity_bias": {
+        "medium": 0.06,
+        "high": 0.12
+      },
+      "keywords_any": ["analyze", "compare", "best approach", "tradeoff", "decide", "architecture", "plan", "strategy", "root cause"],
+      "negative_keywords": ["translate", "rewrite in", "extract fields"],
+      "model_trait_weights": {
+        "reasoning": 0.38,
+        "quality": 0.26,
+        "reliability": 0.16,
+        "speed": 0.05,
+        "cost": 0.05,
+        "long_context": 0.10
+      }
+    },
+    {
+      "id": "structured_extraction",
+      "description": "Entity extraction, parsing, classification, and schema-constrained output.",
+      "feature_weights": {
+        "extraction_signal": 0.26,
+        "classification_signal": 0.22,
+        "structured_output_signal": 0.26,
+        "reasoning_signal": 0.08,
+        "complexity_score": 0.08,
+        "latency_signal": 0.10
+      },
+      "preferred_capabilities": ["structured_output"],
+      "required_capabilities": ["structured_output"],
+      "keywords_any": ["extract", "json", "schema", "csv", "classify", "label", "return keys", "fields"],
+      "negative_keywords": ["translate", "poem", "story"],
+      "model_trait_weights": {
+        "structured_output": 0.34,
+        "quality": 0.16,
+        "reliability": 0.16,
+        "speed": 0.16,
+        "cost": 0.10,
+        "reasoning": 0.08
+      }
+    },
+    {
+      "id": "summarization",
+      "description": "Summaries, distillation, concise rewrites, and briefing-style answers.",
+      "feature_weights": {
+        "summarization_signal": 0.48,
+        "long_context_signal": 0.18,
+        "latency_signal": 0.12,
+        "complexity_score": 0.12,
+        "structured_output_signal": 0.10
+      },
+      "preferred_capabilities": [],
+      "keywords_any": ["summarize", "summary", "tldr", "key points", "brief", "condense"],
+      "negative_keywords": ["debug", "translate", "classify"],
+      "model_trait_weights": {
+        "quality": 0.28,
+        "speed": 0.18,
+        "cost": 0.16,
+        "long_context": 0.22,
+        "reliability": 0.10,
+        "structured_output": 0.06
+      }
+    },
+    {
+      "id": "translation",
+      "description": "Translation and faithful rewriting across languages.",
+      "feature_weights": {
+        "translation_signal": 0.62,
+        "latency_signal": 0.10,
+        "complexity_score": 0.08,
+        "structured_output_signal": 0.06,
+        "long_context_signal": 0.14
+      },
+      "preferred_capabilities": [],
+      "keywords_any": ["translate", "translation", "rewrite in", "in spanish", "in german", "in french"],
+      "negative_keywords": ["debug", "stack trace", "json schema"],
+      "model_trait_weights": {
+        "translation": 0.44,
+        "quality": 0.20,
+        "speed": 0.16,
+        "cost": 0.10,
+        "reliability": 0.10
+      }
+    },
+    {
+      "id": "general_chat",
+      "description": "Conversational help and mixed instructions that do not strongly signal another category.",
+      "feature_weights": {
+        "reasoning_signal": 0.16,
+        "code_signal": 0.08,
+        "summarization_signal": 0.10,
+        "classification_signal": 0.06,
+        "complexity_score": 0.20,
+        "latency_signal": 0.16,
+        "structured_output_signal": 0.08
+      },
+      "preferred_capabilities": [],
+      "complexity_bias": {
+        "low": 0.08
+      },
+      "keywords_any": ["help", "answer", "assistant", "chat", "question"],
+      "negative_keywords": ["translate", "extract", "json schema", "stack trace"],
+      "model_trait_weights": {
+        "quality": 0.24,
+        "speed": 0.22,
+        "cost": 0.18,
+        "reliability": 0.18,
+        "reasoning": 0.10,
+        "structured_output": 0.08
+      }
+    }
+  ],
+  "models": [
+    {
+      "id": "lfm2.5-thinking:latest",
+      "label": "LFM 2.5 Thinking",
+      "provider": "ollama",
+      "categories": ["reasoning", "general_chat"],
+      "capabilities": [],
+      "max_context_tokens": 32768,
+      "traits": {
+        "quality": 0.54,
+        "reasoning": 0.74,
+        "coding": 0.34,
+        "translation": 0.40,
+        "speed": 0.82,
+        "cost": 0.96,
+        "structured_output": 0.38,
+        "reliability": 0.60,
+        "long_context": 0.56
+      }
+    },
+    {
+      "id": "ministral-3:latest",
+      "label": "Ministral 3",
+      "provider": "ollama",
+      "categories": ["general_chat", "summarization", "structured_extraction", "translation"],
+      "capabilities": ["structured_output"],
+      "max_context_tokens": 32768,
+      "traits": {
+        "quality": 0.69,
+        "reasoning": 0.61,
+        "coding": 0.48,
+        "translation": 0.62,
+        "speed": 0.73,
+        "cost": 0.84,
+        "structured_output": 0.72,
+        "reliability": 0.71,
+        "long_context": 0.60
+      }
+    },
+    {
+      "id": "glm-4.7-flash:latest",
+      "label": "GLM 4.7 Flash",
+      "provider": "ollama",
+      "categories": ["general_chat", "summarization", "structured_extraction"],
+      "capabilities": ["structured_output"],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.58,
+        "reasoning": 0.50,
+        "coding": 0.36,
+        "translation": 0.55,
+        "speed": 0.90,
+        "cost": 0.88,
+        "structured_output": 0.63,
+        "reliability": 0.46,
+        "long_context": 0.92
+      }
+    },
+    {
+      "id": "qwen3.5:35b",
+      "label": "Qwen 3.5 35B",
+      "provider": "ollama",
+      "categories": ["reasoning", "general_chat", "summarization", "translation"],
+      "capabilities": [],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.76,
+        "reasoning": 0.81,
+        "coding": 0.62,
+        "translation": 0.70,
+        "speed": 0.46,
+        "cost": 0.52,
+        "structured_output": 0.44,
+        "reliability": 0.67,
+        "long_context": 0.88
+      }
+    },
+    {
+      "id": "devstral-2:latest",
+      "label": "Devstral 2",
+      "provider": "ollama",
+      "categories": ["coding", "reasoning"],
+      "capabilities": ["structured_output"],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.82,
+        "reasoning": 0.78,
+        "coding": 0.94,
+        "translation": 0.52,
+        "speed": 0.34,
+        "cost": 0.36,
+        "structured_output": 0.66,
+        "reliability": 0.79,
+        "long_context": 0.82
+      }
+    },
+    {
+      "id": "glm-4.7",
+      "label": "GLM 4.7",
+      "provider": "dsi-experimente",
+      "categories": ["reasoning", "general_chat", "structured_extraction", "summarization", "translation"],
+      "capabilities": ["structured_output"],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.79,
+        "reasoning": 0.77,
+        "coding": 0.56,
+        "translation": 0.70,
+        "speed": 0.71,
+        "cost": 0.58,
+        "structured_output": 0.70,
+        "reliability": 0.62,
+        "long_context": 0.89
+      },
+      "metadata": {
+        "source_connection": "dsi-experimente",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "https://ai-gateway.dsi-experimente.de",
+        "tier": "mid",
+        "type_tags": ["generalist", "structured-output", "gateway"],
+        "selection_notes": "Use as a structured-output-capable DSI gateway generalist when gateway health is good and a fast proprietary-style endpoint is acceptable."
+      }
+    },
+    {
+      "id": "gpt-5.4-2026-03-05",
+      "label": "GPT 5.4",
+      "provider": "llmproxy-boplus",
+      "categories": ["reasoning", "coding", "structured_extraction", "summarization", "general_chat", "translation"],
+      "capabilities": ["structured_output", "tools"],
+      "max_context_tokens": 200000,
+      "traits": {
+        "quality": 0.96,
+        "reasoning": 0.97,
+        "coding": 0.93,
+        "translation": 0.92,
+        "speed": 0.52,
+        "cost": 0.22,
+        "structured_output": 0.94,
+        "reliability": 0.94,
+        "long_context": 0.96
+      },
+      "metadata": {
+        "source_connection": "llmproxy-boplus",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "https://llmproxy.dd.gw.bo.plus",
+        "tier": "strong",
+        "type_tags": ["flagship", "generalist", "instruct", "proprietary"],
+        "selection_notes": "Use as the top-tier catch-all model inside llmproxy-boplus for hard prompts and high-reliability routing lanes."
+      }
+    },
+    {
+      "id": "qwen3.5-35b-a3b",
+      "label": "Qwen 3.5 35B A3B",
+      "provider": "llmproxy-boplus",
+      "categories": ["reasoning", "general_chat", "summarization", "translation", "coding"],
+      "capabilities": [],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.78,
+        "reasoning": 0.82,
+        "coding": 0.64,
+        "translation": 0.72,
+        "speed": 0.49,
+        "cost": 0.46,
+        "structured_output": 0.40,
+        "reliability": 0.68,
+        "long_context": 0.88
+      },
+      "metadata": {
+        "source_connection": "llmproxy-boplus",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "https://llmproxy.dd.gw.bo.plus",
+        "tier": "mid",
+        "type_tags": ["generalist", "instruct", "open-weights"],
+        "selection_notes": "Use as the balanced mid-tier llmproxy-boplus model for reasoning-heavy prompts where GPT-5.4 is not required."
+      }
+    },
+    {
+      "id": "qwen3:30b-a3b-thinking-2507-q4_K_M",
+      "label": "Qwen 3 30B Thinking",
+      "provider": "llmproxy-boplus",
+      "categories": ["reasoning", "general_chat", "summarization"],
+      "capabilities": [],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.70,
+        "reasoning": 0.86,
+        "coding": 0.58,
+        "translation": 0.64,
+        "speed": 0.40,
+        "cost": 0.60,
+        "structured_output": 0.34,
+        "reliability": 0.58,
+        "long_context": 0.84
+      },
+      "metadata": {
+        "source_connection": "llmproxy-boplus",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "https://llmproxy.dd.gw.bo.plus",
+        "tier": "mid",
+        "type_tags": ["reasoning", "thinking", "open-weights"],
+        "selection_notes": "Use as the deliberate reasoning-focused llmproxy-boplus option when you want a cheaper think-first lane than GPT-5.4."
+      }
+    },
+    {
+      "id": "nemotron-3-nano:latest",
+      "label": "Nemotron 3 Nano",
+      "provider": "hackathon-1",
+      "categories": ["reasoning", "general_chat", "summarization", "structured_extraction"],
+      "capabilities": ["structured_output"],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.74,
+        "reasoning": 0.72,
+        "coding": 0.55,
+        "translation": 0.66,
+        "speed": 0.54,
+        "cost": 0.50,
+        "structured_output": 0.66,
+        "reliability": 0.70,
+        "long_context": 0.84
+      },
+      "metadata": {
+        "source_connection": "hackathon-1",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "http://host.docker.internal:11434",
+        "tier": "mid",
+        "type_tags": ["generalist", "moe", "open-weights"],
+        "selection_notes": "Use as a balanced mid-tier open model on hackathon-1 when you want better quality than tiny fast models without paying strong-model latency."
+      }
+    },
+    {
+      "id": "translategemma:latest",
+      "label": "TranslateGemma",
+      "provider": "hackathon-1",
+      "categories": ["translation", "summarization", "general_chat"],
+      "capabilities": [],
+      "max_context_tokens": 32768,
+      "traits": {
+        "quality": 0.56,
+        "reasoning": 0.40,
+        "coding": 0.18,
+        "translation": 0.92,
+        "speed": 0.83,
+        "cost": 0.90,
+        "structured_output": 0.30,
+        "reliability": 0.72,
+        "long_context": 0.46
+      },
+      "metadata": {
+        "source_connection": "hackathon-1",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "http://host.docker.internal:11434",
+        "tier": "small",
+        "type_tags": ["translation", "specialist", "open-weights"],
+        "selection_notes": "Use for translation-first lanes where fidelity and low cost matter more than broad reasoning."
+      }
+    },
+    {
+      "id": "nemotron-3-super:latest",
+      "label": "Nemotron 3 Super",
+      "provider": "hackathon-1",
+      "categories": ["reasoning", "general_chat", "summarization", "structured_extraction", "translation", "coding"],
+      "capabilities": ["structured_output"],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.88,
+        "reasoning": 0.90,
+        "coding": 0.70,
+        "translation": 0.78,
+        "speed": 0.28,
+        "cost": 0.26,
+        "structured_output": 0.76,
+        "reliability": 0.82,
+        "long_context": 0.92
+      },
+      "metadata": {
+        "source_connection": "hackathon-1",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "http://host.docker.internal:11434",
+        "tier": "strong",
+        "type_tags": ["generalist", "reasoning", "open-weights"],
+        "selection_notes": "Use as a strong local all-rounder when you want a high-capability open model with solid structure compliance."
+      }
+    },
+    {
+      "id": "deepseek-v3.1:latest",
+      "label": "DeepSeek V3.1",
+      "provider": "hackathon-2",
+      "categories": ["reasoning", "coding", "structured_extraction", "summarization", "general_chat", "translation"],
+      "capabilities": ["structured_output"],
+      "max_context_tokens": 262144,
+      "traits": {
+        "quality": 0.94,
+        "reasoning": 0.95,
+        "coding": 0.90,
+        "translation": 0.83,
+        "speed": 0.24,
+        "cost": 0.18,
+        "structured_output": 0.79,
+        "reliability": 0.80,
+        "long_context": 0.97
+      },
+      "metadata": {
+        "source_connection": "hackathon-2",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "http://host.docker.internal:11435",
+        "tier": "strong",
+        "type_tags": ["flagship", "reasoning", "coding", "open-weights"],
+        "selection_notes": "Use for hard reasoning and coding prompts when you want one of the strongest open local models on the website fleet."
+      }
+    },
+    {
+      "id": "frob/kimi-k2.5:latest",
+      "label": "Kimi K2.5",
+      "provider": "hackathon-2",
+      "categories": ["reasoning", "general_chat", "summarization", "translation", "structured_extraction"],
+      "capabilities": ["structured_output"],
+      "max_context_tokens": 262144,
+      "traits": {
+        "quality": 0.91,
+        "reasoning": 0.93,
+        "coding": 0.76,
+        "translation": 0.80,
+        "speed": 0.22,
+        "cost": 0.14,
+        "structured_output": 0.70,
+        "reliability": 0.76,
+        "long_context": 0.98
+      },
+      "metadata": {
+        "source_connection": "hackathon-2",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "http://host.docker.internal:11435",
+        "tier": "strong",
+        "type_tags": ["reasoning", "long-context", "open-weights"],
+        "selection_notes": "Use for long-context and deeper reasoning requests when the router wants a strong non-proprietary lane."
+      }
+    },
+    {
+      "id": "mxbai-embed-large:latest",
+      "label": "mxbai Embed Large",
+      "provider": "hackathon-2",
+      "categories": [],
+      "capabilities": ["embeddings"],
+      "max_context_tokens": 8192,
+      "traits": {
+        "quality": 0.0,
+        "reasoning": 0.0,
+        "coding": 0.0,
+        "translation": 0.0,
+        "speed": 0.0,
+        "cost": 0.0,
+        "structured_output": 0.0,
+        "reliability": 0.0,
+        "long_context": 0.0
+      },
+      "metadata": {
+        "source_connection": "hackathon-2",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "http://host.docker.internal:11435",
+        "tier": "utility",
+        "route_enabled": false,
+        "type_tags": ["embeddings"],
+        "selection_notes": "Embedding-only model. Keep in inventory but do not route chat/completions traffic here."
+      }
+    },
+    {
+      "id": "nomic-embed-text:latest",
+      "label": "Nomic Embed Text",
+      "provider": "hackathon-2",
+      "categories": [],
+      "capabilities": ["embeddings"],
+      "max_context_tokens": 8192,
+      "traits": {
+        "quality": 0.0,
+        "reasoning": 0.0,
+        "coding": 0.0,
+        "translation": 0.0,
+        "speed": 0.0,
+        "cost": 0.0,
+        "structured_output": 0.0,
+        "reliability": 0.0,
+        "long_context": 0.0
+      },
+      "metadata": {
+        "source_connection": "hackathon-2",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "http://host.docker.internal:11435",
+        "tier": "utility",
+        "route_enabled": false,
+        "type_tags": ["embeddings"],
+        "selection_notes": "Embedding-only model. Keep in inventory but exclude it from text-generation routing."
+      }
+    },
+    {
+      "id": "llama3.1:70b",
+      "label": "Llama 3.1 70B",
+      "provider": "hackathon-2",
+      "categories": ["reasoning", "general_chat", "summarization", "translation", "coding"],
+      "capabilities": [],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.83,
+        "reasoning": 0.84,
+        "coding": 0.68,
+        "translation": 0.74,
+        "speed": 0.31,
+        "cost": 0.33,
+        "structured_output": 0.48,
+        "reliability": 0.75,
+        "long_context": 0.86
+      },
+      "metadata": {
+        "source_connection": "hackathon-2",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "http://host.docker.internal:11435",
+        "tier": "strong",
+        "type_tags": ["generalist", "open-weights"],
+        "selection_notes": "Use as a strong general-purpose open model when you want a capable non-thinking baseline on hackathon-2."
+      }
+    },
+    {
+      "id": "openai-gpt-oss-120b",
+      "label": "OpenAI GPT OSS 120B",
+      "provider": "dsi-experimente",
+      "categories": ["reasoning", "general_chat", "summarization", "coding", "translation"],
+      "capabilities": [],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.73,
+        "reasoning": 0.72,
+        "coding": 0.58,
+        "translation": 0.66,
+        "speed": 0.63,
+        "cost": 0.74,
+        "structured_output": 0.42,
+        "reliability": 0.54,
+        "long_context": 0.80
+      },
+      "metadata": {
+        "source_connection": "dsi-experimente",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "https://ai-gateway.dsi-experimente.de",
+        "tier": "mid",
+        "type_tags": ["generalist", "open-source", "gateway"],
+        "selection_notes": "Use as a mid-tier DSI gateway generalist when gateway health is good and cost matters more than peak quality."
+      }
+    },
+    {
+      "id": "qwen3-32b",
+      "label": "Qwen3 32B",
+      "provider": "dsi-experimente",
+      "categories": ["reasoning", "general_chat", "summarization", "translation", "coding"],
+      "capabilities": [],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.80,
+        "reasoning": 0.83,
+        "coding": 0.66,
+        "translation": 0.74,
+        "speed": 0.47,
+        "cost": 0.44,
+        "structured_output": 0.46,
+        "reliability": 0.69,
+        "long_context": 0.86
+      },
+      "metadata": {
+        "source_connection": "dsi-experimente",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "https://ai-gateway.dsi-experimente.de",
+        "tier": "mid",
+        "type_tags": ["generalist", "open-weights", "gateway"],
+        "selection_notes": "Use as the balanced DSI gateway Qwen lane for general reasoning and chat prompts."
+      }
+    },
+    {
+      "id": "teuken-7b-instruct-research",
+      "label": "Teuken 7B Instruct Research",
+      "provider": "dsi-experimente",
+      "categories": ["general_chat", "summarization", "structured_extraction", "translation"],
+      "capabilities": ["structured_output"],
+      "max_context_tokens": 32768,
+      "traits": {
+        "quality": 0.61,
+        "reasoning": 0.56,
+        "coding": 0.31,
+        "translation": 0.58,
+        "speed": 0.82,
+        "cost": 0.88,
+        "structured_output": 0.60,
+        "reliability": 0.63,
+        "long_context": 0.54
+      },
+      "metadata": {
+        "source_connection": "dsi-experimente",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "https://ai-gateway.dsi-experimente.de",
+        "tier": "small",
+        "type_tags": ["research", "instruct", "gateway"],
+        "selection_notes": "Use for lighter DSI gateway structured or summarization requests when speed and cost matter."
+      }
+    },
+    {
+      "id": "qwen3-30b-a3b-instruct-2507",
+      "label": "Qwen3 30B A3B Instruct",
+      "provider": "dsi-experimente",
+      "categories": ["reasoning", "general_chat", "summarization", "translation", "coding"],
+      "capabilities": [],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.77,
+        "reasoning": 0.79,
+        "coding": 0.63,
+        "translation": 0.70,
+        "speed": 0.53,
+        "cost": 0.49,
+        "structured_output": 0.47,
+        "reliability": 0.70,
+        "long_context": 0.84
+      },
+      "metadata": {
+        "source_connection": "dsi-experimente",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "https://ai-gateway.dsi-experimente.de",
+        "tier": "mid",
+        "type_tags": ["generalist", "instruct", "gateway"],
+        "selection_notes": "Use as a mid-tier DSI gateway instruct model for balanced reasoning and mixed assistant tasks."
+      }
+    },
+    {
+      "id": "meta-llama-3.1-8b-instruct",
+      "label": "Meta Llama 3.1 8B Instruct",
+      "provider": "dsi-experimente",
+      "categories": ["general_chat", "summarization", "reasoning", "translation", "coding", "structured_extraction"],
+      "capabilities": ["structured_output"],
+      "max_context_tokens": 131072,
+      "traits": {
+        "quality": 0.67,
+        "reasoning": 0.60,
+        "coding": 0.45,
+        "translation": 0.61,
+        "speed": 0.80,
+        "cost": 0.86,
+        "structured_output": 0.52,
+        "reliability": 0.71,
+        "long_context": 0.66
+      },
+      "metadata": {
+        "source_connection": "dsi-experimente",
+        "source_dashboard_url": "https://llmproxy.frugalai.haupt.dev/dashboard/config/connections",
+        "provider_base_url": "https://ai-gateway.dsi-experimente.de",
+        "tier": "small",
+        "type_tags": ["generalist", "instruct", "gateway"],
+        "selection_notes": "Use as a fast small DSI gateway baseline for lightweight prompts and low-risk fallback routing."
+      }
+    }
+  ]
+}

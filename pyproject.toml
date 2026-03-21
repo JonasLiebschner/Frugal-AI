@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "frugal-bench"
+version = "0.1.0"
+description = "RouterBench-style benchmarking pipeline for Ollama-hosted models."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+bench = [
+  "datasets>=2.18.0",
+]
+middleware = [
+  "fastapi>=0.135.0",
+  "uvicorn>=0.42.0",
+  "httpx>=0.27.0",
+  "joblib>=1.3.0",
+  "scikit-learn>=1.4.0",
+  "scipy>=1.11.0",
+]
+
+[project.scripts]
+frugal-bench = "frugal_bench.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

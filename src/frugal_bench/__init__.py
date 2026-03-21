@@ -1,0 +1,2 @@
+"""Frugal Bench package."""
+

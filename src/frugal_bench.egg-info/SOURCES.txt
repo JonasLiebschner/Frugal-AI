@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+src/frugal_bench/__init__.py
+src/frugal_bench/benchmarks.py
+src/frugal_bench/cli.py
+src/frugal_bench/io_utils.py
+src/frugal_bench/ollama_client.py
+src/frugal_bench/runner.py
+src/frugal_bench/scoring.py
+src/frugal_bench.egg-info/PKG-INFO
+src/frugal_bench.egg-info/SOURCES.txt
+src/frugal_bench.egg-info/dependency_links.txt
+src/frugal_bench.egg-info/entry_points.txt
+src/frugal_bench.egg-info/requires.txt
+src/frugal_bench.egg-info/top_level.txt

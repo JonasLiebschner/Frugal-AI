@@ -1,0 +1,74 @@
+{
+  "source": {
+    "benchmark_repo": "https://github.com/lmarena/arena-hard-auto",
+    "dataset_repo": "https://huggingface.co/datasets/lmarena-ai/arena-hard-auto",
+    "pipeline_blog": "https://lmsys.org/blog/2024-04-19-arena-hard/"
+  },
+  "criteria": [
+    {
+      "id": "specificity",
+      "description": "The prompt is specific, concrete, and well-defined rather than vague."
+    },
+    {
+      "id": "domain_knowledge",
+      "description": "The prompt requires specialized or non-trivial domain knowledge."
+    },
+    {
+      "id": "complexity",
+      "description": "The prompt is structurally complex or multi-step."
+    },
+    {
+      "id": "problem_solving",
+      "description": "The prompt requires reasoning, decomposition, or solution synthesis."
+    },
+    {
+      "id": "creativity",
+      "description": "The prompt requires originality, style, or creative generation."
+    },
+    {
+      "id": "technical_accuracy",
+      "description": "The prompt requires high precision or correctness in the response."
+    },
+    {
+      "id": "real_world_application",
+      "description": "The prompt reflects a realistic applied task rather than a toy example."
+    }
+  ],
+  "escalation_mapping": {
+    "small_ok": {
+      "min_score": 0,
+      "max_score": 2
+    },
+    "mid_needed": {
+      "min_score": 3,
+      "max_score": 4
+    },
+    "strong_needed": {
+      "min_score": 5,
+      "max_score": 7
+    }
+  },
+  "weighted_escalation_mapping": {
+    "small_ok": {
+      "min_score": 0.0,
+      "max_score": 0.34
+    },
+    "mid_needed": {
+      "min_score": 0.34,
+      "max_score": 0.64
+    },
+    "strong_needed": {
+      "min_score": 0.64,
+      "max_score": 1.0
+    }
+  },
+  "weighted_escalation": {
+    "specificity": 0.10,
+    "domain_knowledge": 0.15,
+    "complexity": 0.25,
+    "problem_solving": 0.18,
+    "creativity": 0.07,
+    "technical_accuracy": 0.18,
+    "real_world": 0.07
+  }
+}

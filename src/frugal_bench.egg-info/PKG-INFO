@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: frugal-bench
+Version: 0.1.0
+Summary: RouterBench-style benchmarking pipeline for Ollama-hosted models.
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Provides-Extra: bench
+Requires-Dist: datasets>=2.18.0; extra == "bench"
+
+# Frugal-AI
+
+Detailed planning lives in [docs/operational-plan.md](docs/operational-plan.md).
+
+Benchmark pipeline docs live in [docs/benchmark-pipeline.md](docs/benchmark-pipeline.md).
