@@ -26,6 +26,12 @@ internal sealed class DashboardDataService(ITraceDataService traceDataService,
         return FilterRequestsAndAtComparison(requests, comparisonModel, selectedRoutingMethods, minValidationScore ?? 0, since ?? DateTimeOffset.MinValue, until ?? DateTimeOffset.MaxValue);
     }
 
+    public Task<AiRequestBase?> GetRequestById(string id, CancellationToken cancellationToken = default)
+    {
+        return traceDataService.GetTraceRequestByIdAsync(id, cancellationToken);
+        
+    }
+
     private async Task<IReadOnlyList<AiRequestBase>> GetRequestsAsync(
         DateTimeOffset? since,
         DateTimeOffset? until,
@@ -69,7 +75,7 @@ internal sealed class DashboardDataService(ITraceDataService traceDataService,
 
         return requests
             .Where(x => (selectedRoutingMethods.Count == 0 || selectedRoutingMethods.Contains(x.RoutingMethod)) &&
-                        x.ValidationScore >= minValidationScore &&
+                        (x.ValidationScore >= minValidationScore || (x.ValidationScore is null && minValidationScore == 0)) &&
                         x.CreatedAt >= since &&
                         x.CreatedAt <= until)
             .Select(x => new AiRequest(x, EstimateComparisonMetrics(x, comparisonModel)))

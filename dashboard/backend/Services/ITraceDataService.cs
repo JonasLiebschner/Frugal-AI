@@ -18,4 +18,14 @@ internal interface ITraceDataService
         DateTimeOffset? since,
         DateTimeOffset? until,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a single request by id.
+    /// </summary>
+    /// <param name="id">The request identifier.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the request.</param>
+    /// <returns>The matching request if found; otherwise null.</returns>
+    Task<AiRequestBase?> GetTraceRequestByIdAsync(
+        string id,
+        CancellationToken cancellationToken = default);
 }

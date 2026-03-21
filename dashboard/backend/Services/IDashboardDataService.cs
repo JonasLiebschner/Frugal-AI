@@ -30,4 +30,12 @@ public interface IDashboardDataService
         DateTimeOffset? since,
         DateTimeOffset? until,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a request by its unique identifier.
+    /// </summary>
+    /// <param name="id">The unique identifier of the request to retrieve.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the request.</param>
+    /// <returns>The requested AiRequest object if found, otherwise null.</returns>
+    Task<AiRequestBase?> GetRequestById(string id, CancellationToken cancellationToken = default);
 }
