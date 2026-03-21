@@ -1,4 +1,4 @@
-name: Build and deploy all services
+name: Build and deploy
 
 on:
   push:
@@ -18,8 +18,8 @@ env:
   LLM_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-llm
 
 jobs:
-  build-images:
-    name: Build Docker Images
+  build:
+    name: Build and push Docker images
     runs-on: ubuntu-latest
 
     steps:
@@ -54,24 +54,6 @@ jobs:
             type=raw,value=latest
             type=sha
 
-      - name: Build and push backend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./dashboard/backend
-          file: ./dashboard/backend/Dockerfile
-          push: true
-          tags: ${{ steps.meta_backend.outputs.tags }}
-          labels: ${{ steps.meta_backend.outputs.labels }}
-
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./dashboard/frontend
-          file: ./dashboard/frontend/Dockerfile.prod
-          push: true
-          tags: ${{ steps.meta_frontend.outputs.tags }}
-          labels: ${{ steps.meta_frontend.outputs.labels }}
-
       - name: Docker metadata (simple-middleware)
         id: meta_simple
         uses: docker/metadata-action@v5
@@ -89,6 +71,37 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha
+
+      - name: Docker metadata (llm-middleware)
+        id: meta_llm
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.LLM_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./dashboard/backend
+          file: ./dashboard/backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta_backend.outputs.tags }}
+          labels: ${{ steps.meta_backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./dashboard/frontend
+          file: ./dashboard/frontend/Dockerfile.prod
+          push: true
+          tags: ${{ steps.meta_frontend.outputs.tags }}
+          labels: ${{ steps.meta_frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build and push simple-middleware image
         uses: docker/build-push-action@v6
@@ -112,15 +125,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Docker metadata (llm-middleware)
-        id: meta_llm
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.LLM_IMAGE }}
-          tags: |
-            type=raw,value=latest
-            type=sha
-
       - name: Build and push llm-middleware image
         uses: docker/build-push-action@v6
         with:
@@ -135,7 +139,7 @@ jobs:
   deploy:
     name: Deploy via SSH
     runs-on: ubuntu-latest
-    needs: build-images
+    needs: build
 
     steps:
       - name: Checkout
@@ -151,7 +155,7 @@ jobs:
           script: |
             mkdir -p "${{ secrets.DEPLOY_PATH }}/traefik"
 
-      - name: Copy deployment
+      - name: Copy deployment files
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
