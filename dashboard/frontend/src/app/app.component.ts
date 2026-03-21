@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { EChartsOption, LineSeriesOption } from 'echarts';
+import type { EChartsOption } from 'echarts';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -256,75 +256,6 @@ export class AppComponent {
             }
           };
         })
-      };
-    });
-  });
-
-  protected readonly combinedRoutingCharts = computed<SustainabilityChartCard[]>(() => {
-    const data = this.dashboardData();
-    if (!data || data.length === 0) {
-      return [];
-    }
-
-    const isDark = this.darkMode();
-    const requestsByTime = data.slice().sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-    const routingOrder = this.uniqueStrings(requestsByTime.map((request) => request.routingMethod));
-    const xAxisLabels = requestsByTime.map((request) => this.formatTimestamp(request.createdAt));
-
-    const comparisonSeriesByMetric = this.metricDefinitions.reduce((acc, metric) => {
-      acc[metric.key] = requestsByTime.map((request) => request.comparison[metric.key]);
-      return acc;
-    }, {} as Record<ChartMetric['metricKey'], number[]>);
-
-    return this.metricDefinitions.map((metric) => {
-      const series: LineSeriesOption[] = routingOrder.map((routingMethod, index) => ({
-        type: 'line',
-        smooth: true,
-        symbol: 'circle',
-        symbolSize: 6,
-        name: routingMethod,
-        itemStyle: { color: this.routingMethodColor(index) },
-        lineStyle: { color: this.routingMethodColor(index), width: 2 },
-        data: requestsByTime.map((request) => (request.routingMethod === routingMethod ? request.actual[metric.key] : null))
-      }));
-
-      series.push({
-        type: 'line',
-        smooth: true,
-        symbol: 'triangle',
-        symbolSize: 7,
-        name: `${metric.label} Baseline`,
-        itemStyle: { color: isDark ? '#9aa6b7' : '#7a776e' },
-        lineStyle: { color: isDark ? '#9aa6b7' : '#7a776e', width: 2, type: 'dashed' },
-        data: comparisonSeriesByMetric[metric.key]
-      });
-
-      return {
-        key: `combined-${metric.key}`,
-        title: `${metric.label} by Routing`,
-        subtitle: `Routing comparison vs ${this.comparisonModel()}`,
-        options: {
-          tooltip: { trigger: 'axis' },
-          legend: {
-            top: 4,
-            textStyle: { color: isDark ? '#c4d1df' : '#56544f' }
-          },
-          grid: { left: 24, right: 18, top: 44, bottom: 36, containLabel: true },
-          xAxis: {
-            type: 'category',
-            boundaryGap: false,
-            axisTick: { show: false },
-            axisLine: { lineStyle: { color: isDark ? '#5f7288' : '#b7b0a2' } },
-            axisLabel: { color: isDark ? '#c4d1df' : '#56544f', rotate: 16 },
-            data: xAxisLabels
-          },
-          yAxis: {
-            type: 'value',
-            axisLabel: { color: isDark ? '#c4d1df' : '#56544f' },
-            splitLine: { lineStyle: { color: isDark ? '#374859' : '#dfd7c8' } }
-          },
-          series
-        }
       };
     });
   });
@@ -624,10 +555,5 @@ export class AppComponent {
         : metricKey === 'waterMl'
           ? '#18a46c'
           : '#b256d9';
-  }
-
-  private routingMethodColor(index: number): string {
-    const palette = ['#f05d23', '#2b7fff', '#18a46c', '#b256d9', '#f0c808', '#f97cac'];
-    return palette[index % palette.length];
   }
 }
