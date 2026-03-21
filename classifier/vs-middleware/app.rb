@@ -9,15 +9,12 @@ require_relative 'config'
 require_relative 'lib/router'
 
 set :port, 3003
+set :protection, false
 
 configure :development do
   register Sinatra::Reloader
   also_reload File.join(__dir__, 'lib/**/*.rb')
   also_reload File.join(__dir__, 'config.rb')
-end
-
-configure :test do
-  set :protection, false
 end
 
 # Lazy router: initialized on first request, not at load time.
