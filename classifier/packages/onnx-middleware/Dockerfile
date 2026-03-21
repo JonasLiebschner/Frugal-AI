@@ -32,6 +32,7 @@ COPY package.json bun.lock ./
 COPY packages/shared/package.json               packages/shared/
 COPY packages/simple-middleware/package.json    packages/simple-middleware/
 COPY packages/onnx-middleware/package.json      packages/onnx-middleware/
+COPY packages/llm-middleware/package.json       packages/llm-middleware/
 RUN bun install --frozen-lockfile
 
 # ── runtime ───────────────────────────────────────────────────────────────────
