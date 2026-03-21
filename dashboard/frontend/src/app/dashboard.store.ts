@@ -103,7 +103,6 @@ export class DashboardStore {
 
     const isDark = this.darkMode();
     const orderedRequests = data.slice().reverse();
-    const requestIds = orderedRequests.map((request) => request.id);
     const groupedByRouting = new Map<string, AiRequest[]>();
 
     for (const request of orderedRequests) {
@@ -127,7 +126,6 @@ export class DashboardStore {
       };
 
       const series = Array.from(groupedByRouting.entries()).flatMap(([routingMethod, requests], index) => {
-        const requestMap = new Map(requests.map((request) => [request.id, request]));
         const color = this.routingSeriesColor(index);
 
         return [
@@ -140,7 +138,7 @@ export class DashboardStore {
             name: `${routingMethod} Actual`,
             itemStyle: { color },
             lineStyle: { color, width: 2 },
-            data: requestIds.map((requestId) => requestMap.get(requestId)?.actual[metricDefinition.key] ?? null)
+            data: requests.map((request) => [request.createdAt, request.actual[metricDefinition.key]])
           },
           {
             type: 'line' as const,
@@ -151,7 +149,7 @@ export class DashboardStore {
             name: `${routingMethod} Comparison`,
             itemStyle: { color },
             lineStyle: { color, width: 2, type: 'dashed' as const, opacity: 0.65 },
-            data: requestIds.map((requestId) => requestMap.get(requestId)?.comparison[metricDefinition.key] ?? null)
+            data: requests.map((request) => [request.createdAt, request.comparison[metricDefinition.key]])
           }
         ];
       });
@@ -159,17 +157,16 @@ export class DashboardStore {
       return {
         key: metric.metricKey,
         title: metric.metricLabel,
-        subtitle: `Merged by routing method vs ${this.comparisonModel()}`,
+        subtitle: `Over time by routing method vs ${this.comparisonModel()}`,
         options: {
           tooltip: { trigger: 'axis' },
           legend: { top: 4, textStyle: { color: isDark ? '#c4d1df' : '#56544f' } },
           grid: { left: 24, right: 18, top: 56, bottom: 22, containLabel: true },
           xAxis: {
-            type: 'category',
+            type: 'time',
             axisTick: { show: false },
             axisLine: { lineStyle: { color: isDark ? '#5f7288' : '#b7b0a2' } },
-            axisLabel: { color: isDark ? '#c4d1df' : '#56544f' },
-            data: requestIds
+            axisLabel: { color: isDark ? '#c4d1df' : '#56544f' }
           },
           yAxis: {
             type: 'value',
