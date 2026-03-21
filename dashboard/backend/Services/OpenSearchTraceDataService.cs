@@ -23,17 +23,11 @@ public sealed class OpenSearchTraceDataService(
         DateTimeOffset? until,
         CancellationToken cancellationToken = default)
     {
-        var requestBody = BuildSearchRequestBody(since, until, _options.Size);
+        var requestBody = BuildSearchRequestBody(_options.Size);
         using var request = new HttpRequestMessage(HttpMethod.Post, $"/{_options.Index}/_search")
         {
             Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
         };
-
-        if (!string.IsNullOrWhiteSpace(_options.Username) && !string.IsNullOrWhiteSpace(_options.Password))
-        {
-            var token = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_options.Username}:{_options.Password}"));
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", token);
-        }
 
         using var response = await httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -65,6 +59,7 @@ public sealed class OpenSearchTraceDataService(
             }
 
             var model = GetString(source,
+                "gen_ai_request_model",
                 "attributes.gen_ai.request.model",
                 "span.attributes.gen_ai.request.model",
                 "resource.attributes.gen_ai.request.model",
@@ -88,17 +83,21 @@ public sealed class OpenSearchTraceDataService(
                 "span_id") ?? Guid.NewGuid().ToString("N");
 
             var createdAt = GetDateTimeOffset(source,
+                "start_timestamp",
+                "created_at",
                 "@timestamp",
                 "timestamp",
                 "startTime",
                 "start_time") ?? DateTimeOffset.UtcNow;
 
             var inputTokens = GetInt(source,
+                "gen_ai_usage_input_tokens",
                 "attributes.gen_ai.usage.input_tokens",
                 "span.attributes.gen_ai.usage.input_tokens",
                 "llm.token_count.prompt") ?? 0;
 
             var outputTokens = GetInt(source,
+                "gen_ai_usage_output_tokens",
                 "attributes.gen_ai.usage.output_tokens",
                 "span.attributes.gen_ai.usage.output_tokens",
                 "llm.token_count.completion") ?? 0;
@@ -106,7 +105,8 @@ public sealed class OpenSearchTraceDataService(
             var durationMs = GetInt(source,
                 "attributes.gen_ai.response.duration_ms",
                 "span.attributes.gen_ai.response.duration_ms",
-                "duration_ms") ?? 0;
+                "duration_ms")
+                ?? (int)Math.Round((GetDouble(source, "duration") ?? 0) * 1000);
 
             var validationScore = GetDouble(source,
                 "attributes.frugal.validation.score",
@@ -114,6 +114,7 @@ public sealed class OpenSearchTraceDataService(
                 "validation.score") ?? 0;
 
             var costUsd = GetDouble(source,
+                "operation_cost",
                 "attributes.frugal.metrics.cost_usd",
                 "span.attributes.frugal.metrics.cost_usd") ?? 0;
 
@@ -142,52 +143,12 @@ public sealed class OpenSearchTraceDataService(
             .ToList();
     }
 
-    private static string BuildSearchRequestBody(DateTimeOffset? since, DateTimeOffset? until, int size)
+    private static string BuildSearchRequestBody(int size)
     {
-        var filters = new List<object>();
-
-        if (since is not null || until is not null)
-        {
-            var range = new Dictionary<string, string>();
-            if (since is not null)
-            {
-                range["gte"] = since.Value.UtcDateTime.ToString("O");
-            }
-
-            if (until is not null)
-            {
-                range["lte"] = until.Value.UtcDateTime.ToString("O");
-            }
-
-            filters.Add(new Dictionary<string, object>
-            {
-                ["range"] = new Dictionary<string, object>
-                {
-                    ["@timestamp"] = range
-                }
-            });
-        }
-
         var request = new Dictionary<string, object>
         {
             ["size"] = size,
-            ["sort"] = new[]
-            {
-                new Dictionary<string, object>
-                {
-                    ["@timestamp"] = new Dictionary<string, string>
-                    {
-                        ["order"] = "desc"
-                    }
-                }
-            },
-            ["query"] = new Dictionary<string, object>
-            {
-                ["bool"] = new Dictionary<string, object>
-                {
-                    ["filter"] = filters
-                }
-            }
+            ["query"] = new Dictionary<string, object> { ["match_all"] = new Dictionary<string, object>() }
         };
 
         return JsonSerializer.Serialize(request, JsonOptions);
@@ -283,6 +244,21 @@ public sealed class OpenSearchTraceDataService(
             {
                 return parsed;
             }
+
+            if (TryGetValue(node, out long unixEpochLong))
+            {
+                return unixEpochLong > 9_999_999_999
+                    ? DateTimeOffset.FromUnixTimeMilliseconds(unixEpochLong)
+                    : DateTimeOffset.FromUnixTimeSeconds(unixEpochLong);
+            }
+
+            if (TryGetValue(node, out double unixEpochDouble))
+            {
+                var rounded = (long)Math.Round(unixEpochDouble);
+                return rounded > 9_999_999_999
+                    ? DateTimeOffset.FromUnixTimeMilliseconds(rounded)
+                    : DateTimeOffset.FromUnixTimeSeconds(rounded);
+            }
         }
 
         return null;
@@ -308,7 +284,7 @@ public sealed class OpenSearchTraceDataService(
         }
 
         logger.LogWarning("No environmental metric configured for model {Model}. Falling back to zero values.", model);
-        return new(0, 0, 0, 0);
+        return new(0, 0, 0, costUsd);
     }
 
     private static JsonNode? GetNodeByPath(JsonNode source, string path)
