@@ -79,16 +79,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Ensure target exists
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            mkdir -p "${{ secrets.MIDDLEWARE_DEPLOY_PATH }}"
-
       - name: Copy deployment
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -96,10 +86,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "classifier/compose.prod.yml"
-          target: ${{ secrets.MIDDLEWARE_DEPLOY_PATH }}
+          source: "docker-compose.prod.yml"
+          target: ${{ secrets.DEPLOY_PATH }}
           overwrite: true
-          strip_components: 1
 
       - name: Deploy services
         uses: appleboy/ssh-action@v1.2.0
@@ -110,7 +99,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -euo pipefail
-            cd "${{ secrets.MIDDLEWARE_DEPLOY_PATH }}"
-            docker compose -f compose.prod.yml pull
-            docker compose -f compose.prod.yml up -d
+            cd "${{ secrets.DEPLOY_PATH }}"
+            docker compose -f docker-compose.prod.yml pull middleware-simple middleware-onnx
+            docker compose -f docker-compose.prod.yml up -d middleware-simple middleware-onnx
             docker image prune -f

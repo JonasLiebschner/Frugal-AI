@@ -7,3 +7,17 @@ services:
     build: dashboard/frontend
     ports:
       - "4200:4200"
+  middleware-simple:
+    build:
+      context: ./classifier
+      dockerfile: packages/simple-middleware/Dockerfile
+    ports:
+      - "3000:3000"
+  middleware-onnx:
+    build:
+      context: ./classifier
+      dockerfile: packages/onnx-middleware/Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./classifier/models:/models
