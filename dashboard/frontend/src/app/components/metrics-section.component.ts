@@ -18,12 +18,14 @@ import { MetricCardComponent } from './metric-card.component';
           </div>
         </div>
         <div class="grid flex-1 gap-4 sm:grid-cols-2">
-          @for (card of sustainabilityCards(); track card.label) {
-            <app-metric-card
-              [label]="card.label"
-              [value]="card.value"
-              [comparison]="card.comparison"
-            />
+          @for (card of sustainabilityCards(); track card.label; let index = $index) {
+            <div [ngClass]="lastOddCardClass(index, sustainabilityCards().length)">
+              <app-metric-card
+                [label]="card.label"
+                [value]="card.value"
+                [comparison]="card.comparison"
+              />
+            </div>
           }
         </div>
       </article>
@@ -32,16 +34,18 @@ import { MetricCardComponent } from './metric-card.component';
         <div class="flex flex-wrap items-end justify-between gap-2">
           <div>
             <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">General Metrics</h3>
-            <p class="text-sm text-stone-500 dark:text-slate-400">Request and quality overview</p>
+            <p class="text-sm text-stone-500 dark:text-slate-400">Request activity overview</p>
           </div>
         </div>
         <div class="grid flex-1 gap-4 sm:grid-cols-2">
-          @for (card of generalCards(); track card.label) {
-            <app-metric-card
-              [label]="card.label"
-              [value]="card.value"
-              [comparison]="card.comparison"
-            />
+          @for (card of generalCards(); track card.label; let index = $index) {
+            <div [ngClass]="lastOddCardClass(index, generalCards().length)">
+              <app-metric-card
+                [label]="card.label"
+                [value]="card.value"
+                [comparison]="card.comparison"
+              />
+            </div>
           }
         </div>
       </article>
@@ -51,4 +55,8 @@ import { MetricCardComponent } from './metric-card.component';
 export class MetricsSectionComponent {
   readonly sustainabilityCards = input.required<MetricSummaryCard[]>();
   readonly generalCards = input.required<MetricSummaryCard[]>();
+
+  protected lastOddCardClass(index: number, length: number): string {
+    return length % 2 === 1 && index === length - 1 ? 'sm:col-span-2' : '';
+  }
 }

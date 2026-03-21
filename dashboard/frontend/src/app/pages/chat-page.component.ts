@@ -125,7 +125,7 @@ import { DashboardStore } from '../dashboard.store';
                   [ngModel]="store.chatPrompt()"
                   (ngModelChange)="store.chatPrompt.set($event)"
                   (keydown)="handleComposerKeydown($event)"
-                  placeholder="Message OpenAI..."
+                  placeholder="Message llmproxy..."
                 ></textarea>
 
                 <div class="flex items-center justify-between gap-3 sm:flex-col sm:items-stretch">

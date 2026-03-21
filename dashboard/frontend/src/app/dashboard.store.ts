@@ -4,7 +4,7 @@ import type { EChartsOption } from 'echarts';
 import { MessageService } from 'primeng/api';
 
 import { environment } from '../environments/environment';
-import { formatCost, formatDuration, formatScore, formatTimestamp, formatTreesSaved, modelDelta } from './dashboard-formatters';
+import { formatCost, formatDuration, formatTimestamp, formatTreesSaved, modelDelta } from './dashboard-formatters';
 import type {
   AiRequest,
   ApiAiRequest,
@@ -13,7 +13,6 @@ import type {
   LocalDateTimeParts,
   MetricSummaryCard,
   OpenAiModelListResponse,
-  RoutingMethodChartSection,
   SelectOption
 } from './dashboard.types';
 
@@ -37,7 +36,7 @@ export class DashboardStore {
   readonly chatSelectedModel = signal<string>('auto');
   readonly chatSelectedRoutingMethod = signal<string>('');
   readonly chatRoutingMethods = signal<string[]>([]);
-  readonly chatModels = signal<string[]>(['auto', ...environment.openai_models]);
+  readonly chatModels = signal<string[]>(['auto']);
   readonly chatSubmitting = signal<boolean>(false);
   readonly darkMode = signal<boolean>(false);
   readonly loading = signal<boolean>(false);
@@ -79,7 +78,6 @@ export class DashboardStore {
   readonly totalInputTokens = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.inputTokens, 0) ?? 0);
   readonly totalOutputTokens = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.outputTokens, 0) ?? 0);
   readonly treesSaved = computed(() => Math.max(0, (this.totalComparisonCo2() - this.totalCo2()) / this.co2GramsPerTree));
-  readonly avgValidationScore = computed(() => this.dashboardData()?.length ? this.dashboardData()!.reduce((sum, r) => sum + r.validationScore, 0) / this.dashboardData()!.length : 0);
   readonly avgDurationMs = computed(() => this.dashboardData()?.length ? this.dashboardData()!.reduce((sum, r) => sum + r.durationMs, 0) / this.dashboardData()!.length : 0);
 
   readonly sustainabilityMetricCards = computed<MetricSummaryCard[]>(() => [
@@ -94,20 +92,21 @@ export class DashboardStore {
     { label: 'Total Requests', value: String(this.visibleRequests().length) },
     { label: 'Input Tokens', value: String(this.totalInputTokens()) },
     { label: 'Output Tokens', value: String(this.totalOutputTokens()) },
-    { label: 'Avg Duration', value: formatDuration(this.avgDurationMs()) },
-    { label: 'Validation Score', value: formatScore(this.avgValidationScore()) }
+    { label: 'Avg Duration', value: formatDuration(this.avgDurationMs()) }
   ]);
 
-  readonly sustainabilityChartSections = computed<RoutingMethodChartSection[]>(() => {
+  readonly sustainabilityCharts = computed(() => {
     const data = this.dashboardData();
     if (!data) {
       return [];
     }
 
     const isDark = this.darkMode();
+    const orderedRequests = data.slice().reverse();
+    const requestIds = orderedRequests.map((request) => request.id);
     const groupedByRouting = new Map<string, AiRequest[]>();
 
-    for (const request of data) {
+    for (const request of orderedRequests) {
       const existing = groupedByRouting.get(request.routingMethod);
       if (existing) {
         existing.push(request);
@@ -116,72 +115,76 @@ export class DashboardStore {
       }
     }
 
-    return Array.from(groupedByRouting.entries()).map(([routingMethod, requests]) => ({
-      routingMethod,
-      charts: this.metricDefinitions.map((metricDefinition) => {
-        const metric: ChartMetric = {
-          metricKey: metricDefinition.key,
-          metricLabel: metricDefinition.label,
-          points: requests.slice().reverse().map((request) => ({
-            requestId: request.id,
-            actual: request.actual[metricDefinition.key],
-            comparison: request.comparison[metricDefinition.key]
-          }))
-        };
-        const color = this.metricColor(metric.metricKey);
+    return this.metricDefinitions.map((metricDefinition) => {
+      const metric: ChartMetric = {
+        metricKey: metricDefinition.key,
+        metricLabel: metricDefinition.label,
+        points: orderedRequests.map((request) => ({
+          requestId: request.id,
+          actual: request.actual[metricDefinition.key],
+          comparison: request.comparison[metricDefinition.key]
+        }))
+      };
 
-        return {
-          key: `${routingMethod}-${metric.metricKey}`,
-          title: metric.metricLabel,
-          subtitle: `Actual vs ${this.comparisonModel()}`,
-          options: {
-            tooltip: { trigger: 'axis' },
-            legend: { top: 4, textStyle: { color: isDark ? '#c4d1df' : '#56544f' } },
-            grid: { left: 24, right: 18, top: 42, bottom: 22, containLabel: true },
-            xAxis: {
-              type: 'category',
-              axisTick: { show: false },
-              axisLine: { lineStyle: { color: isDark ? '#5f7288' : '#b7b0a2' } },
-              axisLabel: { color: isDark ? '#c4d1df' : '#56544f' },
-              data: metric.points.map((point) => point.requestId)
-            },
-            yAxis: {
-              type: 'value',
-              axisLabel: { color: isDark ? '#c4d1df' : '#56544f' },
-              splitLine: { lineStyle: { color: isDark ? '#374859' : '#dfd7c8' } }
-            },
-            series: [
-              {
-                type: 'line',
-                smooth: true,
-                symbol: 'circle',
-                symbolSize: 6,
-                name: `${metric.metricLabel} Actual`,
-                itemStyle: { color },
-                lineStyle: { color, width: 2 },
-                data: metric.points.map((point) => point.actual)
-              },
-              {
-                type: 'line',
-                smooth: true,
-                symbol: 'circle',
-                symbolSize: 6,
-                name: `${metric.metricLabel} Comparison`,
-                itemStyle: { color },
-                lineStyle: { color, width: 2, type: 'dashed' },
-                data: metric.points.map((point) => point.comparison)
-              }
-            ]
-          } satisfies EChartsOption
-        };
-      })
-    }));
+      const series = Array.from(groupedByRouting.entries()).flatMap(([routingMethod, requests], index) => {
+        const requestMap = new Map(requests.map((request) => [request.id, request]));
+        const color = this.routingSeriesColor(index);
+
+        return [
+          {
+            type: 'line' as const,
+            smooth: true,
+            symbol: 'circle',
+            symbolSize: 6,
+            connectNulls: false,
+            name: `${routingMethod} Actual`,
+            itemStyle: { color },
+            lineStyle: { color, width: 2 },
+            data: requestIds.map((requestId) => requestMap.get(requestId)?.actual[metricDefinition.key] ?? null)
+          },
+          {
+            type: 'line' as const,
+            smooth: true,
+            symbol: 'circle',
+            symbolSize: 5,
+            connectNulls: false,
+            name: `${routingMethod} Comparison`,
+            itemStyle: { color },
+            lineStyle: { color, width: 2, type: 'dashed' as const, opacity: 0.65 },
+            data: requestIds.map((requestId) => requestMap.get(requestId)?.comparison[metricDefinition.key] ?? null)
+          }
+        ];
+      });
+
+      return {
+        key: metric.metricKey,
+        title: metric.metricLabel,
+        subtitle: `Merged by routing method vs ${this.comparisonModel()}`,
+        options: {
+          tooltip: { trigger: 'axis' },
+          legend: { top: 4, textStyle: { color: isDark ? '#c4d1df' : '#56544f' } },
+          grid: { left: 24, right: 18, top: 56, bottom: 22, containLabel: true },
+          xAxis: {
+            type: 'category',
+            axisTick: { show: false },
+            axisLine: { lineStyle: { color: isDark ? '#5f7288' : '#b7b0a2' } },
+            axisLabel: { color: isDark ? '#c4d1df' : '#56544f' },
+            data: requestIds
+          },
+          yAxis: {
+            type: 'value',
+            axisLabel: { color: isDark ? '#c4d1df' : '#56544f' },
+            splitLine: { lineStyle: { color: isDark ? '#374859' : '#dfd7c8' } }
+          },
+          series
+        } satisfies EChartsOption
+      };
+    });
   });
 
   readonly formatTimestamp = formatTimestamp;
   readonly formatDuration = formatDuration;
   readonly formatCost = formatCost;
-  readonly formatScore = formatScore;
   readonly formatTreesSaved = formatTreesSaved;
 
   constructor(
@@ -195,21 +198,11 @@ export class DashboardStore {
 
     this.loadChatModels();
     this.loadComparisonModels();
-    this.loadDashboardData();
   }
 
   async sendPrompt(): Promise<void> {
     const prompt = this.chatPrompt().trim();
     if (!prompt) {
-      return;
-    }
-
-    if (!environment.openai_api_key) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Missing OpenAI token',
-        detail: 'Set environment.openai_api_key in the frontend environment config.'
-      });
       return;
     }
 
@@ -229,16 +222,17 @@ export class DashboardStore {
     this.chatPrompt.set('');
 
     try {
-      const response = await fetch(`${environment.openai_base_url.replace(/\/$/, '')}/responses`, {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+
+      const response = await fetch(`${environment.llmproxy_base_url.replace(/\/$/, '')}/chat/completions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${environment.openai_api_key}`
-        },
+        headers,
         body: JSON.stringify({
           model,
-          store: false,
-          input: prompt
+          messages: [{ role: 'user', content: prompt }],
+          stream: false
         })
       });
 
@@ -249,7 +243,7 @@ export class DashboardStore {
 
       const assistantText = this.extractAssistantText(payload);
       if (!assistantText) {
-        throw new Error('OpenAI response did not contain assistant text.');
+        throw new Error('Proxy response did not contain assistant text.');
       }
 
       this.chatMessages.set([...nextMessages, { role: 'assistant', content: assistantText }]);
@@ -298,6 +292,36 @@ export class DashboardStore {
 
   setSelectedRoutingMethods(value: string[]): void {
     this.selectedRoutingMethods.set(value);
+    this.loadDashboardData();
+  }
+
+  hydrateDashboardFilters(filters: {
+    comparisonModel?: string | null;
+    routingMethods?: string[] | null;
+    timeZone?: string | null;
+    startDateTimeInput?: string | null;
+    endDateTimeInput?: string | null;
+  }): void {
+    if (filters.comparisonModel) {
+      this.comparisonModel.set(filters.comparisonModel);
+    }
+
+    if (filters.routingMethods) {
+      this.selectedRoutingMethods.set(this.uniqueStrings(filters.routingMethods.filter((value) => value.trim().length > 0)));
+    }
+
+    if (filters.timeZone) {
+      this.timeZone.set(filters.timeZone);
+    }
+
+    if (filters.startDateTimeInput) {
+      this.startDateTimeInput.set(filters.startDateTimeInput);
+    }
+
+    if (filters.endDateTimeInput) {
+      this.endDateTimeInput.set(filters.endDateTimeInput);
+    }
+
     this.loadDashboardData();
   }
 
@@ -414,7 +438,7 @@ export class DashboardStore {
         }
       },
       error: () => {
-        this.chatModels.set(['auto', ...environment.openai_models]);
+        this.chatModels.set(['auto']);
       }
     });
   }
@@ -524,14 +548,9 @@ export class DashboardStore {
     return (utcFromTimeZoneClock - date.getTime()) / 60_000;
   }
 
-  private metricColor(metricKey: ChartMetric['metricKey']): string {
-    return metricKey === 'powerWh'
-      ? '#f05d23'
-      : metricKey === 'co2'
-        ? '#2b7fff'
-        : metricKey === 'waterMl'
-          ? '#18a46c'
-          : '#b256d9';
+  private routingSeriesColor(index: number): string {
+    const palette = ['#f05d23', '#2b7fff', '#18a46c', '#b256d9', '#e0a100', '#0f9aa8'];
+    return palette[index % palette.length];
   }
 
   private resolveChatModel(): string {
@@ -548,17 +567,29 @@ export class DashboardStore {
   }
 
   private extractAssistantText(payload: unknown): string {
-    if (!payload || typeof payload !== 'object' || !('output' in payload) || !Array.isArray(payload.output)) {
+    if (!payload || typeof payload !== 'object' || !('choices' in payload) || !Array.isArray(payload.choices)) {
       return '';
     }
 
-    for (const item of payload.output) {
-      if (!item || typeof item !== 'object' || item.type !== 'message' || !Array.isArray(item.content)) {
+    for (const choice of payload.choices) {
+      if (!choice || typeof choice !== 'object' || !('message' in choice) || !choice.message || typeof choice.message !== 'object') {
         continue;
       }
 
-      for (const contentItem of item.content) {
-        if (contentItem && typeof contentItem === 'object' && contentItem.type === 'output_text' && typeof contentItem.text === 'string') {
+      if (typeof choice.message.content === 'string') {
+        return choice.message.content;
+      }
+
+      if (!Array.isArray(choice.message.content)) {
+        continue;
+      }
+
+      for (const contentItem of choice.message.content) {
+        if (!contentItem || typeof contentItem !== 'object') {
+          continue;
+        }
+
+        if (contentItem.type === 'text' && typeof contentItem.text === 'string') {
           return contentItem.text;
         }
       }

@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 
 import { DashboardStore } from '../dashboard.store';
 import { ChartsSectionComponent } from '../components/charts-section.component';
@@ -26,11 +28,11 @@ import { RequestsTableComponent } from '../components/requests-table.component';
         [timeZoneOptions]="store.timeZoneOptions"
         [startDateTimeInput]="store.startDateTimeInput()"
         [endDateTimeInput]="store.endDateTimeInput()"
-        (comparisonModelChange)="store.setComparisonModel($event)"
-        (selectedRoutingMethodsChange)="store.setSelectedRoutingMethods($event)"
-        (timeZoneChange)="store.setTimeZone($event)"
-        (startDateTimeInputChange)="store.setStartDateTimeInput($event)"
-        (endDateTimeInputChange)="store.setEndDateTimeInput($event)"
+        (comparisonModelChange)="handleComparisonModelChange($event)"
+        (selectedRoutingMethodsChange)="handleSelectedRoutingMethodsChange($event)"
+        (timeZoneChange)="handleTimeZoneChange($event)"
+        (startDateTimeInputChange)="handleStartDateTimeInputChange($event)"
+        (endDateTimeInputChange)="handleEndDateTimeInputChange($event)"
       />
 
       @if (store.error()) {
@@ -47,10 +49,76 @@ import { RequestsTableComponent } from '../components/requests-table.component';
 
       <app-metrics-section [sustainabilityCards]="store.sustainabilityMetricCards()" [generalCards]="store.generalMetricCards()" />
       <app-requests-table [requests]="store.visibleRequests()" [comparisonModel]="store.comparisonModel()" />
-      <app-charts-section [sections]="store.sustainabilityChartSections()" />
+      <app-charts-section [charts]="store.sustainabilityCharts()" />
     </div>
   `
 })
 export class DashboardPageComponent {
   protected readonly store = inject(DashboardStore);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  private skipNextQuerySync = false;
+
+  constructor() {
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((queryParamMap) => {
+        if (this.skipNextQuerySync) {
+          this.skipNextQuerySync = false;
+          return;
+        }
+
+        this.store.hydrateDashboardFilters({
+          comparisonModel: queryParamMap.get('comparisonModel'),
+          routingMethods: queryParamMap.getAll('routingMethod'),
+          timeZone: queryParamMap.get('timeZone'),
+          startDateTimeInput: queryParamMap.get('start'),
+          endDateTimeInput: queryParamMap.get('end')
+        });
+      });
+  }
+
+  protected handleComparisonModelChange(value: string): void {
+    this.store.setComparisonModel(value);
+    void this.updateDashboardQueryParams();
+  }
+
+  protected handleSelectedRoutingMethodsChange(value: string[]): void {
+    this.store.setSelectedRoutingMethods(value);
+    void this.updateDashboardQueryParams();
+  }
+
+  protected handleTimeZoneChange(value: string): void {
+    this.store.setTimeZone(value);
+    void this.updateDashboardQueryParams();
+  }
+
+  protected handleStartDateTimeInputChange(value: string): void {
+    this.store.setStartDateTimeInput(value);
+    void this.updateDashboardQueryParams();
+  }
+
+  protected handleEndDateTimeInputChange(value: string): void {
+    this.store.setEndDateTimeInput(value);
+    void this.updateDashboardQueryParams();
+  }
+
+  private updateDashboardQueryParams(): Promise<boolean> {
+    this.skipNextQuerySync = true;
+
+    const queryParams: Params = {
+      comparisonModel: this.store.comparisonModel(),
+      routingMethod: this.store.selectedRoutingMethods().length > 0 ? this.store.selectedRoutingMethods() : null,
+      timeZone: this.store.timeZone() || null,
+      start: this.store.startDateTimeInput() || null,
+      end: this.store.endDateTimeInput() || null
+    };
+
+    return this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      replaceUrl: true
+    });
+  }
 }

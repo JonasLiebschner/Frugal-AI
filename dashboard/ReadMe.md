@@ -9,11 +9,11 @@ Graphs showing requests over time are also part of the visualization.
 
 The user interface also includes a chat window, where the user can issue new requests.
 
-## OpenAI Config
+## llmproxy Config
 
-The chat calls the OpenAI API directly from the frontend.
+The chat calls llmproxy directly from the frontend.
 
-Set your token in:
+Set the proxy URLs in:
 
 - `frontend/src/environments/environment.dev.ts`
 - `frontend/src/environments/environment.ts`
@@ -23,9 +23,8 @@ Example:
 ```ts
 export const environment = {
   api_url: "http://localhost:8080",
-  openai_api_key: "sk-...",
-  openai_base_url: "https://api.openai.com/v1",
-  openai_models: ["gpt-4.1-mini", "gpt-4.1", "gpt-4o-mini"],
+  llmproxy_base_url: "https://llmproxy.frugalai.haupt.dev/v1",
+  openai_models_url: "https://llmproxy.frugalai.haupt.dev/v1/models",
 };
 ```
 
@@ -33,5 +32,4 @@ export const environment = {
 
 - Angular 22 (with signals and signals-forms), charts are rendered with ngx-echarts
 - Docker
-
 

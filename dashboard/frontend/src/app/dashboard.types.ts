@@ -54,11 +54,6 @@ export type SustainabilityChartCard = {
   options: EChartsOption;
 };
 
-export type RoutingMethodChartSection = {
-  routingMethod: string;
-  charts: SustainabilityChartCard[];
-};
-
 export type LocalDateTimeParts = {
   year: number;
   month: number;
