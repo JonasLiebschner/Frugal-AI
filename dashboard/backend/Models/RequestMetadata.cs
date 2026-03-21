@@ -14,5 +14,19 @@ public sealed class ModelEnvironmentalMetricsOptions
 {
     public const string SectionName = "ModelEnvironmentalMetrics";
 
-    public Dictionary<string, RequestMetadata> Models { get; init; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, ModelEnvironmentalMetricProfile> Models { get; init; } = new(StringComparer.OrdinalIgnoreCase);
+}
+
+public sealed class ModelEnvironmentalMetricProfile
+{
+    public List<TokenRangeEnvironmentalMetric> TokenRanges { get; init; } = [];
+}
+
+public sealed class TokenRangeEnvironmentalMetric
+{
+    public int MaxTokens { get; init; }
+    public double PowerWh { get; init; }
+    public double Co2 { get; init; }
+    public double WaterMl { get; init; }
+    public double CostUsd { get; init; }
 }

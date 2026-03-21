@@ -36,14 +36,21 @@ public sealed class DashboardDataService(ITraceDataService traceDataService,
 
     private RequestMetadata EstimateComparisonMetrics(AiRequestBase aiRequest, string comparisonModel)
     {
-        if (!environmentalMetricsOptions.Value.Models.TryGetValue(comparisonModel, out var comparisonMetrics))
+        if (!environmentalMetricsOptions.Value.Models.TryGetValue(comparisonModel, out var comparisonProfile))
             throw new InvalidOperationException($"No environmental metrics configured for model {comparisonModel}.");
 
         var totalTokens = aiRequest.InputTokens + aiRequest.OutputTokens;
-        return new(totalTokens * comparisonMetrics.PowerWh,
-                totalTokens * comparisonMetrics.Co2,
-                totalTokens * comparisonMetrics.WaterMl,
-                totalTokens * comparisonMetrics.CostUsd);
+        var orderedRanges = comparisonProfile.TokenRanges.OrderBy(x => x.MaxTokens).ToList();
+        var rangeMetrics = orderedRanges.FirstOrDefault(x => totalTokens <= x.MaxTokens)
+                           ?? orderedRanges.LastOrDefault();
+
+        if (rangeMetrics is null)
+            throw new InvalidOperationException($"No token ranges configured for model {comparisonModel}.");
+
+        return new(totalTokens * rangeMetrics.PowerWh,
+            totalTokens * rangeMetrics.Co2,
+            totalTokens * rangeMetrics.WaterMl,
+            totalTokens * rangeMetrics.CostUsd);
     }
 
     private List<AiRequest> FilterRequestsAndAtComparison(

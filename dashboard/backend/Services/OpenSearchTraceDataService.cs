@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -7,16 +6,14 @@ using Microsoft.Extensions.Options;
 
 namespace FrugalApi.Dashboard.Api.Services;
 
-public sealed class OpenSearchTraceDataService(
+internal class OpenSearchTraceDataService(
     HttpClient httpClient,
     IOptions<OpenSearchOptions> options,
-    IOptions<ModelEnvironmentalMetricsOptions> environmentalMetricsOptions,
     ILogger<OpenSearchTraceDataService> logger) : ITraceDataService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly OpenSearchOptions _options = options.Value;
-    private readonly ModelEnvironmentalMetricsOptions _environmentalMetrics = environmentalMetricsOptions.Value;
 
     public async Task<List<AiRequestBase>> GetTraceRequestsAsync(
         DateTimeOffset? since,
@@ -108,10 +105,6 @@ public sealed class OpenSearchTraceDataService(
                 "duration_ms")
                 ?? (int)Math.Round((GetDouble(source, "duration") ?? 0) * 1000);
 
-            var validationScore = GetDouble(source,
-                "attributes.frugal.validation.score",
-                "span.attributes.frugal.validation.score",
-                "validation.score") ?? 0;
 
             var costUsd = GetDouble(source,
                 "operation_cost",
@@ -133,7 +126,7 @@ public sealed class OpenSearchTraceDataService(
                 inputTokens,
                 outputTokens,
                 durationMs,
-                validationScore,
+                5,
                 createdAt,
                 environmentalMetric));
         }
@@ -278,13 +271,7 @@ public sealed class OpenSearchTraceDataService(
 
     private RequestMetadata GetEnvironmentalMetric(string model, int totalTokens, double costUsd)
     {
-        if (_environmentalMetrics.Models.TryGetValue(model, out var metric))
-        {
-            return new(metric.PowerWh * totalTokens, metric.Co2 * totalTokens, metric.WaterMl * totalTokens, costUsd);
-        }
-
-        logger.LogWarning("No environmental metric configured for model {Model}. Falling back to zero values.", model);
-        return new(0, 0, 0, costUsd);
+        return new RequestMetadata(4, 3, 2, 1);
     }
 
     private static JsonNode? GetNodeByPath(JsonNode source, string path)
