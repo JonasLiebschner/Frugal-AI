@@ -8,18 +8,18 @@ builder.Services.AddControllers();
 builder.Services.AddTransient<IDashboardDataService, DashboardDataService>();
 builder.Services.AddSingleton<IStarsService, StarsService>();
 builder.Services
-    .AddOptions<OpenSearchOptions>()
-    .Bind(builder.Configuration.GetSection(OpenSearchOptions.SectionName))
-    .Validate(x => !string.IsNullOrWhiteSpace(x.Url), "OpenSearch:Url is required")
+    .AddOptions<VictoriaOptions>()
+    .Bind(builder.Configuration.GetSection(VictoriaOptions.SectionName))
+    .Validate(x => !string.IsNullOrWhiteSpace(x.Url), "Victoria:Url is required")
     .ValidateOnStart();
 
 builder.Services
     .AddOptions<ModelEnvironmentalMetricsOptions>()
     .Bind(builder.Configuration.GetSection(ModelEnvironmentalMetricsOptions.SectionName));
 
-builder.Services.AddHttpClient<ITraceDataService, OpenSearchTraceDataService>((serviceProvider, client) =>
+builder.Services.AddHttpClient<ITraceDataService, VictoriaTraceDataService>((serviceProvider, client) =>
 {
-    var options = serviceProvider.GetRequiredService<IOptions<OpenSearchOptions>>().Value;
+    var options = serviceProvider.GetRequiredService<IOptions<VictoriaOptions>>().Value;
     client.BaseAddress = new Uri(options.Url);
     client.Timeout = TimeSpan.FromSeconds(15);
 });

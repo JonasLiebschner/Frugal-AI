@@ -18,7 +18,7 @@ public sealed class RequestsController(IDashboardDataService service, IStarsServ
     [Route("stars/{id}")]
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> SetRequestStars(string id, [FromQuery, Required, Range(0, 5)] int stars)
+    public async Task<ActionResult> SetRequestStars(string id, [FromQuery, Required, Range(1, 5)] int stars)
     {
         await starsService.SaveStars(id, stars);
         return Ok();
@@ -33,6 +33,26 @@ public sealed class RequestsController(IDashboardDataService service, IStarsServ
     public ActionResult<List<string>> GetComparisonModels()
     {
         return service.GetAvailableComparisonModels();
+    }
+    
+    /// <summary>
+    /// Retrieves a request by its unique identifier.
+    /// </summary>
+    /// <param name="id">The unique identifier of the request to retrieve.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the request.</param>
+    /// <returns>The requested AiRequest object if found, otherwise NotFound.</returns>
+    [HttpGet]
+    [Route("{id}")]
+    [ProducesResponseType<AiRequest>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<AiRequest>> GetRequestById(string id, CancellationToken cancellationToken = default)
+    {
+        var request = await service.GetRequestById(id, cancellationToken);
+        if (request == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(request);
     }
 
     /// <summary>
