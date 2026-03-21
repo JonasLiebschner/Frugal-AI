@@ -88,5 +88,12 @@ export type ChatMessage = {
 export type OpenAiModelListResponse = {
   data?: Array<{
     id?: string;
+    metadata?: {
+      llmproxy?: {
+        kind?: string;
+        middleware_id?: string;
+        selector?: string;
+      };
+    };
   }>;
 };

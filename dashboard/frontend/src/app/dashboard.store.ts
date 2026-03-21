@@ -26,7 +26,7 @@ export class DashboardStore {
   private requestToken = 0;
 
   readonly models = signal<string[]>(['gpt-4.1', 'gpt-4.1-mini']);
-  readonly routingMethods = signal<string[]>(['round-robin', 'latency-first', 'cost-optimized']);
+  readonly routingMethods = signal<string[]>([]);
   readonly comparisonModel = signal<string>('gpt-4.1');
   readonly selectedRoutingMethods = signal<string[]>([]);
   readonly timeZone = signal<string>(this.detectLocalTimeZone());
@@ -35,7 +35,8 @@ export class DashboardStore {
   readonly chatPrompt = signal<string>('');
   readonly chatMessages = signal<ChatMessage[]>([]);
   readonly chatSelectedModel = signal<string>('auto');
-  readonly chatSelectedRoutingMethod = signal<string>('round-robin');
+  readonly chatSelectedRoutingMethod = signal<string>('');
+  readonly chatRoutingMethods = signal<string[]>([]);
   readonly chatModels = signal<string[]>(['auto', ...environment.openai_models]);
   readonly chatSubmitting = signal<boolean>(false);
   readonly darkMode = signal<boolean>(false);
@@ -62,6 +63,7 @@ export class DashboardStore {
 
   readonly modelOptions = computed<SelectOption[]>(() => this.models().map((model) => ({ label: model, value: model })));
   readonly routingOptions = computed<SelectOption[]>(() => this.routingMethods().map((routingMethod) => ({ label: routingMethod, value: routingMethod })));
+  readonly chatRoutingOptions = computed<SelectOption[]>(() => this.chatRoutingMethods().map((routingMethod) => ({ label: routingMethod, value: routingMethod })));
   readonly chatModelOptions = computed<SelectOption[]>(() => this.chatModels().map((model) => ({ label: model === 'auto' ? 'Auto' : model, value: model })));
   readonly canSelectChatRoutingMethod = computed(() => this.chatSelectedModel() === 'auto');
 
@@ -212,6 +214,16 @@ export class DashboardStore {
     }
 
     const nextMessages: ChatMessage[] = [{ role: 'user', content: prompt }];
+    const model = this.resolveChatModel();
+    if (!model) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'No routing method available',
+        detail: 'No middleware routing method is available for Auto mode.'
+      });
+      return;
+    }
+
     this.chatSubmitting.set(true);
     this.chatMessages.set(nextMessages);
     this.chatPrompt.set('');
@@ -224,7 +236,7 @@ export class DashboardStore {
           Authorization: `Bearer ${environment.openai_api_key}`
         },
         body: JSON.stringify({
-          model: this.resolveChatModel(),
+          model,
           store: false,
           input: prompt
         })
@@ -336,22 +348,8 @@ export class DashboardStore {
         const requests = data.map((request) => this.toViewModel(request));
         this.dashboardData.set(requests);
 
-        const routingMethods = this.uniqueStrings(requests.map((request) => request.routingMethod));
-        if (routingMethods.length > 0) {
-          const selectedRouting = this.selectedRoutingMethods();
-          const nextRoutingMethods = selectedRouting.length > 0
-            ? this.uniqueStrings([...this.routingMethods(), ...routingMethods])
-            : routingMethods;
-
-          this.routingMethods.set(nextRoutingMethods);
-          this.selectedRoutingMethods.update((selected) => selected.length === 0
-            ? nextRoutingMethods
-            : selected.filter((routingMethod) => nextRoutingMethods.includes(routingMethod)));
-
-          if (!nextRoutingMethods.includes(this.chatSelectedRoutingMethod())) {
-            this.chatSelectedRoutingMethod.set(nextRoutingMethods[0]);
-          }
-        }
+        const requestRoutingMethods = this.uniqueStrings(requests.map((request) => request.routingMethod));
+        this.syncDashboardRoutingMethods(requestRoutingMethods, true);
       },
       error: () => {
         if (currentToken === this.requestToken) {
@@ -386,19 +384,33 @@ export class DashboardStore {
   private loadChatModels(): void {
     this.http.get<OpenAiModelListResponse>(environment.openai_models_url).subscribe({
       next: (response) => {
+        const entries = response.data ?? [];
         const availableModels = this.uniqueStrings(
-          (response.data ?? [])
-            .map((model) => model.id?.trim() ?? '')
+          entries
+            .filter((entry) => entry.metadata?.llmproxy?.kind !== 'routing_middleware')
+            .map((entry) => entry.id?.trim() ?? '')
             .filter((model) => model.length > 0)
         );
+        const availableRoutingMethods = this.uniqueStrings(
+          entries
+            .filter((entry) => entry.metadata?.llmproxy?.kind === 'routing_middleware')
+            .map((entry) => entry.metadata?.llmproxy?.selector?.trim() || entry.id?.trim() || '')
+            .filter((routingMethod) => routingMethod.length > 0)
+        );
 
-        if (availableModels.length === 0) {
-          return;
+        if (availableRoutingMethods.length > 0) {
+          this.syncDashboardRoutingMethods(availableRoutingMethods, false);
+          this.chatRoutingMethods.set(availableRoutingMethods);
+          if (!availableRoutingMethods.includes(this.chatSelectedRoutingMethod())) {
+            this.chatSelectedRoutingMethod.set(availableRoutingMethods[0]);
+          }
         }
 
-        this.chatModels.set(['auto', ...availableModels]);
-        if (this.chatSelectedModel() !== 'auto' && !availableModels.includes(this.chatSelectedModel())) {
-          this.chatSelectedModel.set('auto');
+        if (availableModels.length > 0) {
+          this.chatModels.set(['auto', ...availableModels]);
+          if (this.chatSelectedModel() !== 'auto' && !availableModels.includes(this.chatSelectedModel())) {
+            this.chatSelectedModel.set('auto');
+          }
         }
       },
       error: () => {
@@ -420,6 +432,18 @@ export class DashboardStore {
 
   private uniqueStrings(values: string[]): string[] {
     return Array.from(new Set(values));
+  }
+
+  private syncDashboardRoutingMethods(nextValues: string[], selectWhenEmpty: boolean): void {
+    const nextRoutingMethods = this.uniqueStrings([...this.routingMethods(), ...nextValues]);
+    if (nextRoutingMethods.length === 0) {
+      return;
+    }
+
+    this.routingMethods.set(nextRoutingMethods);
+    this.selectedRoutingMethods.update((selected) => selected.length === 0
+      ? (selectWhenEmpty ? nextValues : selected)
+      : selected.filter((routingMethod) => nextRoutingMethods.includes(routingMethod)));
   }
 
   private getDefaultLocalDateTimeInput(offsetMinutesFromNow: number): string {
@@ -511,17 +535,16 @@ export class DashboardStore {
   }
 
   private resolveChatModel(): string {
-    const availableModels = this.chatModels().filter((model) => model !== 'auto');
-
     if (this.chatSelectedModel() !== 'auto') {
       return this.chatSelectedModel();
     }
 
-    return this.chatSelectedRoutingMethod() === 'latency-first'
-      ? availableModels.find((model) => model === 'gpt-4o-mini') ?? availableModels[0]
-      : this.chatSelectedRoutingMethod() === 'cost-optimized'
-        ? availableModels.find((model) => model === 'gpt-4.1-mini') ?? availableModels[0]
-        : availableModels[0];
+    if (this.chatRoutingMethods().includes(this.chatSelectedRoutingMethod())) {
+      return this.chatSelectedRoutingMethod();
+    }
+
+    const availableModels = this.chatModels().filter((model) => model !== 'auto');
+    return availableModels[0] ?? '';
   }
 
   private extractAssistantText(payload: unknown): string {

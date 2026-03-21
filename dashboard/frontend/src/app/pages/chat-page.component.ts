@@ -70,7 +70,7 @@ import { DashboardStore } from '../dashboard.store';
               <label class="grid min-w-0 gap-2 text-sm font-medium text-stone-700 dark:text-slate-200">
                 <span>Routing Method</span>
                 <p-select
-                  [options]="store.routingOptions()"
+                  [options]="store.chatRoutingOptions()"
                   optionLabel="label"
                   optionValue="value"
                   [ngModel]="store.chatSelectedRoutingMethod()"
