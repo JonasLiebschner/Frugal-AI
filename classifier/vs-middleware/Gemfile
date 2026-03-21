@@ -1,0 +1,17 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gem 'sinatra'
+gem 'sinatra-contrib'
+gem 'rackup'
+gem 'puma'
+gem 'mongo'
+gem 'dotenv'
+gem 'json'
+
+group :test do
+  gem 'minitest'
+  gem 'rack-test'
+  gem 'webmock'
+end

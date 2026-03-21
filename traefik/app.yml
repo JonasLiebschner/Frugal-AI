@@ -61,6 +61,17 @@ http:
       tls:
         certResolver: letsencrypt
 
+    middleware-vs:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/middlewares/vs`)"
+      entryPoints:
+        - websecure
+      service: middleware-vs
+      middlewares:
+        - strip-middleware-vs-prefix
+      priority: 10
+      tls:
+        certResolver: letsencrypt
+
     http-catchall:
       rule: "HostRegexp(`{host:.+}`)"
       entryPoints:
@@ -90,6 +101,10 @@ http:
       stripPrefix:
         prefixes:
           - /middlewares/llm
+    strip-middleware-vs-prefix:
+      stripPrefix:
+        prefixes:
+          - /middlewares/vs
 
   services:
     dashboard-api:
@@ -121,3 +136,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://middleware-llm:3002"
+
+    middleware-vs:
+      loadBalancer:
+        servers:
+          - url: "http://middleware-vs:3003"

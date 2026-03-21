@@ -14,6 +14,7 @@ env:
   BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai.dashboard.backend
   FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai.dashboard.frontend
   MIDDLEWARE_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware
+  VS_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-vs
 
 jobs:
   build:
@@ -95,6 +96,26 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Docker metadata (vs-middleware)
+        id: meta_vs
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.VS_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push vs-middleware image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./classifier
+          file: ./classifier/vs-middleware/Dockerfile
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta_vs.outputs.tags }}
+          labels: ${{ steps.meta_vs.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   deploy:
     name: Deploy via SSH
     runs-on: ubuntu-latest
@@ -139,6 +160,9 @@ jobs:
             export MIDDLEWARE_LLM_BASE_URL="${{ secrets.MIDDLEWARE_LLM_BASE_URL }}"
             export MIDDLEWARE_LLM_API_KEY="${{ secrets.MIDDLEWARE_LLM_API_KEY }}"
             export MIDDLEWARE_LLM_MODEL="${{ secrets.MIDDLEWARE_LLM_MODEL }}"
+            export MIDDLEWARE_VS_MONGODB_URI="${{ secrets.MIDDLEWARE_VS_MONGODB_URI }}"
+            export MIDDLEWARE_VS_MONGODB_API_KEY="${{ secrets.MIDDLEWARE_VS_MONGODB_API_KEY }}"
+            export MIDDLEWARE_VS_MONGODB_DATABASE="${{ secrets.MIDDLEWARE_VS_MONGODB_DATABASE }}"
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
             docker image prune -f
