@@ -11,23 +11,22 @@ services:
       - "4200:4200"
 
   # --- Observability stack ---
-  opensearch:
-    image: opensearchproject/opensearch:3.5.0
-    environment:
-      - discovery.type=single-node
-      - DISABLE_SECURITY_PLUGIN=true
+  victoriatraces:
+    image: victoriametrics/victoria-traces:latest
+    container_name: victoriatraces
     ports:
-      - "9200:9200"
-      - "9600:9600"
+      - "10428:10428"
+    command:
+      - "-storageDataPath=/storage"
+      - "-retentionPeriod=14d"
+    volumes:
+      - vt-data:/storage
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          'curl -sf http://localhost:9200/_cluster/health | grep -qE ''"status":"(green|yellow)"''',
-        ]
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:10428/health"]
       interval: 10s
       timeout: 5s
-      retries: 6
+      retries: 3
+      start_period: 5s
 
   jaeger:
     image: jaegertracing/all-in-one:1.76.0
@@ -68,3 +67,6 @@ services:
       - LLM_MODEL=${MIDDLEWARE_LLM_MODEL:-gpt-4o-mini}
     ports:
       - "3002:3002"
+
+volumes:
+  vt-data:

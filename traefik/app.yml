@@ -17,22 +17,13 @@ http:
       tls:
         certResolver: letsencrypt
 
-    jaeger-ui:
-      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/jaeger`)"
+    victoria-api:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/victoria`)"
       entryPoints:
         - websecure
-      service: jaeger-ui
-      priority: 10
-      tls:
-        certResolver: letsencrypt
-
-    opensearch-api:
-      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/opensearch`)"
-      entryPoints:
-        - websecure
-      service: opensearch-api
+      service: victoria-traces
       middlewares:
-        - strip-opensearch-prefix
+        - strip-victoria-prefix
       priority: 10
       tls:
         certResolver: letsencrypt
@@ -83,10 +74,10 @@ http:
       redirectScheme:
         scheme: https
         permanent: true
-    strip-opensearch-prefix:
+    strip-victoria-prefix:
       stripPrefix:
         prefixes:
-          - /opensearch
+          - /victoria
     strip-middleware-simple-prefix:
       stripPrefix:
         prefixes:
@@ -111,15 +102,10 @@ http:
         servers:
           - url: "http://dashboard-frontend:80"
 
-    jaeger-ui:
+    victoria-traces:
       loadBalancer:
         servers:
-          - url: "http://jaeger:16686"
-
-    opensearch-api:
-      loadBalancer:
-        servers:
-          - url: "http://opensearch:9200"
+          - url: "http://victoriatraces:10428"
 
     middleware-simple:
       loadBalancer:
