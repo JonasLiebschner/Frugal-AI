@@ -18,13 +18,22 @@ public sealed class RequestsController(IDashboardDataService service) : Controll
 
     [HttpGet]
     [ProducesResponseType<IEnumerable<AiRequest>>(StatusCodes.Status200OK)]
-    public ActionResult<IEnumerable<AiRequest>> GetRequests(
+    public async Task<ActionResult<IEnumerable<AiRequest>>> GetRequests(
         [FromQuery, Required] string comparisonModel,
         [FromQuery] string[]? routingMethods = null,
         [FromQuery] double? minValidationScore = null,
         [FromQuery] DateTimeOffset? since = null,
-        [FromQuery] DateTimeOffset? until = null)
+        [FromQuery] DateTimeOffset? until = null,
+        CancellationToken cancellationToken = default)
     {
-        return service.GetAllRequests(comparisonModel, routingMethods, minValidationScore, since, until);
+        var requests = await service.GetAllRequestsAsync(
+            comparisonModel,
+            routingMethods,
+            minValidationScore,
+            since,
+            until,
+            cancellationToken);
+
+        return requests;
     }
 }
