@@ -129,7 +129,7 @@ export class HeuristicClassifier implements Classifier {
 
     const signal = (result: QueryComplexity, score: number, reason: string): ClassifyResult => ({
       result,
-      details: {
+      additionalData: {
         classification: {
           score,
           reason,

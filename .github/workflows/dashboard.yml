@@ -15,6 +15,7 @@ env:
   FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai.dashboard.frontend
   SIMPLE_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-simple
   ONNX_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-onnx
+  LLM_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-llm
 
 jobs:
   build-images:
@@ -111,6 +112,26 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Docker metadata (llm-middleware)
+        id: meta_llm
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.LLM_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push llm-middleware image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./classifier
+          file: ./classifier/packages/llm-middleware/Dockerfile
+          push: true
+          tags: ${{ steps.meta_llm.outputs.tags }}
+          labels: ${{ steps.meta_llm.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   deploy:
     name: Deploy via SSH
     runs-on: ubuntu-latest
@@ -151,6 +172,9 @@ jobs:
           script: |
             set -euo pipefail
             cd "${{ secrets.DEPLOY_PATH }}"
+            export MIDDLEWARE_LLM_BASE_URL="${{ secrets.MIDDLEWARE_LLM_BASE_URL }}"
+            export MIDDLEWARE_LLM_API_KEY="${{ secrets.MIDDLEWARE_LLM_API_KEY }}"
+            export MIDDLEWARE_LLM_MODEL="${{ secrets.MIDDLEWARE_LLM_MODEL }}"
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
             docker image prune -f

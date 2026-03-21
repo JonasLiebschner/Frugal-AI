@@ -51,8 +51,8 @@ describe("HeuristicClassifier vs llm_router_dataset-synth", () => {
     const errors: { prompt: string; expected: string; got: string; score: number }[] = [];
 
     for (const { prompt, expected } of samples) {
-      const { result, details } = classifier.classify(prompt);
-      const score = (details?.classification as any)?.score ?? 0;
+      const { result, additionalData } = classifier.classify(prompt);
+      const score = (additionalData?.classification as any)?.score ?? 0;
       if (result === expected) {
         correct++;
       } else {

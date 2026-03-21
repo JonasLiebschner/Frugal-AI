@@ -9,12 +9,12 @@ export interface ClassifyRequest {
 
 export interface ClassifyResponse {
   result: QueryComplexity;
-  details?: Record<string, unknown>;
+  additionalData?: Record<string, unknown>;
 }
 
 export interface ClassifyResult {
   result: QueryComplexity;
-  details?: Record<string, unknown>;
+  additionalData?: Record<string, unknown>;
 }
 
 export interface Classifier {
@@ -66,7 +66,7 @@ function buildOpenApiSpec(opts: Required<ServerOptions>) {
                         type: "string",
                         enum: ["small", "large"],
                       },
-                      details: {
+                      additionalData: {
                         type: "object",
                         description: "Optional middleware-specific metadata (e.g. score, reason, usage)",
                         additionalProperties: true,
@@ -158,7 +158,7 @@ export function createClassifyServer(classifier: Classifier, portOrOptions: numb
             const message = err instanceof Error ? err.message : "Internal server error";
             return Response.json({ error: message }, { status: 500 });
           }
-          const response: ClassifyResponse = result.details !== undefined ? { result: result.result, details: result.details } : { result: result.result };
+          const response: ClassifyResponse = result.additionalData !== undefined ? { result: result.result, additionalData: result.additionalData } : { result: result.result };
           return Response.json(response);
         },
         GET: () =>
