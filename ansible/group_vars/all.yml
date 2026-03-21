@@ -1,0 +1,3 @@
+---
+deploy_dir: /opt/observability
+jaeger_ui_port: 

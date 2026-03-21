@@ -5,6 +5,18 @@ services:
   dashboard-frontend:
     image: ghcr.io/jonasliebschner/frugal-ai.dashboard.frontend
 
+  middleware-simple:
+    image: ghcr.io/jonasliebschner/frugal-ai-middleware-simple
+    ports:
+      - "3000:3000"
+
+  middleware-onnx:
+    image: ghcr.io/jonasliebschner/frugal-ai-middleware-onnx
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./models:/models
+
   reverse-proxy:
     image: traefik:v3.3
     ports:
@@ -14,3 +26,27 @@ services:
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./traefik/app.yml:/etc/traefik/dynamic/app.yml:ro
       - ./traefik/acme.json:/letsencrypt/acme.json
+
+  # --- Observability stack ---
+  opensearch:
+    image: opensearchproject/opensearch:3.5.0
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.76.0
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - QUERY_BASE_PATH=/jaeger
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:14269/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s

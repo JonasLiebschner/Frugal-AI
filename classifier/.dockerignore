@@ -1,0 +1,7 @@
+node_modules
+packages/*/node_modules
+packages/onnx-middleware/model_output
+packages/onnx-middleware/model_test
+packages/simple-middleware/data
+**/*.test.ts
+**/*.eval.test.ts

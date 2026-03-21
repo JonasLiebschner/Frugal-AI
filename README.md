@@ -47,3 +47,13 @@ Same base population as the full file, then **keep only the 15 prompts with the 
 - **Non-MMLU** — Group by **`eval_name`** (`hellaswag`, `arc-challenge`, `winogrande`, `accounting_audit`); keep **15** rows per benchmark.
 
 To reproduce or adjust these exports, run logic against **`routerbench_raw.pkl`** with the steps above (the CSVs alone do not store `eval_name`; non-MMLU grouping uses the pickle).
+
+## Project Goal
+
+- Rank different router logic model types
+- What are Optimization Parameters for a Frugal AI
+- How can a Feedback Loop for a LLM Router be designed?
+
+## Assumptions
+
+- Cost is a proxy for energy consumption

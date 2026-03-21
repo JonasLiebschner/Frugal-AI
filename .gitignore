@@ -592,3 +592,9 @@ fabric.properties
 .idea/**/azureSettings.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/webstorm,angular,csharp,rider
+**/.claude/settings.local.json
+.env
+*.db
+uv.lock
+
+!classifier/**
