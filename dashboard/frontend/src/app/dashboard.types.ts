@@ -15,7 +15,7 @@ export type ApiAiRequest = {
   inputTokens: number;
   outputTokens: number;
   durationMs: number;
-  validationScore: number;
+  validationScore: number | null;
   created: string;
   comparison: RequestMetadata;
   actual: RequestMetadata;

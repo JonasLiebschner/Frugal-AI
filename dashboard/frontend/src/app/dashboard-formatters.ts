@@ -18,8 +18,8 @@ export function formatCost(costUsd: number): string {
   return `$${costUsd.toFixed(4)}`;
 }
 
-export function formatScore(score: number): string {
-  return `${score.toFixed(1)} / 5`;
+export function formatScore(score: number | null | undefined): string {
+  return score == null ? 'N/A' : `${score.toFixed(1)} / 5`;
 }
 
 export function formatTreesSaved(treesSaved: number): string {
