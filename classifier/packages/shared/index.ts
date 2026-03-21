@@ -94,7 +94,7 @@ function buildOpenApiSpec(opts: Required<ServerOptions>) {
   };
 }
 
-function swaggerUiHtml(specUrl: string, title: string) {
+function swaggerUiHtml(title: string) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -106,7 +106,8 @@ function swaggerUiHtml(specUrl: string, title: string) {
   <div id="swagger-ui"></div>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
   <script>
-    SwaggerUIBundle({ url: "${specUrl}", dom_id: "#swagger-ui", presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset] });
+    const base = window.location.pathname.replace(/\/+$/, '');
+    SwaggerUIBundle({ url: base + "/openapi.json", dom_id: "#swagger-ui", presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset] });
   </script>
 </body>
 </html>`;
@@ -131,7 +132,7 @@ export function createClassifyServer(classifier: Classifier, portOrOptions: numb
     routes: {
       "/": {
         GET: () =>
-          new Response(swaggerUiHtml("/openapi.json", opts.title), {
+          new Response(swaggerUiHtml(opts.title), {
             headers: { "Content-Type": "text/html" },
           }),
       },

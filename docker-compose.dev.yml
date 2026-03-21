@@ -44,27 +44,25 @@ services:
 
   # --- Middlewares ---
   middleware-simple:
-    build:
-      context: ./classifier
-      dockerfile: packages/simple-middleware/Dockerfile
+    build: ./classifier
+    environment:
+      - MIDDLEWARE=simple
     ports:
       - "3000:3000"
   middleware-onnx:
-    build:
-      context: ./classifier
-      dockerfile: packages/onnx-middleware/Dockerfile
+    build: ./classifier
+    environment:
+      - MIDDLEWARE=onnx
     ports:
       - "3001:3001"
     volumes:
       - ./classifier/models:/models
-
   middleware-llm:
-    build:
-      context: ./classifier
-      dockerfile: packages/llm-middleware/Dockerfile
-    ports:
-      - "3002:3002"
+    build: ./classifier
     environment:
+      - MIDDLEWARE=llm
       - LLM_BASE_URL=${MIDDLEWARE_LLM_BASE_URL:-https://api.openai.com/v1}
       - LLM_API_KEY=${MIDDLEWARE_LLM_API_KEY:-}
       - LLM_MODEL=${MIDDLEWARE_LLM_MODEL:-gpt-4o-mini}
+    ports:
+      - "3002:3002"
