@@ -14,6 +14,26 @@ internal class OpenSearchTraceDataService(
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly OpenSearchOptions _options = options.Value;
+    private Dictionary<string, (double Input, double Output)> _modelCosts = new()
+    {
+        ["deepseek-v3.1:latest"] = (0.15d / 1_000_000d, 0.75d / 1_000_000d),
+        ["devstral-2:latest"] = (0.4d / 1_000_000d, 2.0d / 1_000_000d),
+        ["frob/kimi-k2.5:latest"] = (0.45d / 1_000_000d, 2.2d / 1_000_000d),
+        ["glm-4.7-flash:latest"] = (0.06d / 1_000_000d, 0.4d / 1_000_000d),
+        ["lfm2.5-thinking:latest"] = (0d, 0d),
+        ["llama3.1:70b"] = (0.4d / 1_000_000d, 0.4d / 1_000_000d),
+        ["ministral-3:latest"] = (0.1d / 1_000_000d, 0.1d / 1_000_000d),
+        ["qwen3.5:35b"] = (0.1625d / 1_000_000d, 1.3d / 1_000_000d),
+    };
+    
+    private double GetViaModel(string model, int inputTokens, int outputTokens)
+    {
+        if (_modelCosts.TryGetValue(model, out var cost))
+        {
+            return cost.Input * inputTokens + cost.Output * outputTokens;
+        }
+        return 0;
+    }
 
     public async Task<List<AiRequestBase>> GetTraceRequestsAsync(
         DateTimeOffset? since,
@@ -69,8 +89,6 @@ internal class OpenSearchTraceDataService(
                 "llm.prompt") ?? string.Empty;
 
             var routingMethod = GetString(source,
-                "attributes.frugal.routing.method",
-                "span.attributes.frugal.routing.method",
                 "routing.method") ?? "unknown";
 
             var id = GetString(source,
@@ -106,17 +124,22 @@ internal class OpenSearchTraceDataService(
                 ?? (int)Math.Round((GetDouble(source, "duration") ?? 0) * 1000);
 
 
-            var costUsd = GetDouble(source,
-                "operation_cost",
-                "attributes.frugal.metrics.cost_usd",
-                "span.attributes.frugal.metrics.cost_usd") ?? 0;
+            var validationScore = GetDouble(source, "validation.score") ?? 0;
+
+            var costUsd = GetDouble(source,"operation_cost") ?? GetViaModel(model, inputTokens, outputTokens);
 
             if (string.IsNullOrWhiteSpace(model))
             {
                 continue;
             }
-
-            var environmentalMetric = GetEnvironmentalMetric(model, inputTokens + outputTokens, costUsd);
+            
+            var powerWh = 0.1;
+            var environmentalMetric =  new RequestMetadata(
+                powerWh,
+                powerWh * 0.27, //  E_query (Wh) * CIF (kgC02/kWh)
+                (powerWh / 1.25) * 0.04 + powerWh * 0.5, // E_query (Wh) / PUE * WUE_site (L/kWh)+ E_query (Wh) * WUE_source (L/kWh)
+                0,
+                costUsd);
 
             requests.Add(new AiRequestBase(
                 id,
@@ -126,7 +149,7 @@ internal class OpenSearchTraceDataService(
                 inputTokens,
                 outputTokens,
                 durationMs,
-                5,
+                validationScore,
                 createdAt,
                 environmentalMetric));
         }
@@ -267,11 +290,6 @@ internal class OpenSearchTraceDataService(
 
         value = default!;
         return false;
-    }
-
-    private RequestMetadata GetEnvironmentalMetric(string model, int totalTokens, double costUsd)
-    {
-        return new RequestMetadata(4, 3, 2, 1);
     }
 
     private static JsonNode? GetNodeByPath(JsonNode source, string path)

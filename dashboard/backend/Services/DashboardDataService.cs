@@ -47,10 +47,14 @@ public sealed class DashboardDataService(ITraceDataService traceDataService,
         if (rangeMetrics is null)
             throw new InvalidOperationException($"No token ranges configured for model {comparisonModel}.");
 
+        var inputCostUsd = (aiRequest.InputTokens * comparisonProfile.InputMtUsd) / 1_000_000d;
+        var outputCostUsd = (aiRequest.OutputTokens * comparisonProfile.OutputMtUsd) / 1_000_000d;
+
         return new(totalTokens * rangeMetrics.PowerWh,
             totalTokens * rangeMetrics.Co2,
             totalTokens * rangeMetrics.WaterMl,
-            totalTokens * rangeMetrics.CostUsd);
+            inputCostUsd,
+            outputCostUsd);
     }
 
     private List<AiRequest> FilterRequestsAndAtComparison(
