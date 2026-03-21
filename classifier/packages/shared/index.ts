@@ -151,8 +151,14 @@ export function createClassifyServer(classifier: Classifier, portOrOptions: numb
             return Response.json({ error: "Missing required field: query" }, { status: 400 });
           }
 
-          const { result, details } = await Promise.resolve(classifier.classify(body.query));
-          const response: ClassifyResponse = details !== undefined ? { result, details } : { result };
+          let result: ClassifyResult;
+          try {
+            result = await Promise.resolve(classifier.classify(body.query));
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Internal server error";
+            return Response.json({ error: message }, { status: 500 });
+          }
+          const response: ClassifyResponse = result.details !== undefined ? { result: result.result, details: result.details } : { result: result.result };
           return Response.json(response);
         },
         GET: () =>

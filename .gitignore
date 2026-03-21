@@ -596,3 +596,5 @@ fabric.properties
 .env
 *.db
 uv.lock
+
+!classifier/**
