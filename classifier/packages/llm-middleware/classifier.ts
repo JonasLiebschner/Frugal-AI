@@ -31,7 +31,6 @@ export class LLMClassifier implements Classifier {
     const response = await this.client.chat.completions.create({
       model: this.model,
       temperature: 0,
-      max_tokens: 10,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: query },
@@ -39,7 +38,9 @@ export class LLMClassifier implements Classifier {
     });
     raw = response.choices[0]?.message.content ?? null;
 
-    const parts = raw?.trim().toLowerCase().split(/\s+/) ?? [];
+    // Take only the first non-empty line — thinking models produce verbose content
+    const firstLine = raw?.split("\n").map((l) => l.trim()).find((l) => l.length > 0) ?? null;
+    const parts = firstLine?.toLowerCase().split(/\s+/) ?? [];
     const decision = parts[0];
     const parsedConfidence = parts[1] !== undefined ? parseFloat(parts[1]) : NaN;
     const confidence = !isNaN(parsedConfidence) && parsedConfidence >= 0 && parsedConfidence <= 1

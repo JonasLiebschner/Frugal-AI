@@ -156,8 +156,10 @@ export function createClassifyServer(classifier: Classifier, portOrOptions: numb
             result = await Promise.resolve(classifier.classify(body.query));
           } catch (err) {
             const message = err instanceof Error ? err.message : "Internal server error";
+            console.error(`[classify] error: ${message}`);
             return Response.json({ error: message }, { status: 500 });
           }
+          console.log(`[classify] result=${result.result}`);
           const response: ClassifyResponse = result.additionalData !== undefined ? { result: result.result, additionalData: result.additionalData } : { result: result.result };
           return Response.json(response);
         },
