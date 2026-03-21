@@ -13,6 +13,27 @@ http:
       entryPoints:
         - websecure
       service: dashboard-web
+      priority: 1
+      tls:
+        certResolver: letsencrypt
+
+    jaeger-ui:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/jaeger`)"
+      entryPoints:
+        - websecure
+      service: jaeger-ui
+      priority: 10
+      tls:
+        certResolver: letsencrypt
+
+    opensearch-api:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/opensearch`)"
+      entryPoints:
+        - websecure
+      service: opensearch-api
+      middlewares:
+        - strip-opensearch-prefix
+      priority: 10
       tls:
         certResolver: letsencrypt
 
@@ -29,6 +50,10 @@ http:
       redirectScheme:
         scheme: https
         permanent: true
+    strip-opensearch-prefix:
+      stripPrefix:
+        prefixes:
+          - /opensearch
 
   services:
     dashboard-api:
@@ -40,3 +65,13 @@ http:
       loadBalancer:
         servers:
           - url: "http://dashboard-frontend:80"
+
+    jaeger-ui:
+      loadBalancer:
+        servers:
+          - url: "http://jaeger:16686"
+
+    opensearch-api:
+      loadBalancer:
+        servers:
+          - url: "http://opensearch:9200"

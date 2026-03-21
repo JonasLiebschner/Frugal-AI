@@ -1,0 +1,15 @@
+---
+- name: Provision observability stack
+  hosts: all
+  become: true
+  pre_tasks:
+    - name: Remove broken monarx apt repository
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/apt/sources.list.d/monarx.list
+        - /etc/apt/sources.list.d/monarx.sources
+      ignore_errors: true
+  roles:
+    - docker_setup

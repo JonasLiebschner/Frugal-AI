@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "remote-observability"
+version = "0.1.0"
+description = "CLI tool to provision a remote observability stack via SSH"
+requires-python = ">=3.10"
+dependencies = [
+    "paramiko>=3.0",
+    "pyyaml>=6.0",
+    "click>=8.0",
+    "pyinfra>=3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "hypothesis>=6.0",
+    "pytest>=7.0",
+]
+
+[project.scripts]
+remote-observability = "remote_observability.cli:main"
