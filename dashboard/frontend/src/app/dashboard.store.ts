@@ -243,7 +243,17 @@ export class DashboardStore {
         throw new Error('Proxy response did not contain assistant text.');
       }
 
-      this.chatMessages.set([...nextMessages, { role: 'assistant', content: assistantText }]);
+      const requestId = this.extractChatCompletionId(payload);
+      const routingOutcome = response.headers.get('x-ai-proxy-routing-outcome')?.trim().toLowerCase() ?? undefined;
+      this.chatMessages.set([...nextMessages, {
+        role: 'assistant',
+        content: assistantText,
+        routingOutcome,
+        requestId,
+        stars: null,
+        starsSaving: false,
+        starsHover: null
+      }]);
     } catch (error) {
       this.chatMessages.set([]);
       this.chatPrompt.set(prompt);
@@ -333,6 +343,49 @@ export class DashboardStore {
   clearChat(): void {
     this.chatMessages.set([]);
     this.chatPrompt.set('');
+  }
+
+  async rateChatMessage(messageIndex: number, stars: number): Promise<void> {
+    const messages = this.chatMessages();
+    const message = messages[messageIndex];
+    if (!message || message.role !== 'assistant' || !message.requestId || stars < 0 || stars > 5) {
+      return;
+    }
+
+    this.chatMessages.update((current) => current.map((entry, index) => index === messageIndex
+      ? { ...entry, starsSaving: true }
+      : entry));
+
+    try {
+      const response = await fetch(
+        `${this.apiBaseUrl}/stars/${encodeURIComponent(message.requestId)}?stars=${stars}`,
+        { method: 'PUT' }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to save star rating.');
+      }
+
+      this.chatMessages.update((current) => current.map((entry, index) => index === messageIndex
+        ? { ...entry, stars, starsSaving: false }
+        : entry));
+    } catch (error) {
+      this.chatMessages.update((current) => current.map((entry, index) => index === messageIndex
+        ? { ...entry, starsSaving: false }
+        : entry));
+
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Rating failed',
+        detail: error instanceof Error ? error.message : 'Failed to save star rating.'
+      });
+    }
+  }
+
+  setChatMessageStarsHover(messageIndex: number, starsHover: number | null): void {
+    this.chatMessages.update((current) => current.map((entry, index) => index === messageIndex
+      ? { ...entry, starsHover }
+      : entry));
   }
 
   getModelDelta(request: AiRequest): string {
@@ -593,5 +646,11 @@ export class DashboardStore {
     }
 
     return '';
+  }
+
+  private extractChatCompletionId(payload: unknown): string | undefined {
+    return payload && typeof payload === 'object' && 'id' in payload && typeof payload.id === 'string'
+      ? payload.id
+      : undefined;
   }
 }

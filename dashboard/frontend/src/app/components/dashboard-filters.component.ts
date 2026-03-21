@@ -14,13 +14,13 @@ import type { SelectOption } from '../dashboard.types';
     <section class="grid gap-6 rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur dark:border-slate-800/80 dark:bg-slate-900/75">
       <div class="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] xl:items-start">
         <div class="min-w-0 space-y-4">
-          <div class="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300">
+          <div class="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-[#bfe8d7] bg-[#eef8f3] px-4 py-2 text-sm text-[#2f7a6d] dark:border-[#3d6a60]/80 dark:bg-[#1f3836]/70 dark:text-[#9fe3d5]">
             <span class="text-base">🌱</span>
             <span>You saved {{ treesSaved() }} trees with Frugal AI</span>
           </div>
 
           <div class="space-y-3">
-            <p class="text-sm font-semibold uppercase tracking-[0.28em] text-orange-700/75 dark:text-orange-300/75">
+            <p class="text-sm font-semibold uppercase tracking-[0.28em] text-[#2f8f7f]/85 dark:text-[#7ad7c3]/85">
               Frugal AI Observatory
             </p>
             <h2 class="text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl dark:text-stone-100">
@@ -64,7 +64,7 @@ import type { SelectOption } from '../dashboard.types';
             <span>Start Time</span>
             <input
               type="datetime-local"
-              class="h-11 w-full min-w-0 rounded-2xl border border-stone-300 bg-stone-50 px-4 text-stone-900 outline-none transition focus:border-orange-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              class="h-11 w-full min-w-0 rounded-2xl border border-[#cfe2da] bg-[#f7fbf9] px-4 text-stone-900 outline-none transition focus:border-[#4fbf9f] dark:border-[#3a555d] dark:bg-[#1b2c31] dark:text-slate-100"
               [ngModel]="startDateTimeInput()"
               (ngModelChange)="startDateTimeInputChange.emit($event)"
             />
@@ -74,7 +74,7 @@ import type { SelectOption } from '../dashboard.types';
             <span>End Time</span>
             <input
               type="datetime-local"
-              class="h-11 w-full min-w-0 rounded-2xl border border-stone-300 bg-stone-50 px-4 text-stone-900 outline-none transition focus:border-orange-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              class="h-11 w-full min-w-0 rounded-2xl border border-[#cfe2da] bg-[#f7fbf9] px-4 text-stone-900 outline-none transition focus:border-[#4fbf9f] dark:border-[#3a555d] dark:bg-[#1b2c31] dark:text-slate-100"
               [ngModel]="endDateTimeInput()"
               (ngModelChange)="endDateTimeInputChange.emit($event)"
             />
@@ -83,7 +83,7 @@ import type { SelectOption } from '../dashboard.types';
           <label class="grid min-w-0 gap-2 text-sm font-medium text-stone-700 dark:text-slate-200">
             <span>Timezone</span>
             <select
-              class="h-11 w-full min-w-0 rounded-2xl border border-stone-300 bg-stone-50 px-4 text-stone-900 outline-none transition focus:border-orange-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              class="h-11 w-full min-w-0 rounded-2xl border border-[#cfe2da] bg-[#f7fbf9] px-4 text-stone-900 outline-none transition focus:border-[#4fbf9f] dark:border-[#3a555d] dark:bg-[#1b2c31] dark:text-slate-100"
               [ngModel]="timeZone()"
               (ngModelChange)="timeZoneChange.emit($event)"
             >

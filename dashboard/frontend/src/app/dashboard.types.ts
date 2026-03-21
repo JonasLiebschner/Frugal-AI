@@ -78,6 +78,11 @@ export type ChatRole = 'user' | 'assistant';
 export type ChatMessage = {
   role: ChatRole;
   content: string;
+  routingOutcome?: string;
+  requestId?: string;
+  stars?: number | null;
+  starsSaving?: boolean;
+  starsHover?: number | null;
 };
 
 export type OpenAiModelListResponse = {

@@ -3,6 +3,8 @@ services:
     build: dashboard/backend
     ports:
       - "8080:8080"
+    volumes:
+      - ./dashboard/backend/data:/data
   dashboard-frontend:
     build: dashboard/frontend
     ports:

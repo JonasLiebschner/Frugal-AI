@@ -2,20 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-$table-light-header-bg: rgb(248 250 252 / 0.92);
-$table-light-header-border: rgb(226 232 240 / 0.75);
-$table-light-header-text: rgb(51 65 85);
-$table-light-row-border: rgb(231 229 228 / 0.85);
-$table-light-row-hover: rgb(255 255 255 / 0.82);
-$table-light-empty-bg: rgb(248 250 252 / 0.78);
+$table-light-header-bg: rgb(239 247 243 / 0.96);
+$table-light-header-border: rgb(207 226 218 / 0.9);
+$table-light-header-text: rgb(48 88 93);
+$table-light-row-border: rgb(219 231 226 / 0.88);
+$table-light-row-hover: rgb(247 251 249 / 0.94);
+$table-light-empty-bg: rgb(241 248 245 / 0.86);
 
-$table-dark-surface: rgb(10 17 35 / 0.98);
-$table-dark-empty-bg: rgb(10 17 35 / 0.96);
-$table-dark-header-border: rgb(37 99 235 / 0.18);
-$table-dark-row-border: rgb(30 58 138 / 0.16);
-$table-dark-header-text: rgb(147 197 253 / 0.9);
-$table-dark-body-text: rgb(224 231 255);
-$table-dark-icon: rgb(96 165 250 / 0.9);
+$table-dark-surface: rgb(28 46 52 / 0.98);
+$table-dark-empty-bg: rgb(27 44 49 / 0.96);
+$table-dark-header-border: rgb(79 191 159 / 0.22);
+$table-dark-row-border: rgb(74 119 108 / 0.22);
+$table-dark-header-text: rgb(159 227 213 / 0.94);
+$table-dark-body-text: rgb(229 245 240);
+$table-dark-icon: rgb(122 215 195 / 0.92);
 
 @layer base {
   html,

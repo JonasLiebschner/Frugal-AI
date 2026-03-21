@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Leaf constellation favicon">
+  <defs>
+    <linearGradient id="leafRightFill" x1="95" y1="182" x2="188" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4FBF9F"/>
+      <stop offset="55%" stop-color="#5FC7B8"/>
+      <stop offset="100%" stop-color="#7AD7C3"/>
+    </linearGradient>
+    <linearGradient id="leafLeftFill" x1="78" y1="135" x2="135" y2="165" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C6E85A"/>
+      <stop offset="100%" stop-color="#A8D946"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#07181C" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <g filter="url(#softShadow)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M77 135 C95 144 111 160 126 187 C116 183 103 170 90 155 C82 146 75 139 67 135 C71 134 74 134 77 135Z" fill="#ECECEE" stroke="#ECECEE" stroke-width="1.4"/>
+    <path d="M68 134 C94 122 117 123 132 139 C139 147 139 159 132 175 C126 156 116 143 103 136 C91 130 78 131 68 134Z" fill="url(#leafLeftFill)" stroke="#F7F8F9" stroke-width="1.2"/>
+    <path d="M128 176 C130 188 133 199 141 209" fill="none" stroke="#F5F7F8" stroke-width="4.2"/>
+    <circle cx="141" cy="209" r="2.6" fill="#F5F7F8"/>
+    <path d="M126 198 C120 159 127 121 161 94 C179 80 196 70 205 64 C212 89 211 122 204 149 C195 178 172 197 126 198Z" fill="#F5F7F8"/>
+    <path d="M132 194 C127 160 134 125 163 102 C178 90 191 82 198 77 C202 97 201 122 195 145 C187 170 169 184 132 194Z" fill="url(#leafRightFill)"/>
+    <path d="M132 191 C136 157 147 125 170 102 C181 91 190 84 195 81 C198 97 197 118 193 137 C188 156 176 171 160 181 C151 186 142 189 132 191Z" fill="#1D2D34"/>
+    <path d="M118 110 C149 85 180 72 205 60" fill="none" stroke="#F5F7F8" stroke-width="2.7"/>
+    <path d="M130 193 C125 160 131 126 161 101" fill="none" stroke="#173038" stroke-width="1.7" opacity="0.45"/>
+    <path d="M137 169 C134 176 132 183 131 190" fill="none" stroke="#F5F7F8" stroke-width="1.5" opacity="0.9"/>
+    <path d="M112 111 C126 117 134 126 134 145" fill="none" stroke="#F5F7F8" stroke-width="1.8"/>
+    <path d="M129 110 C134 123 135 145 134 160" fill="none" stroke="#F5F7F8" stroke-width="1.7"/>
+    <g fill="none" stroke="#F5F7F8" stroke-width="1.6">
+      <path d="M149 114 L166 92"/>
+      <path d="M149 114 L139 153"/>
+      <path d="M149 114 L148 119"/>
+      <path d="M166 92 L184 75"/>
+      <path d="M147 136 L166 92"/>
+      <path d="M177 119 L183 96"/>
+      <path d="M177 119 L169 129"/>
+    </g>
+    <g fill="#F5F7F8" stroke="#F5F7F8" stroke-width="0.8">
+      <circle cx="112" cy="111" r="2.2"/>
+      <circle cx="146" cy="106" r="2.4"/>
+      <circle cx="166" cy="92" r="2.3"/>
+      <circle cx="177" cy="119" r="2.4"/>
+      <circle cx="168" cy="129" r="2.2"/>
+    </g>
+    <path d="M126 172 C123 157 119 148 111 139" fill="none" stroke="#182D33" stroke-width="2.2" opacity="0.9"/>
+  </g>
+</svg>

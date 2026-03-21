@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, effect, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 
@@ -14,7 +14,7 @@ import { DashboardStore } from '../dashboard.store';
   imports: [CommonModule, FormsModule, SelectModule],
   template: `
     <div class="flex w-full flex-col gap-4">
-      <section class="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
+      <section class="grid max-h-[calc(100vh-12rem)] gap-4 xl:grid-cols-[17rem_minmax(0,1fr)]">
         <aside class="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur dark:border-sky-900/60 dark:bg-[linear-gradient(180deg,rgba(6,18,38,0.96),rgba(8,15,28,0.94))] dark:shadow-[0_28px_90px_rgba(2,6,23,0.55)]">
           <p class="text-sm font-semibold uppercase tracking-[0.28em] text-orange-700/75 dark:text-sky-300/80">Workspace</p>
           <h2 class="mt-3 text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">Chat</h2>
@@ -86,27 +86,69 @@ import { DashboardStore } from '../dashboard.store';
               </div>
             </div>
 
-            <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] border border-stone-200/80 bg-stone-50/70 dark:border-sky-950/70 dark:bg-[linear-gradient(180deg,rgba(10,18,34,0.92),rgba(6,10,20,0.96))]">
+            <div class="flex h-[20rem] min-h-0 flex-col overflow-hidden rounded-[1.75rem] border border-stone-200/80 bg-stone-50/70 dark:border-sky-950/70 dark:bg-[linear-gradient(180deg,rgba(10,18,34,0.92),rgba(6,10,20,0.96))]">
               <div class="border-b border-stone-200/80 px-4 py-3 dark:border-sky-950/70 dark:bg-slate-950/35">
                 <p class="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500 dark:text-sky-200/60">Latest response</p>
               </div>
 
               @if (store.chatMessages().length) {
-                <div class="grid max-h-[20rem] gap-3 overflow-y-auto px-4 py-4">
-                  @for (message of store.chatMessages(); track $index) {
+                <div #messagesContainer class="grid min-h-0 flex-1 gap-3 overflow-y-auto px-4 py-4">
+                  @for (message of store.chatMessages(); track $index; let messageIndex = $index) {
                     <article
-                      class="max-w-[85%] rounded-[1.5rem] border px-4 py-3 text-sm leading-6 shadow-sm transition-colors"
+                      class="max-w-[85%] self-start rounded-[1.5rem] border px-4 py-3 text-sm leading-6 shadow-sm transition-colors"
                       [ngClass]="message.role === 'assistant'
                         ? 'justify-self-start border-stone-200 bg-white text-stone-900 dark:border-sky-950 dark:bg-slate-900/95 dark:text-slate-100'
                         : 'justify-self-end border-orange-500 bg-orange-500 text-white dark:border-orange-400/30 dark:bg-orange-600'"
                     >
-                      <p class="mb-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] opacity-70">{{ message.role }}</p>
+                      <div class="mb-1 flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.2em] opacity-70">
+                        <span>{{ message.role }}</span>
+                        @if (message.role === 'assistant' && message.routingOutcome) {
+                          <span
+                            class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-current/20 text-[0.7rem] font-bold normal-case opacity-100"
+                            [attr.title]="getRoutingOutcomeTooltip(message.routingOutcome)"
+                          >
+                            {{ getRoutingOutcomeBadge(message.routingOutcome) }}
+                          </span>
+                        }
+                      </div>
                       <p class="whitespace-pre-wrap">{{ message.content }}</p>
+                      @if (message.role === 'assistant' && message.requestId) {
+                        <div class="mt-4 flex flex-wrap items-start justify-between gap-3 border-t border-current/10 pt-3">
+                          <div class="ml-auto flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-1">
+                              @for (star of [1, 2, 3, 4, 5]; track star) {
+                                <button
+                                type="button"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-base transition"
+                                [ngClass]="isStarActive(message, star)
+                                  ? 'border-amber-300 bg-amber-50 text-amber-500 shadow-[0_6px_18px_rgba(245,158,11,0.18)] dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-300'
+                                  : 'border-stone-200 bg-stone-50 text-stone-300 hover:border-amber-300 hover:text-amber-400 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-500 dark:hover:border-amber-400/40 dark:hover:text-amber-300'"
+                                [disabled]="message.starsSaving"
+                                [attr.title]="'Rate answer ' + star + ' star' + (star === 1 ? '' : 's')"
+                                (mouseenter)="setStarsHover(messageIndex, star)"
+                                (mouseleave)="setStarsHover(messageIndex, null)"
+                                (focus)="setStarsHover(messageIndex, star)"
+                                (blur)="setStarsHover(messageIndex, null)"
+                                (click)="rateMessage(messageIndex, star)"
+                              >
+                                ★
+                                </button>
+                              }
+                            </div>
+                            <div class="flex flex-wrap items-center justify-end gap-2 text-xs normal-case tracking-normal opacity-70">
+                              <span class="rounded-full bg-stone-100 px-2 py-1 dark:bg-slate-800/70">{{ getRatingLabel(message.stars) }}</span>
+                              @if (message.starsSaving || message.stars != null) {
+                                <span class="text-right">{{ message.starsSaving ? 'Saving...' : 'saved' }}</span>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      }
                     </article>
                   }
                 </div>
               } @else {
-                <div class="flex min-h-[12rem] flex-1 items-center justify-center px-6 py-8">
+                <div class="flex min-h-0 flex-1 items-center justify-center px-6 py-8">
                   <div class="max-w-md text-center">
                     <p class="text-sm font-semibold uppercase tracking-[0.24em] text-stone-500 dark:text-sky-200/60">Start Chatting</p>
                     <p class="mt-3 text-sm leading-6 text-stone-500 dark:text-slate-300/72">
@@ -121,7 +163,7 @@ import { DashboardStore } from '../dashboard.store';
               <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <textarea
                   rows="2"
-                  class="min-h-[4.25rem] flex-1 resize-none rounded-[1.25rem] border border-stone-300 bg-stone-100 px-4 py-3 text-sm leading-6 text-stone-900 outline-none transition focus:border-orange-400 dark:border-sky-800/70 dark:bg-slate-800/90 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-teal-400 dark:focus:ring-2 dark:focus:ring-teal-500/20"
+                  class="h-[4.25rem] flex-1 resize-none overflow-y-auto overflow-x-hidden rounded-[1.25rem] border border-stone-300 bg-stone-100 px-4 py-3 text-sm leading-6 text-stone-900 outline-none transition focus:border-orange-400 dark:border-sky-800/70 dark:bg-slate-800/90 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-teal-400 dark:focus:ring-2 dark:focus:ring-teal-500/20"
                   [ngModel]="store.chatPrompt()"
                   (ngModelChange)="store.chatPrompt.set($event)"
                   (keydown)="handleComposerKeydown($event)"
@@ -163,6 +205,30 @@ import { DashboardStore } from '../dashboard.store';
 })
 export class ChatPageComponent {
   protected readonly store = inject(DashboardStore);
+  private readonly messagesContainer = viewChild<ElementRef<HTMLDivElement>>('messagesContainer');
+
+  constructor() {
+    effect(() => {
+      const messages = this.store.chatMessages();
+      if (messages.length === 0 || messages[messages.length - 1].role !== 'assistant') {
+        return;
+      }
+
+      queueMicrotask(() => this.scrollMessagesToBottom());
+    });
+  }
+
+  protected getRoutingOutcomeBadge(routingOutcome: string): string {
+    return routingOutcome === 'large' ? 'L' : routingOutcome === 'small' ? 'S' : '?';
+  }
+
+  protected getRoutingOutcomeTooltip(routingOutcome: string): string {
+    return routingOutcome === 'large'
+      ? 'Routing outcome: large model'
+      : routingOutcome === 'small'
+        ? 'Routing outcome: small model'
+        : `Routing outcome: ${routingOutcome}`;
+  }
 
   protected handleComposerKeydown(event: KeyboardEvent): void {
     if (event.key !== 'Enter' || event.shiftKey) {
@@ -171,5 +237,41 @@ export class ChatPageComponent {
 
     event.preventDefault();
     void this.store.sendPrompt();
+  }
+
+  protected rateMessage(messageIndex: number, stars: number): void {
+    void this.store.rateChatMessage(messageIndex, stars);
+  }
+
+  protected setStarsHover(messageIndex: number, starsHover: number | null): void {
+    this.store.setChatMessageStarsHover(messageIndex, starsHover);
+  }
+
+  protected isStarActive(message: { stars?: number | null; starsHover?: number | null }, star: number): boolean {
+    const activeStars = message.starsHover ?? message.stars ?? 0;
+    return star <= activeStars;
+  }
+
+  protected getRatingLabel(stars: number | null | undefined): string {
+    return stars === 5
+      ? 'Excellent'
+      : stars === 4
+        ? 'Great'
+        : stars === 3
+          ? 'Okay'
+          : stars === 2
+            ? 'Weak'
+            : stars === 1
+              ? 'Bad'
+              : 'Choose 1-5 stars';
+  }
+
+  private scrollMessagesToBottom(): void {
+    const container = this.messagesContainer()?.nativeElement;
+    if (!container) {
+      return;
+    }
+
+    container.scrollTop = container.scrollHeight;
   }
 }
