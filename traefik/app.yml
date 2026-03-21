@@ -37,6 +37,39 @@ http:
       tls:
         certResolver: letsencrypt
 
+    middleware-simple:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/middlewares/simple`)"
+      entryPoints:
+        - websecure
+      service: middleware-simple
+      middlewares:
+        - strip-middleware-simple-prefix
+      priority: 10
+      tls:
+        certResolver: letsencrypt
+
+    middleware-onnx:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/middlewares/onnx`)"
+      entryPoints:
+        - websecure
+      service: middleware-onnx
+      middlewares:
+        - strip-middleware-onnx-prefix
+      priority: 10
+      tls:
+        certResolver: letsencrypt
+
+    middleware-llm:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/middlewares/llm`)"
+      entryPoints:
+        - websecure
+      service: middleware-llm
+      middlewares:
+        - strip-middleware-llm-prefix
+      priority: 10
+      tls:
+        certResolver: letsencrypt
+
     http-catchall:
       rule: "HostRegexp(`{host:.+}`)"
       entryPoints:
@@ -54,6 +87,18 @@ http:
       stripPrefix:
         prefixes:
           - /opensearch
+    strip-middleware-simple-prefix:
+      stripPrefix:
+        prefixes:
+          - /middlewares/simple
+    strip-middleware-onnx-prefix:
+      stripPrefix:
+        prefixes:
+          - /middlewares/onnx
+    strip-middleware-llm-prefix:
+      stripPrefix:
+        prefixes:
+          - /middlewares/llm
 
   services:
     dashboard-api:
@@ -75,3 +120,18 @@ http:
       loadBalancer:
         servers:
           - url: "http://opensearch:9200"
+
+    middleware-simple:
+      loadBalancer:
+        servers:
+          - url: "http://middleware-simple:3000"
+
+    middleware-onnx:
+      loadBalancer:
+        servers:
+          - url: "http://middleware-onnx:3001"
+
+    middleware-llm:
+      loadBalancer:
+        servers:
+          - url: "http://middleware-llm:3002"
