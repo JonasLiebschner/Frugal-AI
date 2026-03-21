@@ -6,10 +6,11 @@ public interface IDashboardDataService
 {
     List<string> GetAvailableComparisonModels();
 
-    List<AiRequest> GetAllRequests(
+    Task<List<AiRequest>> GetAllRequestsAsync(
         string comparisonModel,
         IReadOnlyCollection<string>? routingMethods,
         double? minValidationScore,
         DateTimeOffset? since,
-        DateTimeOffset? until);
+        DateTimeOffset? until,
+        CancellationToken cancellationToken = default);
 }
