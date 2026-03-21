@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="20" fill="#213238"/>
+  <path
+    d="M64 101C61 87 57 72 49 60C42 50 31 43 20 38C33 35 48 37 58 46C66 53 70 64 70 77C70 86 68 95 64 101Z"
+    fill="#ffffff"
+    stroke="#ffffff"
+    stroke-linejoin="round"
+    stroke-width="2"
+  />
+  <path
+    d="M66 96C64 79 64 60 71 44C78 29 92 18 110 11C113 25 113 41 109 55C104 72 92 87 66 96Z"
+    fill="url(#leafGradient)"
+    stroke="#ffffff"
+    stroke-linejoin="round"
+    stroke-width="2"
+  />
+  <path
+    d="M20 38C30 36 43 39 51 46C58 53 62 63 64 73"
+    fill="#b7e643"
+    stroke="#b7e643"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="7"
+  />
+  <path
+    d="M66 96C64 79 64 62 68 49C72 36 82 23 101 14"
+    fill="none"
+    stroke="#ffffff"
+    stroke-linecap="round"
+    stroke-width="3"
+  />
+  <path
+    d="M64 101C60 94 59 86 59 78C58 62 57 50 47 41"
+    fill="none"
+    stroke="#ffffff"
+    stroke-linecap="round"
+    stroke-width="3"
+  />
+  <path d="M66 70L82 53" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="3"/>
+  <path d="M74 60L91 39" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="3"/>
+  <path d="M61 60L56 43" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="3"/>
+  <path d="M78 72L87 56" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="3"/>
+  <circle cx="48" cy="40" r="3.2" fill="#ffffff"/>
+  <circle cx="65" cy="55" r="3.2" fill="#ffffff"/>
+  <circle cx="78" cy="67" r="3.2" fill="#ffffff"/>
+  <circle cx="87" cy="52" r="3.2" fill="#ffffff"/>
+  <circle cx="91" cy="31" r="3.2" fill="#ffffff"/>
+  <circle cx="59" cy="101" r="3.2" fill="#ffffff"/>
+  <defs>
+    <linearGradient id="leafGradient" x1="66" y1="96" x2="108" y2="18" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#44c4a8"/>
+      <stop offset="1" stop-color="#7fe2d6"/>
+    </linearGradient>
+  </defs>
+</svg>
