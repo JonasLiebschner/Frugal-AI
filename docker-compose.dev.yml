@@ -73,6 +73,12 @@ services:
       - LLM_MODEL=${MIDDLEWARE_LLM_MODEL:-gpt-4o-mini}
     ports:
       - "3002:3002"
+  middleware-svc:
+    build:
+      context: ./classifier
+      dockerfile: packages/svc-middleware/Dockerfile
+    ports:
+      - "3004:3004"
   middleware-vs:
     build:
       context: ./classifier

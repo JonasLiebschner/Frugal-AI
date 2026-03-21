@@ -15,6 +15,7 @@ env:
   FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai.dashboard.frontend
   MIDDLEWARE_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware
   VS_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-vs
+  SVC_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-svc
 
 jobs:
   build:
@@ -113,6 +114,26 @@ jobs:
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta_vs.outputs.tags }}
           labels: ${{ steps.meta_vs.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker metadata (svc-middleware)
+        id: meta_svc
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.SVC_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push svc-middleware image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./classifier
+          file: ./classifier/packages/svc-middleware/Dockerfile
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta_svc.outputs.tags }}
+          labels: ${{ steps.meta_svc.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

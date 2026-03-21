@@ -72,6 +72,17 @@ http:
       tls:
         certResolver: letsencrypt
 
+    middleware-svc:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/middlewares/svc`)"
+      entryPoints:
+        - websecure
+      service: middleware-svc
+      middlewares:
+        - strip-middleware-svc-prefix
+      priority: 10
+      tls:
+        certResolver: letsencrypt
+
     http-catchall:
       rule: "HostRegexp(`{host:.+}`)"
       entryPoints:
@@ -105,6 +116,10 @@ http:
       stripPrefix:
         prefixes:
           - /middlewares/vs
+    strip-middleware-svc-prefix:
+      stripPrefix:
+        prefixes:
+          - /middlewares/svc
 
   services:
     dashboard-api:
@@ -141,3 +156,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://middleware-vs:3003"
+
+    middleware-svc:
+      loadBalancer:
+        servers:
+          - url: "http://middleware-svc:3004"
