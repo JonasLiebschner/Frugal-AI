@@ -1,58 +1,9 @@
 <div
   class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(255,237,213,0.95),_transparent_32%),radial-gradient(circle_at_top_right,_rgba(209,250,229,0.8),_transparent_28%),linear-gradient(180deg,_#f7f3ea_0%,_#f2efe8_100%)] text-stone-900 transition-colors dark:bg-[radial-gradient(circle_at_top_left,_rgba(30,41,59,0.95),_transparent_32%),radial-gradient(circle_at_top_right,_rgba(6,78,59,0.38),_transparent_26%),linear-gradient(180deg,_#0f172a_0%,_#111827_100%)] dark:text-stone-100"
 >
+  <p-toast position="top-right" />
   <div class="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-    <app-dashboard-header [darkMode]="darkMode()" (toggleTheme)="setDarkMode(!darkMode())" />
-
-    <app-dashboard-filters
-      [treesSaved]="formatTreesSaved(treesSaved())"
-      [modelOptions]="modelOptions()"
-      [routingOptions]="routingOptions()"
-      [comparisonModel]="comparisonModel()"
-      [selectedRoutingMethods]="selectedRoutingMethods()"
-      [minimumUserScoreInput]="minimumUserScoreInput()"
-      [timeZone]="timeZone()"
-      [timeZoneOptions]="timeZoneOptions"
-      [startDateTimeInput]="startDateTimeInput()"
-      [endDateTimeInput]="endDateTimeInput()"
-      (comparisonModelChange)="setComparisonModel($event)"
-      (selectedRoutingMethodsChange)="setSelectedRoutingMethods($event)"
-      (minimumUserScoreInputChange)="setMinimumUserScoreInput($event)"
-      (timeZoneChange)="setTimeZone($event)"
-      (startDateTimeInputChange)="setStartDateTimeInput($event)"
-      (endDateTimeInputChange)="setEndDateTimeInput($event)"
-    />
-
-    @if (error()) {
-      <section class="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/30 dark:text-rose-300">
-        {{ error() }}
-      </section>
-    }
-
-    @if (loading()) {
-      <section class="rounded-3xl border border-stone-200 bg-white/70 px-5 py-4 text-sm text-stone-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
-        Loading dashboard data...
-      </section>
-    }
-
-    <app-metrics-section
-      [sustainabilityCards]="sustainabilityMetricCards()"
-      [generalCards]="generalMetricCards()"
-    />
-
-    <app-requests-table
-      [requests]="visibleRequests()"
-      [comparisonModel]="comparisonModel()"
-    />
-
-    <app-charts-section [sections]="sustainabilityChartSections()" />
+    <app-navbar [darkMode]="store.darkMode()" (toggleTheme)="store.setDarkMode(!store.darkMode())" />
+    <router-outlet />
   </div>
-
-  <app-chat-panel
-    [open]="chatOpen()"
-    [prompt]="chatPrompt()"
-    (toggle)="toggleChat()"
-    (promptChange)="chatPrompt.set($event)"
-    (submit)="sendPrompt()"
-  />
 </div>
