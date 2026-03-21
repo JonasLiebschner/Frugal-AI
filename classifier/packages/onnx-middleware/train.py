@@ -1,5 +1,5 @@
 """
-Train a DistilBERT sequence classifier on the llm_router_dataset-synth dataset
+Train a ModernBERT sequence classifier on the llm_router_dataset-synth dataset
 and export it to ONNX (float32 + int8 quantized).
 
 Usage:

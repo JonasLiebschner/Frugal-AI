@@ -7,7 +7,7 @@
 # Mount a directory containing the following files at /models at runtime:
 #
 #   /models/
-#   ├── model_int8.onnx         (quantized DistilBERT — recommended, ~67 MB)
+#   ├── model_int8.onnx         (quantized ModernBERT — recommended)
 #   │   or model.onnx           (float32 — ~268 MB, higher precision)
 #   ├── tokenizer.json          (HuggingFace fast-tokenizer config)
 #   └── tokenizer_config.json   (optional, loaded automatically if present)

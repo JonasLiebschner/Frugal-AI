@@ -14,7 +14,7 @@ const server = createClassifyServer(classifier, {
   port,
   title: "ONNX Classify Middleware",
   description:
-    "Query complexity classifier powered by a fine-tuned DistilBERT ONNX model",
+    "Query complexity classifier powered by a fine-tuned ModernBERT ONNX model",
   version: "1.0.0",
 });
 
