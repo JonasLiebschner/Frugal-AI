@@ -1,4 +1,4 @@
-name: Build and deploy dashboard
+name: Build and deploy all services
 
 on:
   push:
@@ -13,6 +13,8 @@ permissions:
 env:
   BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai.dashboard.backend
   FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai.dashboard.frontend
+  SIMPLE_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-simple
+  ONNX_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-onnx
 
 jobs:
   build-images:
@@ -68,6 +70,46 @@ jobs:
           push: true
           tags: ${{ steps.meta_frontend.outputs.tags }}
           labels: ${{ steps.meta_frontend.outputs.labels }}
+
+      - name: Docker metadata (simple-middleware)
+        id: meta_simple
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.SIMPLE_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Docker metadata (onnx-middleware)
+        id: meta_onnx
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.ONNX_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push simple-middleware image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./classifier
+          file: ./classifier/packages/simple-middleware/Dockerfile
+          push: true
+          tags: ${{ steps.meta_simple.outputs.tags }}
+          labels: ${{ steps.meta_simple.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push onnx-middleware image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./classifier
+          file: ./classifier/packages/onnx-middleware/Dockerfile
+          push: true
+          tags: ${{ steps.meta_onnx.outputs.tags }}
+          labels: ${{ steps.meta_onnx.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     name: Deploy via SSH

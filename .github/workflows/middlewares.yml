@@ -1,0 +1,105 @@
+name: Build and push middleware images
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  SIMPLE_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-simple
+  ONNX_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-onnx
+
+jobs:
+  build-images:
+    name: Build and push middleware images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata (simple-middleware)
+        id: meta_simple
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.SIMPLE_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Docker metadata (onnx-middleware)
+        id: meta_onnx
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.ONNX_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push simple-middleware image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./classifier
+          file: ./classifier/packages/simple-middleware/Dockerfile
+          push: true
+          tags: ${{ steps.meta_simple.outputs.tags }}
+          labels: ${{ steps.meta_simple.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push onnx-middleware image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./classifier
+          file: ./classifier/packages/onnx-middleware/Dockerfile
+          push: true
+          tags: ${{ steps.meta_onnx.outputs.tags }}
+          labels: ${{ steps.meta_onnx.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy via SSH
+    runs-on: ubuntu-latest
+    needs: build-images
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy deployment
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "docker-compose.prod.yml"
+          target: ${{ secrets.DEPLOY_PATH }}
+          overwrite: true
+
+      - name: Deploy services
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.DEPLOY_PATH }}"
+            docker compose -f docker-compose.prod.yml pull middleware-simple middleware-onnx
+            docker compose -f docker-compose.prod.yml up -d middleware-simple middleware-onnx
+            docker image prune -f

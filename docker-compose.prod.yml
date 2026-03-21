@@ -5,6 +5,18 @@ services:
   dashboard-frontend:
     image: ghcr.io/jonasliebschner/frugal-ai.dashboard.frontend
 
+  middleware-simple:
+    image: ghcr.io/jonasliebschner/frugal-ai-middleware-simple
+    ports:
+      - "3000:3000"
+
+  middleware-onnx:
+    image: ghcr.io/jonasliebschner/frugal-ai-middleware-onnx
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./models:/models
+
   reverse-proxy:
     image: traefik:v3.3
     ports:

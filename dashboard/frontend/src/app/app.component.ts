@@ -390,12 +390,18 @@ export class AppComponent {
         const routingMethods = this.uniqueStrings(requests.map((request) => request.routingMethod));
 
         if (routingMethods.length > 0) {
-          this.routingMethods.set(routingMethods);
+          const selectedRouting = this.selectedRoutingMethods();
+          const shouldPreserveExisting = selectedRouting.length > 0;
+          const nextRoutingMethods = shouldPreserveExisting
+            ? this.uniqueStrings([...this.routingMethods(), ...routingMethods])
+            : routingMethods;
+
+          this.routingMethods.set(nextRoutingMethods);
           this.selectedRoutingMethods.update((selected) => {
             if (selected.length === 0) {
-              return routingMethods;
+              return nextRoutingMethods;
             }
-            return selected.filter((routingMethod) => routingMethods.includes(routingMethod));
+            return selected.filter((routingMethod) => nextRoutingMethods.includes(routingMethod));
           });
         }
       },
