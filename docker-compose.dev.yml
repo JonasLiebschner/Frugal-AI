@@ -70,7 +70,7 @@ services:
   middleware-vs:
     build:
       context: ./classifier
-      dockerfile: packages/vs-middleware/Dockerfile
+      dockerfile: vs-middleware/Dockerfile
     ports:
       - "3003:3003"
     environment:

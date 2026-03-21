@@ -109,7 +109,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./classifier
-          file: ./classifier/packages/vs-middleware/Dockerfile
+          file: ./classifier/vs-middleware/Dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta_vs.outputs.tags }}
           labels: ${{ steps.meta_vs.outputs.labels }}

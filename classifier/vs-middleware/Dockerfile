@@ -4,10 +4,10 @@ RUN apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/
 
 WORKDIR /app
 
-COPY packages/vs-middleware/Gemfile packages/vs-middleware/Gemfile.lock ./
+COPY vs-middleware/Gemfile vs-middleware/Gemfile.lock ./
 RUN bundle config set without 'test' && bundle install
 
-COPY packages/vs-middleware/ .
+COPY vs-middleware/ .
 
 EXPOSE 3003
 
