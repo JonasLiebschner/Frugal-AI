@@ -1,0 +1,18 @@
+services:
+  simple-middleware:
+    image: ghcr.io/jonasliebschner/frugal-ai-middleware-simple
+    build:
+      context: classifier
+      dockerfile: packages/simple-middleware/Dockerfile
+    ports:
+      - "3000:3000"
+
+  onnx-middleware:
+    image: ghcr.io/jonasliebschner/frugal-ai-middleware-onnx
+    build:
+      context: classifier
+      dockerfile: packages/onnx-middleware/Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./models:/models
