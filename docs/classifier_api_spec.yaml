@@ -18,8 +18,21 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ClassifyRequest'
-            example:
-              query: "What is the capital of France?"
+            examples:
+              simple_query:
+                summary: Simple factual query routed to a less powerful model
+                value:
+                  query: "What is the capital of France?"
+                  additionalData:
+                    userId: "abc123"
+                    preferredModelFamily: "gpt"
+              complex_query:
+                summary: Complex reasoning query routed to a more powerful model
+                value:
+                  query: "Analyze the trade-offs between transformer-based and state-space models for long-context reasoning tasks."
+                  additionalData:
+                    userId: "xyz789"
+                    preferredModelFamily: "claude"
       responses:
         '200':
           description: Classification result
@@ -29,13 +42,19 @@ paths:
                 $ref: '#/components/schemas/ClassifyResponse'
               examples:
                 small_model:
-                  summary: Simple query routed to small model
+                  summary: Simple query routed to a less powerful model.
                   value:
                     result: "small"
+                    additionalData:
+                      confidence: 0.97
+                      reason: "Query is a simple factual lookup with no reasoning required."
                 large_model:
-                  summary: Complex query routed to large model
+                  summary: Complex query routed to a more powerful model.
                   value:
                     result: "large"
+                    additionalData:
+                      confidence: 0.91
+                      reason: "Query requires deep domain knowledge and multi-step reasoning."
         '400':
           description: Bad request — missing or invalid input
           content:
@@ -61,6 +80,10 @@ components:
           description: The input query to classify for model routing.
           minLength: 1
           examples: ["Explain the thermodynamic principles behind black hole evaporation."]
+        additionalData:
+          type: object
+          description: Arbitrary key-value data to pass alongside the query (e.g. session context, user metadata).
+          additionalProperties: true
 
     ClassifyResponse:
       type: object
@@ -77,6 +100,10 @@ components:
             - `small`: the query can be handled by a lightweight model.
             - `large`: the query requires a large, more capable model.
           examples: ["large"]
+        additionalData:
+          type: object
+          description: Arbitrary key-value data returned by the classifier (e.g. confidence score, reasoning, model suggestions).
+          additionalProperties: true
 
     ErrorResponse:
       type: object
