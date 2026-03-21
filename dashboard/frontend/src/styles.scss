@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+$table-light-header-bg: rgb(248 250 252 / 0.92);
+$table-light-header-border: rgb(226 232 240 / 0.75);
+$table-light-header-text: rgb(51 65 85);
+$table-light-row-border: rgb(231 229 228 / 0.85);
+$table-light-row-hover: rgb(255 255 255 / 0.82);
+$table-light-empty-bg: rgb(248 250 252 / 0.78);
+
+$table-dark-surface: rgb(10 17 35 / 0.98);
+$table-dark-empty-bg: rgb(10 17 35 / 0.96);
+$table-dark-header-border: rgb(37 99 235 / 0.18);
+$table-dark-row-border: rgb(30 58 138 / 0.16);
+$table-dark-header-text: rgb(147 197 253 / 0.9);
+$table-dark-body-text: rgb(224 231 255);
+$table-dark-icon: rgb(96 165 250 / 0.9);
+
 @layer base {
   html,
   body {
@@ -15,131 +30,121 @@
 
 @layer components {
   .p-select,
-  .p-multiselect {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-  }
-
+  .p-multiselect,
   .p-select-label,
   .p-multiselect-label,
   .p-multiselect-label-container {
     min-width: 0;
   }
 
-  .requests-table .p-datatable-table {
+  .p-select,
+  .p-multiselect {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    max-width: 100%;
   }
 
-  .requests-table .p-datatable-thead > tr > th {
-    border: 0;
-    border-bottom: 1px solid rgb(226 232 240 / 0.75);
-    background: rgb(248 250 252 / 0.92);
-    color: rgb(51 65 85);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    padding: 1rem 1rem 0.95rem;
-    text-transform: uppercase;
-    white-space: nowrap;
+  .requests-table {
+    .p-datatable-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .p-datatable-thead > tr > th {
+      border: 0;
+      border-bottom: 1px solid $table-light-header-border;
+      background: $table-light-header-bg;
+      color: $table-light-header-text;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 1rem 1rem 0.95rem;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .p-datatable-tbody > tr > td {
+      border: 0;
+      border-bottom: 1px solid $table-light-row-border;
+      background: transparent;
+      color: rgb(41 37 36);
+      padding: 1rem;
+      vertical-align: top;
+    }
+
+    .p-datatable-tbody > tr:last-child > td {
+      border-bottom: 0;
+    }
+
+    .p-datatable-tbody > tr:hover > td {
+      background: $table-light-row-hover;
+    }
+
+    .p-sortable-column:not(.p-datatable-column-sorted):hover {
+      background: rgb(241 245 249 / 0.96);
+      color: rgb(15 23 42);
+    }
+
+    .p-sortable-column-icon,
+    .p-sorticon {
+      color: inherit;
+      opacity: 0.7;
+    }
+
+    .p-datatable-emptymessage > tr > td,
+    .p-datatable-tbody > tr.p-datatable-emptymessage > td,
+    .p-datatable-emptymessage > tr:hover > td,
+    .p-datatable-tbody > tr.p-datatable-emptymessage:hover > td {
+      background: $table-light-empty-bg;
+    }
   }
 
-  .app-dark .requests-table .p-datatable-thead > tr > th {
-    border-bottom-color: rgb(37 99 235 / 0.18);
-    background: rgb(10 17 35 / 0.98);
-    color: rgb(147 197 253 / 0.9);
-  }
+  .app-dark {
+    .requests-table {
+      .p-datatable-thead > tr > th,
+      .p-datatable-column-sorted,
+      .p-datatable-column-sorted:hover,
+      .p-datatable-column-sorted:focus,
+      .p-datatable-column-sorted:active,
+      .p-sortable-column:not(.p-datatable-column-sorted):hover,
+      .p-datatable-tbody > tr:active > td,
+      .p-datatable-tbody > tr:focus-within > td,
+      .p-datatable-thead > tr > th:active,
+      .p-datatable-thead > tr > th:focus-within,
+      .p-sortable-column.p-focus,
+      .p-sortable-column:focus,
+      .p-sortable-column:active {
+        background: $table-dark-surface;
+        color: $table-dark-header-text;
+        box-shadow: none;
+        outline: none;
+      }
 
-  .requests-table .p-sortable-column:not(.p-datatable-column-sorted):hover {
-    background: rgb(241 245 249 / 0.96);
-    color: rgb(15 23 42);
-  }
+      .p-datatable-thead > tr > th {
+        border-bottom-color: $table-dark-header-border;
+      }
 
-  .app-dark .requests-table .p-sortable-column:not(.p-datatable-column-sorted):hover {
-    background: rgb(10 17 35 / 0.98);
-    color: rgb(147 197 253 / 0.9);
-  }
+      .p-datatable-tbody > tr > td {
+        border-bottom-color: $table-dark-row-border;
+        color: $table-dark-body-text;
+      }
 
-  .app-dark .requests-table .p-datatable-column-sorted,
-  .app-dark .requests-table .p-datatable-column-sorted:hover,
-  .app-dark .requests-table .p-datatable-column-sorted:focus,
-  .app-dark .requests-table .p-datatable-column-sorted:active {
-    background: rgb(10 17 35 / 0.98);
-    color: rgb(147 197 253 / 0.9);
-    box-shadow: none;
-    outline: none;
-  }
+      .p-datatable-tbody > tr:hover > td {
+        background: transparent;
+      }
 
-  .requests-table .p-datatable-tbody > tr > td {
-    border: 0;
-    border-bottom: 1px solid rgb(231 229 228 / 0.85);
-    background: transparent;
-    color: rgb(41 37 36);
-    padding: 1rem;
-    vertical-align: top;
-  }
+      .p-sortable-column-icon,
+      .p-sorticon {
+        color: $table-dark-icon;
+        opacity: 1;
+      }
 
-  .app-dark .requests-table .p-datatable-tbody > tr > td {
-    border-bottom-color: rgb(30 58 138 / 0.16);
-    color: rgb(224 231 255);
-  }
-
-  .requests-table .p-datatable-tbody > tr:hover > td {
-    background: rgb(255 255 255 / 0.82);
-  }
-
-  .app-dark .requests-table .p-datatable-tbody > tr:hover > td {
-    background: transparent;
-  }
-
-  .app-dark .requests-table .p-datatable-tbody > tr:active > td,
-  .app-dark .requests-table .p-datatable-tbody > tr:focus-within > td,
-  .app-dark .requests-table .p-datatable-thead > tr > th:active,
-  .app-dark .requests-table .p-datatable-thead > tr > th:focus-within,
-  .app-dark .requests-table .p-sortable-column.p-focus,
-  .app-dark .requests-table .p-sortable-column:focus,
-  .app-dark .requests-table .p-sortable-column:active {
-    background: rgb(10 17 35 / 0.98);
-    color: rgb(147 197 253 / 0.9);
-    box-shadow: none;
-    outline: none;
-  }
-
-  .requests-table .p-sortable-column-icon,
-  .requests-table .p-sorticon {
-    color: inherit;
-    opacity: 0.7;
-  }
-
-  .app-dark .requests-table .p-sortable-column-icon,
-  .app-dark .requests-table .p-sorticon {
-    color: rgb(96 165 250 / 0.9);
-    opacity: 1;
-  }
-
-  .requests-table .p-datatable-tbody > tr:last-child > td {
-    border-bottom: 0;
-  }
-
-  .requests-table .p-datatable-emptymessage > tr > td,
-  .requests-table .p-datatable-tbody > tr.p-datatable-emptymessage > td {
-    background: rgb(248 250 252 / 0.78);
-  }
-
-  .requests-table .p-datatable-emptymessage > tr:hover > td,
-  .requests-table .p-datatable-tbody > tr.p-datatable-emptymessage:hover > td {
-    background: rgb(248 250 252 / 0.78);
-  }
-
-  .app-dark .requests-table .p-datatable-emptymessage > tr > td,
-  .app-dark .requests-table .p-datatable-tbody > tr.p-datatable-emptymessage > td {
-    background: rgb(10 17 35 / 0.96);
-  }
-
-  .app-dark .requests-table .p-datatable-emptymessage > tr:hover > td,
-  .app-dark .requests-table .p-datatable-tbody > tr.p-datatable-emptymessage:hover > td {
-    background: rgb(10 17 35 / 0.96);
+      .p-datatable-emptymessage > tr > td,
+      .p-datatable-tbody > tr.p-datatable-emptymessage > td,
+      .p-datatable-emptymessage > tr:hover > td,
+      .p-datatable-tbody > tr.p-datatable-emptymessage:hover > td {
+        background: $table-dark-empty-bg;
+      }
+    }
   }
 }
