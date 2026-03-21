@@ -1,33 +1,29 @@
-:root {
-  --bg: #f3f1ea;
-  --panel: #fffdfa;
-  --ink: #1f1e1a;
-  --muted: #6b685f;
-  --line: #d6cfbe;
-  --accent: #f05d23;
-  --accent-soft: #ffe3d6;
-  --ok: #2f8f4e;
-  --warn: #b25522;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer components {
+  .p-select,
+  .p-multiselect {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
 
-body {
-  margin: 0;
-  font-family: 'Space Grotesk', sans-serif;
-  color: var(--ink);
-  background:
-    radial-gradient(circle at 12% 18%, #fff2d6 0%, transparent 30%),
-    radial-gradient(circle at 88% 10%, #d7efe8 0%, transparent 35%),
-    var(--bg);
-  min-height: 100vh;
-}
-
-button,
-select,
-input,
-textarea {
-  font: inherit;
+  .p-select-label,
+  .p-multiselect-label,
+  .p-multiselect-label-container {
+    min-width: 0;
+  }
 }

@@ -1,90 +1,39 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Component, computed, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import type { EChartsOption } from 'echarts';
-import { NgxEchartsDirective } from 'ngx-echarts';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { SelectModule } from 'primeng/select';
-import { TableModule } from 'primeng/table';
-import { TextareaModule } from 'primeng/textarea';
-import {environment} from "../environments/environment";
 
-type ApiAiRequest = {
-  id: string;
-  model: string;
-  routingMethod: string;
-  prompt: string;
-  inputTokens: number;
-  outputTokens: number;
-  durationMs: number;
-  validationScore: number;
-  created: string;
-  comparison: RequestMetadata;
-  actual: RequestMetadata;
-};
-
-type RequestMetadata = {
-  powerWh: number;
-  co2: number;
-  waterMl: number;
-  costUsd: number;
-};
-
-type AiRequest = ApiAiRequest & {
-  createdAt: string;
-  powerWh: number;
-  co2: number;
-  waterMl: number;
-  costUsd: number;
-};
-
-type CreateRequestDto = {
-  prompt: string;
-  comparisonModel: string;
-  routingMethod?: string;
-};
-
-type ChartMetricPoint = {
-  requestId: string;
-  actual: number;
-  comparison: number;
-};
-
-type ChartMetric = {
-  metricKey: 'powerWh' | 'co2' | 'waterMl' | 'costUsd';
-  metricLabel: string;
-  points: ChartMetricPoint[];
-};
-
-type SustainabilityChartCard = {
-  key: string;
-  title: string;
-  subtitle: string;
-  options: EChartsOption;
-};
-
-type RoutingMethodChartSection = {
-  routingMethod: string;
-  charts: SustainabilityChartCard[];
-};
-
-type LocalDateTimeParts = {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-};
+import { environment } from '../environments/environment';
+import { formatCost, formatDuration, formatScore, formatTimestamp, formatTreesSaved, modelDelta } from './dashboard-formatters';
+import type {
+  AiRequest,
+  ApiAiRequest,
+  ChartMetric,
+  CreateRequestDto,
+  LocalDateTimeParts,
+  MetricSummaryCard,
+  RoutingMethodChartSection
+} from './dashboard.types';
+import { ChatPanelComponent } from './components/chat-panel.component';
+import { ChartsSectionComponent } from './components/charts-section.component';
+import { DashboardFiltersComponent } from './components/dashboard-filters.component';
+import { DashboardHeaderComponent } from './components/dashboard-header.component';
+import { MetricsSectionComponent } from './components/metrics-section.component';
+import { RequestsTableComponent } from './components/requests-table.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxEchartsDirective, ButtonModule, CardModule, SelectModule, MultiSelectModule, TableModule, TextareaModule],
+  imports: [
+    CommonModule,
+    DashboardHeaderComponent,
+    DashboardFiltersComponent,
+    MetricsSectionComponent,
+    RequestsTableComponent,
+    ChartsSectionComponent,
+    ChatPanelComponent
+  ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
 })
 export class AppComponent {
   private readonly darkModeStorageKey = 'frugal-ai-dashboard.darkMode';
@@ -155,6 +104,35 @@ export class AppComponent {
   });
 
   protected readonly visibleRequests = computed(() => this.dashboardData() ?? []);
+  protected readonly sustainabilityMetricCards = computed<MetricSummaryCard[]>(() => [
+    {
+      label: 'Power',
+      value: `${this.totalPowerWh().toFixed(1)} Wh`,
+      comparison: `Comparison: ${this.totalComparisonPowerWh().toFixed(1)} Wh`
+    },
+    {
+      label: 'CO2',
+      value: `${this.totalCo2().toFixed(1)} g`,
+      comparison: `Comparison: ${this.totalComparisonCo2().toFixed(1)} g`
+    },
+    {
+      label: 'Water',
+      value: `${this.totalWaterMl().toFixed(0)} ml`,
+      comparison: `Comparison: ${this.totalComparisonWaterMl().toFixed(0)} ml`
+    },
+    {
+      label: 'Total Cost',
+      value: this.formatCost(this.totalCostUsd()),
+      comparison: `Comparison: ${this.formatCost(this.totalComparisonCostUsd())}`
+    }
+  ]);
+  protected readonly generalMetricCards = computed<MetricSummaryCard[]>(() => [
+    { label: 'Total Requests', value: String(this.visibleRequests().length) },
+    { label: 'Input Tokens', value: String(this.totalInputTokens()) },
+    { label: 'Output Tokens', value: String(this.totalOutputTokens()) },
+    { label: 'Avg Duration', value: this.formatDuration(this.avgDurationMs()) },
+    { label: 'Validation Score', value: this.formatScore(this.avgValidationScore()) }
+  ]);
 
   protected readonly totalPowerWh = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.actual.powerWh, 0) ?? 0);
   protected readonly totalCo2 = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.actual.co2, 0) ?? 0);
@@ -327,31 +305,14 @@ export class AppComponent {
     this.loadDashboardData();
   }
 
-  protected formatTimestamp(iso: string): string {
-    return new Date(iso).toLocaleString([], { hour12: false, month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-  }
-
-  protected formatDuration(durationMs: number): string {
-    return `${(durationMs / 1000).toFixed(2)} s`;
-  }
-
-  protected formatCost(costUsd: number): string {
-    return `$${costUsd.toFixed(4)}`;
-  }
-
-  protected formatScore(score: number): string {
-    return `${score.toFixed(1)} / 5`;
-  }
-
-  protected formatTreesSaved(treesSaved: number): string {
-    if (treesSaved === 0) {
-      return '0';
-    }
-    return treesSaved < 1 ? treesSaved.toFixed(2) : treesSaved.toFixed(1);
-  }
+  protected formatTimestamp = formatTimestamp;
+  protected formatDuration = formatDuration;
+  protected formatCost = formatCost;
+  protected formatScore = formatScore;
+  protected formatTreesSaved = formatTreesSaved;
 
   protected modelDelta(request: AiRequest): string {
-    return `${request.model} vs ${this.comparisonModel()}`;
+    return modelDelta(request, this.comparisonModel());
   }
 
   private loadDashboardData(): void {
