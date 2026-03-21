@@ -72,6 +72,11 @@ $table-dark-icon: rgb(96 165 250 / 0.9);
       vertical-align: top;
     }
 
+    .p-datatable-tbody > tr {
+      background: transparent;
+      outline-color: transparent;
+    }
+
     .p-datatable-tbody > tr:last-child > td {
       border-bottom: 0;
     }
@@ -127,6 +132,10 @@ $table-dark-icon: rgb(96 165 250 / 0.9);
       .p-datatable-tbody > tr > td {
         border-bottom-color: $table-dark-row-border;
         color: $table-dark-body-text;
+      }
+
+      .p-datatable-tbody > tr {
+        background: transparent;
       }
 
       .p-datatable-tbody > tr:hover > td {
