@@ -77,3 +77,10 @@ export type MetricSummaryCard = {
   value: string;
   comparison?: string;
 };
+
+export type ChatRole = 'user' | 'assistant';
+
+export type ChatMessage = {
+  role: ChatRole;
+  content: string;
+};

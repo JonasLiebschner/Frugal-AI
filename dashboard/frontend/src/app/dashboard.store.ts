@@ -9,7 +9,7 @@ import type {
   AiRequest,
   ApiAiRequest,
   ChartMetric,
-  CreateRequestDto,
+  ChatMessage,
   LocalDateTimeParts,
   MetricSummaryCard,
   RoutingMethodChartSection,
@@ -33,6 +33,11 @@ export class DashboardStore {
   readonly startDateTimeInput = signal<string>(this.getDefaultLocalDateTimeInput(-60));
   readonly endDateTimeInput = signal<string>(this.getDefaultLocalDateTimeInput(0));
   readonly chatPrompt = signal<string>('');
+  readonly chatMessages = signal<ChatMessage[]>([]);
+  readonly chatSelectedModel = signal<string>('auto');
+  readonly chatSelectedRoutingMethod = signal<string>('round-robin');
+  readonly chatModels = signal<string[]>(['auto', ...environment.openai_models]);
+  readonly chatSubmitting = signal<boolean>(false);
   readonly darkMode = signal<boolean>(false);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string>('');
@@ -57,6 +62,9 @@ export class DashboardStore {
 
   readonly modelOptions = computed<SelectOption[]>(() => this.models().map((model) => ({ label: model, value: model })));
   readonly routingOptions = computed<SelectOption[]>(() => this.routingMethods().map((routingMethod) => ({ label: routingMethod, value: routingMethod })));
+  readonly chatModelOptions = computed<SelectOption[]>(() => this.chatModels().map((model) => ({ label: model === 'auto' ? 'Auto' : model, value: model })));
+  readonly canSelectChatRoutingMethod = computed(() => this.chatSelectedModel() === 'auto');
+
   readonly minimumUserScore = computed<number>(() => {
     const normalized = this.minimumUserScoreInput().replace(',', '.').trim();
     const parsed = Number(normalized);
@@ -66,6 +74,7 @@ export class DashboardStore {
 
     return Number(Math.min(5, Math.max(0, parsed)).toFixed(1));
   });
+
   readonly visibleRequests = computed(() => this.dashboardData() ?? []);
   readonly totalPowerWh = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.actual.powerWh, 0) ?? 0);
   readonly totalCo2 = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.actual.co2, 0) ?? 0);
@@ -80,6 +89,7 @@ export class DashboardStore {
   readonly treesSaved = computed(() => Math.max(0, (this.totalComparisonCo2() - this.totalCo2()) / this.co2GramsPerTree));
   readonly avgValidationScore = computed(() => this.dashboardData()?.length ? this.dashboardData()!.reduce((sum, r) => sum + r.validationScore, 0) / this.dashboardData()!.length : 0);
   readonly avgDurationMs = computed(() => this.dashboardData()?.length ? this.dashboardData()!.reduce((sum, r) => sum + r.durationMs, 0) / this.dashboardData()!.length : 0);
+
   readonly sustainabilityMetricCards = computed<MetricSummaryCard[]>(() => [
     { label: 'Power', value: `${this.totalPowerWh().toFixed(1)} Wh`, comparison: `Comparison: ${this.totalComparisonPowerWh().toFixed(1)} Wh` },
     { label: 'CO2', value: `${this.totalCo2().toFixed(1)} g`, comparison: `Comparison: ${this.totalComparisonCo2().toFixed(1)} g` },
@@ -87,6 +97,7 @@ export class DashboardStore {
     { label: 'Total Cost', value: formatCost(this.totalCostUsd()), comparison: `Comparison: ${formatCost(this.totalComparisonCostUsd())}` },
     { label: 'Trees Saved', value: formatTreesSaved(this.treesSaved()), comparison: 'Estimated from CO2 reduction' }
   ]);
+
   readonly generalMetricCards = computed<MetricSummaryCard[]>(() => [
     { label: 'Total Requests', value: String(this.visibleRequests().length) },
     { label: 'Input Tokens', value: String(this.totalInputTokens()) },
@@ -94,6 +105,7 @@ export class DashboardStore {
     { label: 'Avg Duration', value: formatDuration(this.avgDurationMs()) },
     { label: 'Validation Score', value: formatScore(this.avgValidationScore()) }
   ]);
+
   readonly sustainabilityChartSections = computed<RoutingMethodChartSection[]>(() => {
     const data = this.dashboardData();
     if (!data) {
@@ -193,31 +205,62 @@ export class DashboardStore {
     this.loadDashboardData();
   }
 
-  sendPrompt(): void {
+  async sendPrompt(): Promise<void> {
     const prompt = this.chatPrompt().trim();
     if (!prompt) {
       return;
     }
 
-    const payload: CreateRequestDto = {
-      prompt,
-      comparisonModel: this.comparisonModel(),
-      routingMethod: this.selectedRoutingMethods()[0]
-    };
+    if (!environment.openai_api_key) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Missing OpenAI token',
+        detail: 'Set environment.openai_api_key in the frontend environment config.'
+      });
+      return;
+    }
 
-    this.http.post(this.apiBaseUrl, payload).subscribe({
-      next: () => {
-        this.chatPrompt.set('');
-        this.loadDashboardData();
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Request failed',
-          detail: 'Failed to submit request.'
-        });
+    const nextMessages: ChatMessage[] = [{ role: 'user', content: prompt }];
+    this.chatSubmitting.set(true);
+    this.chatMessages.set(nextMessages);
+    this.chatPrompt.set('');
+
+    try {
+      const response = await fetch(`${environment.openai_base_url.replace(/\/$/, '')}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${environment.openai_api_key}`
+        },
+        body: JSON.stringify({
+          model: this.resolveChatModel(),
+          store: false,
+          input: prompt
+        })
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error?.message ?? 'Failed to submit request.');
       }
-    });
+
+      const assistantText = this.extractAssistantText(payload);
+      if (!assistantText) {
+        throw new Error('OpenAI response did not contain assistant text.');
+      }
+
+      this.chatMessages.set([...nextMessages, { role: 'assistant', content: assistantText }]);
+    } catch (error) {
+      this.chatMessages.set([]);
+      this.chatPrompt.set(prompt);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Request failed',
+        detail: error instanceof Error ? error.message : 'Failed to submit request.'
+      });
+    } finally {
+      this.chatSubmitting.set(false);
+    }
   }
 
   setDarkMode(enabled: boolean): void {
@@ -258,6 +301,19 @@ export class DashboardStore {
   setSelectedRoutingMethods(value: string[]): void {
     this.selectedRoutingMethods.set(value);
     this.loadDashboardData();
+  }
+
+  setChatSelectedModel(value: string): void {
+    this.chatSelectedModel.set(value);
+  }
+
+  setChatSelectedRoutingMethod(value: string): void {
+    this.chatSelectedRoutingMethod.set(value);
+  }
+
+  clearChat(): void {
+    this.chatMessages.set([]);
+    this.chatPrompt.set('');
   }
 
   getModelDelta(request: AiRequest): string {
@@ -307,6 +363,10 @@ export class DashboardStore {
           this.selectedRoutingMethods.update((selected) => selected.length === 0
             ? nextRoutingMethods
             : selected.filter((routingMethod) => nextRoutingMethods.includes(routingMethod)));
+
+          if (!nextRoutingMethods.includes(this.chatSelectedRoutingMethod())) {
+            this.chatSelectedRoutingMethod.set(nextRoutingMethods[0]);
+          }
         }
       },
       error: () => {
@@ -440,5 +500,37 @@ export class DashboardStore {
         : metricKey === 'waterMl'
           ? '#18a46c'
           : '#b256d9';
+  }
+
+  private resolveChatModel(): string {
+    if (this.chatSelectedModel() !== 'auto') {
+      return this.chatSelectedModel();
+    }
+
+    return this.chatSelectedRoutingMethod() === 'latency-first'
+      ? environment.openai_models.find((model) => model === 'gpt-4o-mini') ?? environment.openai_models[0]
+      : this.chatSelectedRoutingMethod() === 'cost-optimized'
+        ? environment.openai_models.find((model) => model === 'gpt-4.1-mini') ?? environment.openai_models[0]
+        : environment.openai_models[0];
+  }
+
+  private extractAssistantText(payload: unknown): string {
+    if (!payload || typeof payload !== 'object' || !('output' in payload) || !Array.isArray(payload.output)) {
+      return '';
+    }
+
+    for (const item of payload.output) {
+      if (!item || typeof item !== 'object' || item.type !== 'message' || !Array.isArray(item.content)) {
+        continue;
+      }
+
+      for (const contentItem of item.content) {
+        if (contentItem && typeof contentItem === 'object' && contentItem.type === 'output_text' && typeof contentItem.text === 'string') {
+          return contentItem.text;
+        }
+      }
+    }
+
+    return '';
   }
 }
