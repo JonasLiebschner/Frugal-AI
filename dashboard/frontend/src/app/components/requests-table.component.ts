@@ -17,8 +17,14 @@ import type { AiRequest } from '../dashboard.types';
         </div>
       </div>
 
-      <div class="overflow-x-auto">
-        <p-table [value]="requests()" [tableStyle]="{ 'min-width': '1020px' }" size="small" sortMode="multiple">
+      <div class="overflow-x-auto rounded-[1.5rem] border border-stone-200/80 bg-stone-50/70 dark:border-sky-950/80 dark:bg-[#0b1225]/80">
+        <p-table
+          [value]="requests()"
+          [tableStyle]="{ 'min-width': '1020px' }"
+          styleClass="requests-table"
+          size="small"
+          sortMode="multiple"
+        >
           <ng-template pTemplate="header">
             <tr>
               <th pSortableColumn="prompt">Request <p-sortIcon field="prompt" /></th>
@@ -55,6 +61,19 @@ import type { AiRequest } from '../dashboard.types';
               <td>{{ getCost(req.costUsd) }}</td>
               <td>{{ getScore(req.validationScore) }}</td>
               <td>{{ getTimestamp(req.createdAt) }}</td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="12" class="!py-10 text-center">
+                <div class="space-y-2">
+                  <p class="text-sm font-medium text-stone-700 dark:text-slate-200">No handled requests found.</p>
+                  <p class="text-sm text-stone-500 dark:text-slate-400">
+                    Adjust the filters or submit a new request to populate this table.
+                  </p>
+                </div>
+              </td>
             </tr>
           </ng-template>
         </p-table>

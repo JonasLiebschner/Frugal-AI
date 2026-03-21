@@ -124,6 +124,11 @@ export class AppComponent {
       label: 'Total Cost',
       value: this.formatCost(this.totalCostUsd()),
       comparison: `Comparison: ${this.formatCost(this.totalComparisonCostUsd())}`
+    },
+    {
+      label: 'Trees Saved',
+      value: this.formatTreesSaved(this.treesSaved()),
+      comparison: 'Estimated from CO2 reduction'
     }
   ]);
   protected readonly generalMetricCards = computed<MetricSummaryCard[]>(() => [

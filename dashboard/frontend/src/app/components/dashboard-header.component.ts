@@ -20,12 +20,32 @@ import { Component, input, output } from '@angular/core';
         [attr.aria-label]="darkMode() ? 'Switch to light mode' : 'Switch to dark mode'"
         (click)="toggleTheme.emit()"
       >
-        <span class="mr-3 text-sm font-medium">{{ darkMode() ? 'Dark' : 'Light' }}</span>
-        <span class="relative block h-7 w-14 rounded-full bg-stone-200 dark:bg-slate-700">
+        <span class="relative flex h-7 w-14 items-center rounded-full bg-orange-500/90 px-1 dark:bg-slate-800">
           <span
-            class="absolute top-1 block h-5 w-5 rounded-full bg-orange-500 transition-transform"
-            [class.translate-x-1]="!darkMode()"
-            [class.translate-x-8]="darkMode()"
+            class="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-white transition-opacity"
+            [class.opacity-100]="!darkMode()"
+            [class.opacity-40]="darkMode()"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-2">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4 5.3 5.3"></path>
+            </svg>
+          </span>
+          <span
+            class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-white transition-opacity"
+            [class.opacity-100]="darkMode()"
+            [class.opacity-40]="!darkMode()"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current">
+              <path d="M20.2 14.1A8.5 8.5 0 0 1 9.9 3.8a9 9 0 1 0 10.3 10.3Z"></path>
+            </svg>
+          </span>
+          <span
+            class="absolute left-1 top-1 block h-5 w-5 rounded-full bg-white shadow-sm transition-transform"
+            [class.translate-x-0]="!darkMode()"
+            [class.translate-x-7]="darkMode()"
           ></span>
         </span>
       </button>

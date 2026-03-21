@@ -7,7 +7,7 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "css",
+          "style": "scss",
           "standalone": true
         }
       },
@@ -33,7 +33,7 @@
             ],
             "styles": [
               "node_modules/primeicons/primeicons.css",
-              "src/styles.css"
+              "src/styles.scss"
             ]
           },
           "configurations": {
@@ -94,7 +94,7 @@
             ],
             "styles": [
               "node_modules/primeicons/primeicons.css",
-              "src/styles.css"
+              "src/styles.scss"
             ]
           }
         }
