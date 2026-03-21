@@ -12,6 +12,7 @@ import type {
   ChatMessage,
   LocalDateTimeParts,
   MetricSummaryCard,
+  OpenAiModelListResponse,
   RoutingMethodChartSection,
   SelectOption
 } from './dashboard.types';
@@ -28,7 +29,6 @@ export class DashboardStore {
   readonly routingMethods = signal<string[]>(['round-robin', 'latency-first', 'cost-optimized']);
   readonly comparisonModel = signal<string>('gpt-4.1');
   readonly selectedRoutingMethods = signal<string[]>([]);
-  readonly minimumUserScoreInput = signal<string>('0');
   readonly timeZone = signal<string>(this.detectLocalTimeZone());
   readonly startDateTimeInput = signal<string>(this.getDefaultLocalDateTimeInput(-60));
   readonly endDateTimeInput = signal<string>(this.getDefaultLocalDateTimeInput(0));
@@ -64,16 +64,6 @@ export class DashboardStore {
   readonly routingOptions = computed<SelectOption[]>(() => this.routingMethods().map((routingMethod) => ({ label: routingMethod, value: routingMethod })));
   readonly chatModelOptions = computed<SelectOption[]>(() => this.chatModels().map((model) => ({ label: model === 'auto' ? 'Auto' : model, value: model })));
   readonly canSelectChatRoutingMethod = computed(() => this.chatSelectedModel() === 'auto');
-
-  readonly minimumUserScore = computed<number>(() => {
-    const normalized = this.minimumUserScoreInput().replace(',', '.').trim();
-    const parsed = Number(normalized);
-    if (Number.isNaN(parsed)) {
-      return 0;
-    }
-
-    return Number(Math.min(5, Math.max(0, parsed)).toFixed(1));
-  });
 
   readonly visibleRequests = computed(() => this.dashboardData() ?? []);
   readonly totalPowerWh = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.actual.powerWh, 0) ?? 0);
@@ -201,6 +191,7 @@ export class DashboardStore {
       this.setDarkMode(persisted === 'true');
     }
 
+    this.loadChatModels();
     this.loadComparisonModels();
     this.loadDashboardData();
   }
@@ -273,11 +264,6 @@ export class DashboardStore {
     }
   }
 
-  setMinimumUserScoreInput(value: unknown): void {
-    this.minimumUserScoreInput.set(String(value ?? ''));
-    this.loadDashboardData();
-  }
-
   setTimeZone(value: string): void {
     this.timeZone.set(value);
     this.loadDashboardData();
@@ -322,9 +308,7 @@ export class DashboardStore {
 
   private loadDashboardData(): void {
     const currentToken = ++this.requestToken;
-    let params = new HttpParams()
-      .set('comparisonModel', this.comparisonModel())
-      .set('minValidationScore', String(this.minimumUserScore()));
+    let params = new HttpParams().set('comparisonModel', this.comparisonModel());
 
     const since = this.toApiDateTimeOffset(this.startDateTimeInput(), this.timeZone());
     if (since) {
@@ -395,6 +379,30 @@ export class DashboardStore {
           this.comparisonModel.set(availableModels[0]);
           this.loadDashboardData();
         }
+      }
+    });
+  }
+
+  private loadChatModels(): void {
+    this.http.get<OpenAiModelListResponse>(environment.openai_models_url).subscribe({
+      next: (response) => {
+        const availableModels = this.uniqueStrings(
+          (response.data ?? [])
+            .map((model) => model.id?.trim() ?? '')
+            .filter((model) => model.length > 0)
+        );
+
+        if (availableModels.length === 0) {
+          return;
+        }
+
+        this.chatModels.set(['auto', ...availableModels]);
+        if (this.chatSelectedModel() !== 'auto' && !availableModels.includes(this.chatSelectedModel())) {
+          this.chatSelectedModel.set('auto');
+        }
+      },
+      error: () => {
+        this.chatModels.set(['auto', ...environment.openai_models]);
       }
     });
   }
@@ -503,15 +511,17 @@ export class DashboardStore {
   }
 
   private resolveChatModel(): string {
+    const availableModels = this.chatModels().filter((model) => model !== 'auto');
+
     if (this.chatSelectedModel() !== 'auto') {
       return this.chatSelectedModel();
     }
 
     return this.chatSelectedRoutingMethod() === 'latency-first'
-      ? environment.openai_models.find((model) => model === 'gpt-4o-mini') ?? environment.openai_models[0]
+      ? availableModels.find((model) => model === 'gpt-4o-mini') ?? availableModels[0]
       : this.chatSelectedRoutingMethod() === 'cost-optimized'
-        ? environment.openai_models.find((model) => model === 'gpt-4.1-mini') ?? environment.openai_models[0]
-        : environment.openai_models[0];
+        ? availableModels.find((model) => model === 'gpt-4.1-mini') ?? availableModels[0]
+        : availableModels[0];
   }
 
   private extractAssistantText(payload: unknown): string {

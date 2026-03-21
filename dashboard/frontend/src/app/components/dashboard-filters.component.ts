@@ -61,30 +61,6 @@ import type { SelectOption } from '../dashboard.types';
           </label>
 
           <label class="grid min-w-0 gap-2 text-sm font-medium text-stone-700 dark:text-slate-200">
-            <span>Minimum User Score</span>
-            <input
-              type="text"
-              inputmode="decimal"
-              class="h-11 w-full min-w-0 rounded-2xl border border-stone-300 bg-stone-50 px-4 text-stone-900 outline-none ring-0 transition placeholder:text-stone-400 focus:border-orange-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-              [ngModel]="minimumUserScoreInput()"
-              (ngModelChange)="minimumUserScoreInputChange.emit($event)"
-            />
-          </label>
-
-          <label class="grid min-w-0 gap-2 text-sm font-medium text-stone-700 dark:text-slate-200">
-            <span>Timezone</span>
-            <select
-              class="h-11 w-full min-w-0 rounded-2xl border border-stone-300 bg-stone-50 px-4 text-stone-900 outline-none transition focus:border-orange-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-              [ngModel]="timeZone()"
-              (ngModelChange)="timeZoneChange.emit($event)"
-            >
-              @for (zone of timeZoneOptions(); track zone) {
-                <option [value]="zone">{{ zone }}</option>
-              }
-            </select>
-          </label>
-
-          <label class="grid min-w-0 gap-2 text-sm font-medium text-stone-700 dark:text-slate-200">
             <span>Start Time</span>
             <input
               type="datetime-local"
@@ -103,6 +79,19 @@ import type { SelectOption } from '../dashboard.types';
               (ngModelChange)="endDateTimeInputChange.emit($event)"
             />
           </label>
+
+          <label class="grid min-w-0 gap-2 text-sm font-medium text-stone-700 dark:text-slate-200">
+            <span>Timezone</span>
+            <select
+              class="h-11 w-full min-w-0 rounded-2xl border border-stone-300 bg-stone-50 px-4 text-stone-900 outline-none transition focus:border-orange-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              [ngModel]="timeZone()"
+              (ngModelChange)="timeZoneChange.emit($event)"
+            >
+              @for (zone of timeZoneOptions(); track zone) {
+                <option [value]="zone">{{ zone }}</option>
+              }
+            </select>
+          </label>
         </div>
       </div>
     </section>
@@ -114,7 +103,6 @@ export class DashboardFiltersComponent {
   readonly routingOptions = input.required<SelectOption[]>();
   readonly comparisonModel = input.required<string>();
   readonly selectedRoutingMethods = input.required<string[]>();
-  readonly minimumUserScoreInput = input.required<string>();
   readonly timeZone = input.required<string>();
   readonly timeZoneOptions = input.required<string[]>();
   readonly startDateTimeInput = input.required<string>();
@@ -122,7 +110,6 @@ export class DashboardFiltersComponent {
 
   readonly comparisonModelChange = output<string>();
   readonly selectedRoutingMethodsChange = output<string[]>();
-  readonly minimumUserScoreInputChange = output<string>();
   readonly timeZoneChange = output<string>();
   readonly startDateTimeInputChange = output<string>();
   readonly endDateTimeInputChange = output<string>();

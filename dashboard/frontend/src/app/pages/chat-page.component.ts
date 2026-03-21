@@ -96,19 +96,9 @@ import { DashboardStore } from '../dashboard.store';
                   @for (message of store.chatMessages(); track $index) {
                     <article
                       class="max-w-[85%] rounded-[1.5rem] border px-4 py-3 text-sm leading-6 shadow-sm transition-colors"
-                      [class.justify-self-start]="message.role === 'assistant'"
-                      [class.justify-self-end]="message.role === 'user'"
-                      [class.border-stone-200]="message.role === 'assistant'"
-                      [class.bg-white]="message.role === 'assistant'"
-                      [class.text-stone-900]="message.role === 'assistant'"
-                      [class.dark:border-sky-950]="message.role === 'assistant'"
-                      [class.dark:bg-slate-900/95]="message.role === 'assistant'"
-                      [class.dark:text-slate-100]="message.role === 'assistant'"
-                      [class.border-orange-500]="message.role === 'user'"
-                      [class.bg-orange-500]="message.role === 'user'"
-                      [class.text-white]="message.role === 'user'"
-                      [class.dark:border-orange-400/30]="message.role === 'user'"
-                      [class.dark:bg-[linear-gradient(135deg,rgba(249,115,22,0.94),rgba(234,88,12,0.9))]]="message.role === 'user'"
+                      [ngClass]="message.role === 'assistant'
+                        ? 'justify-self-start border-stone-200 bg-white text-stone-900 dark:border-sky-950 dark:bg-slate-900/95 dark:text-slate-100'
+                        : 'justify-self-end border-orange-500 bg-orange-500 text-white dark:border-orange-400/30 dark:bg-orange-600'"
                     >
                       <p class="mb-1 text-[0.65rem] font-semibold uppercase tracking-[0.2em] opacity-70">{{ message.role }}</p>
                       <p class="whitespace-pre-wrap">{{ message.content }}</p>
@@ -149,7 +139,7 @@ import { DashboardStore } from '../dashboard.store';
                   </button>
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-500 dark:bg-[linear-gradient(135deg,rgba(99,102,241,0.96),rgba(37,99,235,0.94))] dark:text-white dark:hover:bg-[linear-gradient(135deg,rgba(129,140,248,0.96),rgba(59,130,246,0.94))] dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                    class="inline-flex items-center justify-center rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-500 dark:bg-[linear-gradient(135deg,rgba(99,102,241,0.96),rgba(37,99,235,0.94))] dark:text-white dark:hover:bg-[linear-gradient(135deg,rgba(129,140,248,0.96),rgba(59,130,246,0.94))] dark:disabled:border dark:disabled:border-slate-700 dark:disabled:bg-slate-900 dark:disabled:text-slate-400"
                     [disabled]="!store.chatPrompt().trim() || store.chatSubmitting()"
                     (click)="store.sendPrompt()"
                   >
