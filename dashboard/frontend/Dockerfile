@@ -4,10 +4,11 @@ WORKDIR /app
 
 RUN npm install -g pnpm
 
-COPY package.json ./
+COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install
 
 COPY . .
 
 EXPOSE 4200
-CMD ["sh", "-c", "pnpm run start"]
+
+CMD ["pnpm", "run", "start", "--", "--host", "0.0.0.0"]
