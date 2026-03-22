@@ -16,6 +16,7 @@ env:
   MIDDLEWARE_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware
   VS_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-vs
   SVC_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-middleware-svc
+  LLMPROXY_IMAGE: ghcr.io/${{ github.repository_owner }}/frugal-ai-llmproxy
 
 jobs:
   build:
@@ -116,6 +117,15 @@ jobs:
           labels: ${{ steps.meta_vs.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Docker metadata (llmproxy)
+        id: llmproxy
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.LLMPROXY_IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha
 
       - name: Build and push llmproxy image
         uses: docker/build-push-action@v6
