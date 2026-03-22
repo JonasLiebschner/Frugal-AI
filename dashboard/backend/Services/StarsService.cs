@@ -25,8 +25,15 @@ internal class StarsService : IStarsService
         if (!File.Exists(StarsPath))
             return new();
         var file = await File.ReadAllTextAsync(StarsPath);
-        var stars = JsonSerializer.Deserialize<Dictionary<string, int>>(file);
-        return stars ?? new();
+        try
+        {
+            var stars = JsonSerializer.Deserialize<Dictionary<string, int>>(file);
+            return stars ?? new();
+        }
+        catch
+        {
+            return [];
+        }
     }
 
     private async Task SaveStars()

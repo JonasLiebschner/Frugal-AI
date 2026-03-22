@@ -157,7 +157,7 @@ jobs:
           script: |
             mkdir -p "${{ secrets.DEPLOY_PATH }}/traefik"
             mkdir -p "${{ secrets.DEPLOY_PATH }}/dashboard-backend"
-            touch "${{ secrets.DEPLOY_PATH }}/stars.json"
+            touch "${{ secrets.DEPLOY_PATH }}/dashboard-backend/stars.json"
             chown -R 777 "${{ secrets.DEPLOY_PATH }}/dashboard-backend"
 
       - name: Copy deployment files
