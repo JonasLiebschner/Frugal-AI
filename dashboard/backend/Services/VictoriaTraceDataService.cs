@@ -76,7 +76,7 @@ internal class VictoriaTraceDataService(
             var outputTokens = GetInt(source, "span_attr:gen_ai.usage.output_tokens") ?? 0;
             var durationMs = GetDurationMs(source);
             var costUsd = GetDouble(source, "operation_cost") ?? GetViaModel(model, inputTokens, outputTokens);
-
+            var responseId = GetString(source, "span_attr:gen_ai.response.id") ?? id;
             
             var powerWh =GetDouble(source, "span_attr:llmproxy.power_usage") ?? 0.1;
             var environmentalMetric =  new RequestMetadata(
@@ -95,7 +95,7 @@ internal class VictoriaTraceDataService(
                 inputTokens,
                 outputTokens,
                 durationMs,
-                await starsService.GetStars(id),
+                await starsService.GetStars(responseId),
                 createdAt,
                 environmentalMetric));
         }
