@@ -24,13 +24,10 @@ import { RequestsTableComponent } from '../components/requests-table.component';
         [routingOptions]="store.routingOptions()"
         [comparisonModel]="store.comparisonModel()"
         [selectedRoutingMethods]="store.selectedRoutingMethods()"
-        [timeZone]="store.timeZone()"
-        [timeZoneOptions]="store.timeZoneOptions"
         [startDateTimeInput]="store.startDateTimeInput()"
         [endDateTimeInput]="store.endDateTimeInput()"
         (comparisonModelChange)="handleComparisonModelChange($event)"
         (selectedRoutingMethodsChange)="handleSelectedRoutingMethodsChange($event)"
-        (timeZoneChange)="handleTimeZoneChange($event)"
         (startDateTimeInputChange)="handleStartDateTimeInputChange($event)"
         (endDateTimeInputChange)="handleEndDateTimeInputChange($event)"
       />
@@ -72,7 +69,6 @@ export class DashboardPageComponent {
         this.store.hydrateDashboardFilters({
           comparisonModel: queryParamMap.get('comparisonModel'),
           routingMethods: queryParamMap.getAll('routingMethod'),
-          timeZone: queryParamMap.get('timeZone'),
           startDateTimeInput: queryParamMap.get('start'),
           endDateTimeInput: queryParamMap.get('end')
         });
@@ -86,11 +82,6 @@ export class DashboardPageComponent {
 
   protected handleSelectedRoutingMethodsChange(value: string[]): void {
     this.store.setSelectedRoutingMethods(value);
-    void this.updateDashboardQueryParams();
-  }
-
-  protected handleTimeZoneChange(value: string): void {
-    this.store.setTimeZone(value);
     void this.updateDashboardQueryParams();
   }
 
@@ -110,7 +101,6 @@ export class DashboardPageComponent {
     const queryParams: Params = {
       comparisonModel: this.store.comparisonModel(),
       routingMethod: this.store.selectedRoutingMethods().length > 0 ? this.store.selectedRoutingMethods() : null,
-      timeZone: this.store.timeZone() || null,
       start: this.store.startDateTimeInput() || null,
       end: this.store.endDateTimeInput() || null
     };

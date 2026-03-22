@@ -80,18 +80,6 @@ import type { SelectOption } from '../dashboard.types';
             />
           </label>
 
-          <label class="grid min-w-0 gap-2 text-sm font-medium text-stone-700 dark:text-slate-200">
-            <span>Timezone</span>
-            <select
-              class="h-11 w-full min-w-0 rounded-2xl border border-[#cfe2da] bg-[#f7fbf9] px-4 text-stone-900 outline-none transition focus:border-[#4fbf9f] dark:border-[#3a555d] dark:bg-[#1b2c31] dark:text-slate-100"
-              [ngModel]="timeZone()"
-              (ngModelChange)="timeZoneChange.emit($event)"
-            >
-              @for (zone of timeZoneOptions(); track zone) {
-                <option [value]="zone">{{ zone }}</option>
-              }
-            </select>
-          </label>
         </div>
       </div>
     </section>
@@ -103,14 +91,11 @@ export class DashboardFiltersComponent {
   readonly routingOptions = input.required<SelectOption[]>();
   readonly comparisonModel = input.required<string>();
   readonly selectedRoutingMethods = input.required<string[]>();
-  readonly timeZone = input.required<string>();
-  readonly timeZoneOptions = input.required<string[]>();
   readonly startDateTimeInput = input.required<string>();
   readonly endDateTimeInput = input.required<string>();
 
   readonly comparisonModelChange = output<string>();
   readonly selectedRoutingMethodsChange = output<string[]>();
-  readonly timeZoneChange = output<string>();
   readonly startDateTimeInputChange = output<string>();
   readonly endDateTimeInputChange = output<string>();
 }
