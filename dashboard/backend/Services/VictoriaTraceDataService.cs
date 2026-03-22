@@ -71,7 +71,10 @@ internal class VictoriaTraceDataService(
             var routingMethod = GetString(source, "span_attr:llmproxy.routing.middleware.id") ?? "direct";
             var routingOutcome = GetString(source, "span_attr:llmproxy.routing.middleware.profile");
             var id = GetString(source,"traceId") ?? Guid.NewGuid().ToString("N");
-            var createdAt = GetDateTimeOffset(source, "startTime") ?? DateTimeOffset.UtcNow;
+            var createdAtNs = GetLong(source, "start_time_unix_nano");
+            var createdAt = createdAtNs is null ? 
+                DateTimeOffset.MinValue :
+                DateTimeOffset.FromUnixTimeSeconds(createdAtNs.Value / 1_000_000_000).AddTicks((createdAtNs.Value % 1_000_000_000) / 100);
             var inputTokens = GetInt(source, "span_attr:gen_ai.usage.input_tokens") ?? 0;
             var outputTokens = GetInt(source, "span_attr:gen_ai.usage.output_tokens") ?? 0;
             var durationMs = GetDurationMs(source);
@@ -445,43 +448,6 @@ internal class VictoriaTraceDataService(
             if (TryGetValue(node, out string? stringValue) && double.TryParse(stringValue, out var parsed))
             {
                 return parsed;
-            }
-        }
-
-        return null;
-    }
-
-    private static DateTimeOffset? GetDateTimeOffset(JsonNode source, params string[] paths)
-    {
-        foreach (var path in paths)
-        {
-            var node = GetNodeByPath(source, path);
-            if (TryGetValue(node, out DateTimeOffset dateTimeOffset))
-            {
-                return dateTimeOffset;
-            }
-
-            if (TryGetValue(node, out string? stringValue) && DateTimeOffset.TryParse(stringValue, out var parsed))
-            {
-                return parsed;
-            }
-
-            if (TryGetValue(node, out long unixEpochLong))
-            {
-                var fromEpoch = ParseUnixEpoch(unixEpochLong);
-                if (fromEpoch.HasValue)
-                {
-                    return fromEpoch.Value;
-                }
-            }
-
-            if (TryGetValue(node, out double unixEpochDouble))
-            {
-                var fromEpoch = ParseUnixEpoch((long)Math.Round(unixEpochDouble));
-                if (fromEpoch.HasValue)
-                {
-                    return fromEpoch.Value;
-                }
             }
         }
 
