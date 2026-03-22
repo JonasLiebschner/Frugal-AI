@@ -26,17 +26,14 @@ Your App
 │            Frugal AI Router          │
 │                                      │
 │  ┌──────────────┐  ┌──────────────┐  │
-│  │  Request     │  │  Dashboard   │  │
-│  │ Middleware   │  │  + Tracing   │  │
-│  └──────┬───────┘  └──────────────┘  │
-│         │                            │
-│   small/large OR exact model         │
-│   binary route OR criteria-based     │
-└──────────────────┬───────────────────┘
-                   │
-                   ▼
-          Selected target model
-   (mapped from small/large or exact)
+│  │  Classifier  │  │  Dashboard   │  │
+│  │  Middleware  │  │  + Tracing   │  │
+│  └──────────────┘  └──────────────┘  │
+└──────────────────────────────────────┘
+        │                │
+        ▼                ▼
+   Small Model      Large Model
+  (fast, cheap)   (powerful, costly)
 ```
 
 Any request to an LLM is stored in a database using OpenTelemetry standards. The dashboard consumes traces based on the [OTEL GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) and surfaces cost, performance, and routing metadata.
@@ -45,22 +42,19 @@ Any request to an LLM is stored in a database using OpenTelemetry standards. The
 
 ## Classifier Middlewares
 
-The router ships with five interchangeable classifiers. Each exposes a `POST /api/v1/classify` endpoint, and the proxy supports both routing styles:
+The router ships with five interchangeable classifiers. Each exposes the same `POST /api/v1/classify` API — swap them without touching anything else.
 
-- complexity routing via `{"result":"small"|"large"}`
-- exact-model routing via `{"model":"..."}`
-
-| Middleware | How it works | Best for |
-|---|---|---|
-| 🧮 **Simple** | Heuristic rules (length, keywords) | Zero-dependency baseline |
-| 🤖 **ONNX** | ModernBERT model via ONNX Runtime | High-accuracy, no API calls |
-| 💬 **LLM** | OpenAI-compatible API call | Flexible, works with any LLM |
-| 🔍 **Vector Search** | MongoDB Atlas similarity search | Leveraging historical data |
-| 🧠 **SVC** | Arena-Hard criteria (`specificity`, `domain_knowledge`, `complexity`, `problem_solving`, `creativity`, `technical_accuracy`, `real_world`) + weighted escalation + exact model mapping | Lightweight exact-model routing beyond binary small/large |
+| Middleware                   | How it works                         | Best for                          |
+| ---------------------------- | ------------------------------------ | --------------------------------- |
+| 🧮 **Simple**                 | Heuristic rules (length, keywords)   | Zero-dependency baseline          |
+| 🤖 **ONNX**                   | ModernBERT model via ONNX Runtime    | High-accuracy, no API calls       |
+| 💬 **LLM**                    | OpenAI-compatible API call           | Flexible, works with any LLM      |
+| 🔍 **Vector Search**          | MongoDB Atlas similarity search      | Leveraging historical data        |
+| 📐 **Support Vector Machine** | SVC trained on Arena-Hard embeddings | Fast inference, no external calls |
 
 ### API
 
-All classifiers accept the same request shape:
+All classifiers expose the same interface:
 
 ```http
 POST /api/v1/classify
@@ -69,8 +63,6 @@ Content-Type: application/json
 { "query": "What is 2 + 2?" }
 ```
 
-Small/large middleware response:
-
 ```json
 {
   "result": "small",
@@ -78,17 +70,9 @@ Small/large middleware response:
 }
 ```
 
-Exact-model middleware response:
+Response values: `"small"` | `"large"`
 
-```json
-{
-  "model": "gpt-5.4-2026-03-05"
-}
-```
-
-Response values for small/large middleware: `"small"` | `"large"`
-
-Most classifiers also serve a **Swagger UI** at `/` for interactive testing. The SVC middleware is a production-focused Python service with `/health`, `/ready`, and `/api/v1/classify`.
+Each classifier also serves a **Swagger UI** at `/` for interactive testing.
 
 ---
 
@@ -96,17 +80,11 @@ Most classifiers also serve a **Swagger UI** at `/` for interactive testing. The
 
 ### 🔍 Classifier Middlewares (`/classifier`)
 
-The classifier workspace contains both the shared Bun middleware image and standalone middleware services.
-
-The shared Bun image uses the `MIDDLEWARE` environment variable to select which classifier runs (`simple`, `onnx`, `llm`).
+Bun-based TypeScript services running in a single unified Docker image. The `MIDDLEWARE` environment variable selects which classifier runs (`simple`, `onnx`, `llm`, `vs`).
 
 **ONNX Middleware** uses ModernBERT fine-tuned for query complexity classification. Requires model files mounted at `/models`.
 
 **LLM Middleware** uses any OpenAI-compatible API — works with OpenAI, Ollama, LiteLLM, and other providers. Returns a confidence score alongside the classification.
-
-**Vector Search Middleware** is implemented separately in [`classifier/vs-middleware`](classifier/vs-middleware) and uses MongoDB-backed routing.
-
-**SVC Middleware** is implemented in [`classifier/packages/svc-middleware`](classifier/packages/svc-middleware). It is a Python service that predicts the seven Arena-Hard criteria, derives a hardness band (`H1` to `H7`) plus weighted escalation, and returns an exact model identifier to the proxy.
 
 ### 📊 Dashboard (`/dashboard`)
 
@@ -138,14 +116,13 @@ cd frugal-code
 docker compose -f docker-compose.dev.yml up
 ```
 
-| Service | URL |
-|---|---|
-| Dashboard | http://localhost:4200 |
-| Simple classifier | http://localhost:3000 |
-| ONNX classifier | http://localhost:3001 |
-| LLM classifier | http://localhost:3002 |
+| Service                  | URL                   |
+| ------------------------ | --------------------- |
+| Dashboard                | http://localhost:4200 |
+| Simple classifier        | http://localhost:3000 |
+| ONNX classifier          | http://localhost:3001 |
+| LLM classifier           | http://localhost:3002 |
 | Vector search classifier | http://localhost:3003 |
-| SVC classifier | http://localhost:3004 |
 
 ### Configure the LLM middleware
 
@@ -189,16 +166,15 @@ The project ships with a full production setup using **Traefik** as a reverse pr
 
 ### Routes (production)
 
-| Path | Service |
-|---|---|
-| `/` | Dashboard frontend |
-| `/api/*` | Dashboard backend |
-| `/middlewares/simple` | Simple classifier |
-| `/middlewares/onnx` | ONNX classifier |
-| `/middlewares/llm` | LLM classifier |
-| `/middlewares/vs` | Vector search classifier |
-| `/middlewares/svc` | SVC exact-model router |
-| `/victoria` | VictoriaTraces |
+| Path                  | Service                  |
+| --------------------- | ------------------------ |
+| `/`                   | Dashboard frontend       |
+| `/api/*`              | Dashboard backend        |
+| `/middlewares/simple` | Simple classifier        |
+| `/middlewares/onnx`   | ONNX classifier          |
+| `/middlewares/llm`    | LLM classifier           |
+| `/middlewares/vs`     | Vector search classifier |
+| `/victoria`           | VictoriaTraces           |
 
 ### Required GitHub secrets
 
@@ -219,12 +195,6 @@ bun install
 bun run packages/simple-middleware/index.ts   # port 3000
 bun run packages/onnx-middleware/index.ts     # port 3001
 bun run packages/llm-middleware/index.ts      # port 3002 (requires .env)
-```
-
-For the SVC middleware:
-
-```bash
-python classifier/packages/svc-middleware/index.py
 ```
 
 The shared `createClassifyServer` helper handles HTTP routing, OpenAPI spec generation, and Swagger UI. Just implement the `Classifier` interface:
@@ -258,6 +228,38 @@ The `evaluation_data/` directory contains datasets derived from the [RouterBench
 - Design a feedback loop for continuous improvement of routing decisions
 
 > **Assumption:** Cost is used as a proxy for energy consumption.
+
+---
+
+## 🏕️ CloudFest Hackathon 2026
+
+This project was created at the [CloudFest Hackathon 2026](https://hackathon.cloudfest.com/project/frugal-ai/).
+
+The hackathon challenge tackled three real problems in AI infrastructure:
+
+1. Developers routinely use overpowered models for simple tasks like summarization and classification
+2. No easy mechanism exists to measure or compare AI's environmental footprint
+3. Web hosts offering AI features lack tools for optimization and sustainability reporting
+
+Over the course of the hackathon, the team built a minimum viable routing proxy with task complexity classification, per-request cost and CO₂ proxy logging, and a dashboard that quantifies savings in real time.
+
+**Mentor**: Lucas Radke
+
+**Project leads**
+
+- Jonas Liebschner ([@JonasLiebschner](https://github.com/JonasLiebschner)) — Research Associate, Karlsruhe Institute of Technology
+- Ida Meier — Research Associate, Karlsruhe Institute of Technology
+- Blanca — Student, Karlsruhe Institute of Technology
+
+**Hackers**
+- Eduard Marbach ([@blackdark](https://github.com/blackdark))
+- Benjamin Burkhardt
+- Chandan Das Adhikari ([@ckda5699](https://github.com/ckda5699))
+- Dmitry Rybakov
+- Fabian Genes ([@genesfa](https://github.com/genesfa))
+- Julian Haupt
+- Leon Knauer ([@reuank](https://github.com/reuank))
+- Michael Schmitz
 
 ---
 
