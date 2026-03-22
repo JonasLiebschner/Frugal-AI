@@ -22,13 +22,13 @@ export class DashboardStore {
   private readonly apiBaseUrl = environment.api_url + '/api/requests';
   private readonly comparisonModelsUrl = `${this.apiBaseUrl}/comparison-models`;
   private readonly co2GramsPerTree = 21_770;
+  private readonly localTimeZone = this.detectLocalTimeZone();
   private requestToken = 0;
 
   readonly models = signal<string[]>(['gpt-4.1', 'gpt-4.1-mini']);
   readonly routingMethods = signal<string[]>([]);
   readonly comparisonModel = signal<string>('gpt-4.1');
   readonly selectedRoutingMethods = signal<string[]>([]);
-  readonly timeZone = signal<string>(this.detectLocalTimeZone());
   readonly startDateTimeInput = signal<string>(this.getDefaultLocalDateTimeInput(-60));
   readonly endDateTimeInput = signal<string>(this.getDefaultLocalDateTimeInput(0));
   readonly chatPrompt = signal<string>('');
@@ -50,16 +50,6 @@ export class DashboardStore {
     { key: 'costUsd', label: 'Cost (USD)' }
   ];
 
-  readonly timeZoneOptions = [
-    'UTC',
-    'Europe/Berlin',
-    'America/New_York',
-    'America/Chicago',
-    'America/Denver',
-    'America/Los_Angeles',
-    'Asia/Tokyo'
-  ];
-
   readonly modelOptions = computed<SelectOption[]>(() => this.models().map((model) => ({ label: model, value: model })));
   readonly routingOptions = computed<SelectOption[]>(() => this.routingMethods().map((routingMethod) => ({ label: routingMethod, value: routingMethod })));
   readonly chatRoutingOptions = computed<SelectOption[]>(() => this.chatRoutingMethods().map((routingMethod) => ({ label: routingMethod, value: routingMethod })));
@@ -79,6 +69,8 @@ export class DashboardStore {
   readonly totalOutputTokens = computed(() => this.dashboardData()?.reduce((sum, r) => sum + r.outputTokens, 0) ?? 0);
   readonly treesSaved = computed(() => Math.max(0, (this.totalComparisonCo2() - this.totalCo2()) / this.co2GramsPerTree));
   readonly avgDurationMs = computed(() => this.dashboardData()?.length ? this.dashboardData()!.reduce((sum, r) => sum + r.durationMs, 0) / this.dashboardData()!.length : 0);
+  readonly smallRoutingOutcomeCount = computed(() => this.visibleRequests().filter((request) => request.routingOutcome === 'small').length);
+  readonly largeRoutingOutcomeCount = computed(() => this.visibleRequests().filter((request) => request.routingOutcome === 'large').length);
 
   readonly sustainabilityMetricCards = computed<MetricSummaryCard[]>(() => [
     { label: 'Power', value: `${this.totalPowerWh().toFixed(1)} Wh`, comparison: `Comparison: ${this.totalComparisonPowerWh().toFixed(1)} Wh` },
@@ -92,7 +84,9 @@ export class DashboardStore {
     { label: 'Total Requests', value: String(this.visibleRequests().length) },
     { label: 'Input Tokens', value: String(this.totalInputTokens()) },
     { label: 'Output Tokens', value: String(this.totalOutputTokens()) },
-    { label: 'Avg Duration', value: formatDuration(this.avgDurationMs()) }
+    { label: 'Avg Duration', value: formatDuration(this.avgDurationMs()) },
+    { label: 'Small Outcomes', value: String(this.smallRoutingOutcomeCount()) },
+    { label: 'Large Outcomes', value: String(this.largeRoutingOutcomeCount()) }
   ]);
 
   readonly sustainabilityCharts = computed(() => {
@@ -103,9 +97,10 @@ export class DashboardStore {
 
     const isDark = this.darkMode();
     const orderedRequests = data.slice().reverse();
+    const chartRequests = orderedRequests.filter((request) => request.routingMethod.toLowerCase() !== 'direct');
     const groupedByRouting = new Map<string, AiRequest[]>();
 
-    for (const request of orderedRequests) {
+    for (const request of chartRequests) {
       const existing = groupedByRouting.get(request.routingMethod);
       if (existing) {
         existing.push(request);
@@ -277,11 +272,6 @@ export class DashboardStore {
     }
   }
 
-  setTimeZone(value: string): void {
-    this.timeZone.set(value);
-    this.loadDashboardData();
-  }
-
   setStartDateTimeInput(value: unknown): void {
     this.startDateTimeInput.set(String(value ?? ''));
     this.loadDashboardData();
@@ -305,7 +295,6 @@ export class DashboardStore {
   hydrateDashboardFilters(filters: {
     comparisonModel?: string | null;
     routingMethods?: string[] | null;
-    timeZone?: string | null;
     startDateTimeInput?: string | null;
     endDateTimeInput?: string | null;
   }): void {
@@ -315,10 +304,6 @@ export class DashboardStore {
 
     if (filters.routingMethods) {
       this.selectedRoutingMethods.set(this.uniqueStrings(filters.routingMethods.filter((value) => value.trim().length > 0)));
-    }
-
-    if (filters.timeZone) {
-      this.timeZone.set(filters.timeZone);
     }
 
     if (filters.startDateTimeInput) {
@@ -396,12 +381,12 @@ export class DashboardStore {
     const currentToken = ++this.requestToken;
     let params = new HttpParams().set('comparisonModel', this.comparisonModel());
 
-    const since = this.toApiDateTimeOffset(this.startDateTimeInput(), this.timeZone());
+    const since = this.toApiDateTimeOffset(this.startDateTimeInput(), 'start');
     if (since) {
       params = params.set('since', since);
     }
 
-    const until = this.toApiDateTimeOffset(this.endDateTimeInput(), this.timeZone());
+    const until = this.toApiDateTimeOffset(this.endDateTimeInput(), 'end');
     if (until) {
       params = params.set('until', until);
     }
@@ -533,7 +518,7 @@ export class DashboardStore {
     }
   }
 
-  private toApiDateTimeOffset(localDateTime: string, timeZone: string): string | null {
+  private toApiDateTimeOffset(localDateTime: string, bound: 'start' | 'end'): string | null {
     if (!localDateTime) {
       return null;
     }
@@ -543,19 +528,19 @@ export class DashboardStore {
       return null;
     }
 
-    let instantMs = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, 0);
+    let instantMs = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, bound === 'end' ? 59 : 0);
     const wallClockMs = instantMs;
 
     for (let i = 0; i < 3; i += 1) {
-      instantMs = wallClockMs - this.getOffsetMinutes(timeZone, new Date(instantMs)) * 60_000;
+      instantMs = wallClockMs - this.getOffsetMinutes(this.localTimeZone, new Date(instantMs)) * 60_000;
     }
 
-    const offsetMinutes = this.getOffsetMinutes(timeZone, new Date(instantMs));
+    const offsetMinutes = this.getOffsetMinutes(this.localTimeZone, new Date(instantMs));
     const offsetSign = offsetMinutes >= 0 ? '+' : '-';
     const absoluteOffset = Math.abs(offsetMinutes);
     const offset = `${offsetSign}${String(Math.floor(absoluteOffset / 60)).padStart(2, '0')}:${String(absoluteOffset % 60).padStart(2, '0')}`;
 
-    return `${localDateTime}:00${offset}`;
+    return `${localDateTime}:${bound === 'end' ? '59' : '00'}${offset}`;
   }
 
   private parseLocalDateTime(value: string): LocalDateTimeParts | null {

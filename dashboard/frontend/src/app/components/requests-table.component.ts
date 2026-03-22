@@ -42,7 +42,7 @@ import type { AiRequest } from '../dashboard.types';
               <th pSortableColumn="outputTokens">Output <p-sortIcon field="outputTokens" /></th>
               <th pSortableColumn="durationMs">Duration <p-sortIcon field="durationMs" /></th>
               <th pSortableColumn="costUsd">Cost <p-sortIcon field="costUsd" /></th>
-              <th pSortableColumn="validationScore">Validation <p-sortIcon field="validationScore" /></th>
+              <th pSortableColumn="validationScore">Rating <p-sortIcon field="validationScore" /></th>
               <th pSortableColumn="createdAt">Time <p-sortIcon field="createdAt" /></th>
             </tr>
           </ng-template>
@@ -50,7 +50,7 @@ import type { AiRequest } from '../dashboard.types';
           <ng-template pTemplate="body" let-req>
             <tr>
               <td>
-                <p class="m-0 max-w-[28rem] truncate font-medium text-stone-800 dark:text-stone-100" [attr.title]="req.prompt">
+                <p class="m-0 max-w-[20rem] truncate font-medium text-stone-800 dark:text-stone-100" [attr.title]="req.prompt">
                   {{ getPromptPreview(req.prompt) }}
                 </p>
                 <p class="mt-1 font-mono text-xs text-orange-700 dark:text-orange-300">
@@ -62,7 +62,7 @@ import type { AiRequest } from '../dashboard.types';
               <td>{{ req.routingOutcome ?? '' }}</td>
               <td>{{ req.powerWh.toFixed(1) }} Wh</td>
               <td>{{ req.co2.toFixed(1) }} g</td>
-              <td>{{ getWater(req.waterMl) }}</td>
+              <td class="whitespace-nowrap">{{ getWater(req.waterMl) }}</td>
               <td>{{ req.inputTokens }}</td>
               <td>{{ req.outputTokens }}</td>
               <td>{{ getDuration(req.durationMs) }}</td>
@@ -105,10 +105,10 @@ export class RequestsTableComponent {
 
   protected getPromptPreview(prompt: string): string {
     const normalized = prompt.replace(/\s+/g, ' ').trim();
-    if (normalized.length <= 120) {
+    if (normalized.length <= 80) {
       return normalized;
     }
 
-    return `${normalized.slice(0, 117)}...`;
+    return `${normalized.slice(0, 77)}...`;
   }
 }
