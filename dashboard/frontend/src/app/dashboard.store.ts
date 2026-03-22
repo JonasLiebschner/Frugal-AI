@@ -4,7 +4,7 @@ import type { EChartsOption } from 'echarts';
 import { MessageService } from 'primeng/api';
 
 import { environment } from '../environments/environment';
-import { formatCost, formatDuration, formatTimestamp, formatTreesSaved, modelDelta } from './dashboard-formatters';
+import { formatCost, formatDuration, formatTimestamp, formatTreesSaved, formatWater, modelDelta } from './dashboard-formatters';
 import type {
   AiRequest,
   ApiAiRequest,
@@ -83,7 +83,7 @@ export class DashboardStore {
   readonly sustainabilityMetricCards = computed<MetricSummaryCard[]>(() => [
     { label: 'Power', value: `${this.totalPowerWh().toFixed(1)} Wh`, comparison: `Comparison: ${this.totalComparisonPowerWh().toFixed(1)} Wh` },
     { label: 'CO2', value: `${this.totalCo2().toFixed(1)} g`, comparison: `Comparison: ${this.totalComparisonCo2().toFixed(1)} g` },
-    { label: 'Water', value: `${this.totalWaterMl().toFixed(0)} ml`, comparison: `Comparison: ${this.totalComparisonWaterMl().toFixed(0)} ml` },
+    { label: 'Water', value: formatWater(this.totalWaterMl()), comparison: `Comparison: ${formatWater(this.totalComparisonWaterMl())}` },
     { label: 'Total Cost', value: formatCost(this.totalCostUsd()), comparison: `Comparison: ${formatCost(this.totalComparisonCostUsd())}` },
     { label: 'Trees Saved', value: formatTreesSaved(this.treesSaved()), comparison: 'Estimated from CO2 reduction' }
   ]);

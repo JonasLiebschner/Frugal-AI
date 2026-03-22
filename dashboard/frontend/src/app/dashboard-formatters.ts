@@ -18,8 +18,12 @@ export function formatCost(costUsd: number): string {
   return `$${costUsd.toFixed(4)}`;
 }
 
+export function formatWater(waterMl: number): string {
+  return `${waterMl.toFixed(4)} ml`;
+}
+
 export function formatScore(score: number | null | undefined): string {
-  return score == null ? 'N/A' : `${score.toFixed(1)} / 5`;
+  return score == null ? '' : `${score.toFixed(1)} / 5`;
 }
 
 export function formatTreesSaved(treesSaved: number): string {
