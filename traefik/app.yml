@@ -92,6 +92,17 @@ http:
       tls:
         certResolver: letsencrypt
 
+    middleware-oldschool:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/middlewares/oldschool`)"
+      entryPoints:
+        - websecure
+      service: middleware-oldschool
+      middlewares:
+        - strip-middleware-oldschool-prefix
+      priority: 10
+      tls:
+        certResolver: letsencrypt
+
     http-catchall:
       rule: "HostRegexp(`{host:.+}`)"
       entryPoints:
@@ -129,6 +140,10 @@ http:
       stripPrefix:
         prefixes:
           - /middlewares/svc
+    strip-middleware-oldschool-prefix:
+      stripPrefix:
+        prefixes:
+          - /middlewares/oldschool
 
   services:
     dashboard-api:
@@ -175,3 +190,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://middleware-svc:3004"
+
+    middleware-oldschool:
+      loadBalancer:
+        servers:
+          - url: "http://middleware-oldschool:3005"

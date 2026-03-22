@@ -46,6 +46,9 @@ services:
     environment:
       - SVC_ENABLE_DEBUG_ENDPOINTS=false
 
+  middleware-oldschool:
+    image: ghcr.io/jonasliebschner/frugal-ai-middleware-oldschool
+
   reverse-proxy:
     image: traefik:v3.3
     ports:
