@@ -468,7 +468,6 @@ export class DashboardStore {
         );
 
         if (availableRoutingMethods.length > 0) {
-          this.syncDashboardRoutingMethods(availableRoutingMethods, false);
           this.chatRoutingMethods.set(availableRoutingMethods);
           if (!availableRoutingMethods.includes(this.chatSelectedRoutingMethod())) {
             this.chatSelectedRoutingMethod.set(availableRoutingMethods[0]);
