@@ -255,7 +255,7 @@ Over the course of the hackathon, the team built a minimum viable routing proxy 
 - Eduard Marbach ([@blackdark](https://github.com/blackdark))
 - Benjamin Burkhardt
 - Chandan Das Adhikari ([@ckda5699](https://github.com/ckda5699))
-- Dmitry Rybakov
+- Dmitry Rybakov ([@comandeo](https://github.com/comandeo))
 - Fabian Genes ([@genesfa](https://github.com/genesfa))
 - Julian Haupt
 - Leon Knauer ([@reuank](https://github.com/reuank))
