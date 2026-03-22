@@ -74,38 +74,38 @@
   "models_by_hardness_band_and_escalation": {
     "H1": {
       "small_ok": ["meta-llama-3.1-8b-instruct", "teuken-7b-instruct-research", "lfm2.5-thinking:latest"],
-      "mid_needed": ["ministral-3:latest", "qwen3-30b-a3b-instruct-2507", "glm-4.7"],
-      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "gpt-5.4-2026-03-05"]
+      "mid_needed": ["ministral-3:latest", "qwen3-30b-a3b-instruct-2507", "glm-4.7-flash:latest"],
+      "strong_needed": ["qwen3-32b", "qwen3.5-35b-a3b", "gpt-oss-120b-working"]
     },
     "H2": {
-      "small_ok": ["meta-llama-3.1-8b-instruct", "lfm2.5-thinking:latest", "ministral-3:latest"],
+      "small_ok": ["meta-llama-3.1-8b-instruct", "lfm2.5-thinking:latest", "glm-4.7-flash:latest"],
       "mid_needed": ["ministral-3:latest", "qwen3-30b-a3b-instruct-2507", "qwen3-32b", "glm-4.7"],
-      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "gpt-5.4-2026-03-05"]
+      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "gpt-oss-120b-working", "nemotron-3-super:latest"]
     },
     "H3": {
-      "small_ok": ["ministral-3:latest", "meta-llama-3.1-8b-instruct"],
-      "mid_needed": ["qwen3-30b-a3b-instruct-2507", "qwen3-32b", "glm-4.7", "nemotron-3-nano:latest"],
-      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "gpt-5.4-2026-03-05"]
+      "small_ok": ["ministral-3:latest", "meta-llama-3.1-8b-instruct", "glm-4.7-flash:latest"],
+      "mid_needed": ["qwen3-30b-a3b-instruct-2507", "qwen3:30b-a3b-thinking-2507-q4_K_M", "qwen3-32b", "glm-4.7", "nemotron-3-nano:latest"],
+      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "gpt-oss-120b-working"]
     },
     "H4": {
-      "small_ok": ["ministral-3:latest", "nemotron-3-nano:latest"],
-      "mid_needed": ["qwen3-32b", "glm-4.7", "qwen3-30b-a3b-instruct-2507", "openai-gpt-oss-120b"],
-      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "gpt-5.4-2026-03-05"]
+      "small_ok": ["ministral-3:latest", "nemotron-3-nano:latest", "glm-4.7-flash:latest"],
+      "mid_needed": ["qwen3-32b", "glm-4.7", "qwen3:30b-a3b-thinking-2507-q4_K_M", "qwen3-30b-a3b-instruct-2507", "gpt-oss-120b-working"],
+      "strong_needed": ["qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "gpt-5.4-2026-03-05"]
     },
     "H5": {
       "small_ok": ["nemotron-3-nano:latest", "glm-4.7"],
-      "mid_needed": ["qwen3-32b", "glm-4.7", "qwen3-30b-a3b-instruct-2507", "openai-gpt-oss-120b", "llama3.1:70b"],
-      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "llama3.1:70b", "gpt-5.4-2026-03-05"]
+      "mid_needed": ["qwen3-32b", "glm-4.7", "qwen3-30b-a3b-instruct-2507", "gpt-oss-120b-working", "llama3.1:70b"],
+      "strong_needed": ["qwen3.5-35b-a3b", "gpt-oss-120b-working", "deepseek-v3.1:latest", "devstral-2:latest", "llama3.1:70b"]
     },
     "H6": {
       "small_ok": ["glm-4.7"],
-      "mid_needed": ["qwen3.5-35b-a3b", "qwen3-32b", "glm-4.7", "llama3.1:70b"],
-      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "llama3.1:70b", "gpt-5.4-2026-03-05"]
+      "mid_needed": ["qwen3.5-35b-a3b", "qwen3-32b", "gpt-oss-120b-working", "llama3.1:70b"],
+      "strong_needed": ["deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "devstral-2:latest", "minimax-m2.5-229b", "gpt-5.4-2026-03-05"]
     },
     "H7": {
       "small_ok": ["glm-4.7"],
-      "mid_needed": ["qwen3.5-35b-a3b", "llama3.1:70b", "glm-4.7"],
-      "strong_needed": ["qwen3.5-35b-a3b", "qwen3.5:35b", "nemotron-3-super:latest", "deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "llama3.1:70b", "gpt-5.4-2026-03-05"]
+      "mid_needed": ["llama3.1:70b", "qwen3.5:35b", "minimax-m2.5-229b"],
+      "strong_needed": ["nemotron-3-super:latest", "deepseek-v3.1:latest", "frob/kimi-k2.5:latest", "minimax-m2.5-229b", "gpt-5.4-2026-03-05"]
     }
   },
   "fallback_model": "qwen3.5-35b-a3b",

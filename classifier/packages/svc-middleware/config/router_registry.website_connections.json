@@ -99,6 +99,34 @@
       }
     },
     {
+      "id": "gpt-oss-120b-working",
+      "traits": {
+        "quality": 0.78,
+        "reasoning": 0.76,
+        "coding": 0.62,
+        "translation": 0.68,
+        "speed": 0.61,
+        "cost": 0.72,
+        "structured_output": 0.44,
+        "reliability": 0.63,
+        "long_context": 0.82
+      }
+    },
+    {
+      "id": "minimax-m2.5-229b",
+      "traits": {
+        "quality": 0.9,
+        "reasoning": 0.91,
+        "coding": 0.8,
+        "translation": 0.88,
+        "speed": 0.27,
+        "cost": 0.2,
+        "structured_output": 0.78,
+        "reliability": 0.83,
+        "long_context": 0.99
+      }
+    },
+    {
       "id": "qwen3.5-35b-a3b",
       "traits": {
         "quality": 0.78,
