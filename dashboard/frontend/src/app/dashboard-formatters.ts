@@ -27,11 +27,7 @@ export function formatScore(score: number | null | undefined): string {
 }
 
 export function formatTreesSaved(treesSaved: number): string {
-  if (treesSaved === 0) {
-    return '0';
-  }
-
-  return treesSaved < 1 ? treesSaved.toFixed(2) : treesSaved.toFixed(1);
+  return treesSaved.toFixed(4);
 }
 
 export function modelDelta(request: AiRequest, comparisonModel: string): string {
