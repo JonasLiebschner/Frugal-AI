@@ -17,6 +17,15 @@ http:
       tls:
         certResolver: letsencrypt
 
+    llmproxy:
+      rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/llmproxy`)"
+      entryPoints:
+        - websecure
+      service: llmproxy
+      priority: 1
+      tls:
+        certResolver: letsencrypt
+
     victoria-api:
       rule: "Host(`srv1513085.hstgr.cloud`) && PathPrefix(`/victoria`)"
       entryPoints:
@@ -131,6 +140,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://dashboard-frontend:80"
+
+    llmproxy:
+      loadBalancer:
+        servers:
+          - url: "http://llmproxy:4100"
 
     victoria-traces:
       loadBalancer:
