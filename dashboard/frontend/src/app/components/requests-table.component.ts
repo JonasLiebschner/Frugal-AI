@@ -34,6 +34,7 @@ import type { AiRequest } from '../dashboard.types';
               <th pSortableColumn="prompt">Request <p-sortIcon field="prompt" /></th>
               <th pSortableColumn="model">Model <p-sortIcon field="model" /></th>
               <th pSortableColumn="routingMethod">Routing <p-sortIcon field="routingMethod" /></th>
+              <th pSortableColumn="routingOutcome">Outcome <p-sortIcon field="routingOutcome" /></th>
               <th pSortableColumn="powerWh">Power <p-sortIcon field="powerWh" /></th>
               <th pSortableColumn="co2">CO2 <p-sortIcon field="co2" /></th>
               <th pSortableColumn="waterMl">Water <p-sortIcon field="waterMl" /></th>
@@ -56,6 +57,7 @@ import type { AiRequest } from '../dashboard.types';
               </td>
               <td>{{ req.model }}</td>
               <td>{{ req.routingMethod }}</td>
+              <td>{{ req.routingOutcome ?? '' }}</td>
               <td>{{ req.powerWh.toFixed(1) }} Wh</td>
               <td>{{ req.co2.toFixed(1) }} g</td>
               <td>{{ getWater(req.waterMl) }}</td>
@@ -70,7 +72,7 @@ import type { AiRequest } from '../dashboard.types';
 
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="12" class="!py-10 text-center">
+              <td colspan="13" class="!py-10 text-center">
                 <div class="space-y-2">
                   <p class="text-sm font-medium text-stone-700 dark:text-slate-200">No handled requests found.</p>
                   <p class="text-sm text-stone-500 dark:text-slate-400">

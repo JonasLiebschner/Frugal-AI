@@ -11,6 +11,7 @@ export type ApiAiRequest = {
   id: string;
   model: string;
   routingMethod: string;
+  routingOutcome?: string | null;
   prompt: string;
   inputTokens: number;
   outputTokens: number;
