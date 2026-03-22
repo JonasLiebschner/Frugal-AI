@@ -123,8 +123,8 @@ jobs:
           context: ./llmproxy
           file: ./llmproxy/Dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ steps.meta_vs.outputs.tags }}
-          labels: ${{ steps.meta_vs.outputs.labels }}
+          tags: ${{ steps.llmproxy.outputs.tags }}
+          labels: ${{ steps.llmproxy.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
