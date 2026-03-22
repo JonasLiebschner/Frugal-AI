@@ -7,6 +7,13 @@ services:
   dashboard-frontend:
     image: ghcr.io/jonasliebschner/frugal-ai.dashboard.frontend
 
+  llmproxy:
+    image: ghcr.io/jonasliebschner/frugal-ai.llmproxy
+    environment:
+      - DATA_DIR=/data
+    volumes:
+      - ./llmproxy:/data
+
   middleware-simple:
     image: ghcr.io/jonasliebschner/frugal-ai-middleware
     environment:

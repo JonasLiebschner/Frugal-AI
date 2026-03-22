@@ -16,6 +16,16 @@ services:
       - CHOKIDAR_USEPOLLING=true
     command: pnpm run start
 
+  # --- llmproxy ---
+  llmproxy:
+    build: llmproxy
+    ports:
+      - "4100:4100"
+    environment:
+      - DATA_DIR=/data
+    volumes:
+      - ./llmproxy/.data/data:/data
+
   # --- Observability stack ---
   victoriatraces:
     image: victoriametrics/victoria-traces:latest
