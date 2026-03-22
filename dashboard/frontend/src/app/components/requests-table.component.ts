@@ -50,7 +50,9 @@ import type { AiRequest } from '../dashboard.types';
           <ng-template pTemplate="body" let-req>
             <tr>
               <td>
-                <p class="m-0 font-medium text-stone-800 dark:text-stone-100">{{ req.prompt }}</p>
+                <p class="m-0 max-w-[28rem] truncate font-medium text-stone-800 dark:text-stone-100" [attr.title]="req.prompt">
+                  {{ getPromptPreview(req.prompt) }}
+                </p>
                 <p class="mt-1 font-mono text-xs text-orange-700 dark:text-orange-300">
                   {{ getModelDelta(req) }}
                 </p>
@@ -99,5 +101,14 @@ export class RequestsTableComponent {
 
   protected getModelDelta(request: AiRequest): string {
     return modelDelta(request, this.comparisonModel());
+  }
+
+  protected getPromptPreview(prompt: string): string {
+    const normalized = prompt.replace(/\s+/g, ' ').trim();
+    if (normalized.length <= 120) {
+      return normalized;
+    }
+
+    return `${normalized.slice(0, 117)}...`;
   }
 }
