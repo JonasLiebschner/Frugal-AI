@@ -21,8 +21,10 @@ export {
 export type { DiagnosticPromptContextPayload } from "./ai-proxy-diagnostics";
 export {
   AiProxyLiveRequestState,
+  patchActiveConnection,
   applyStreamingUpdateToConnection,
   buildActiveRequestDetail,
+  buildCompletedResponseConnectionPatch,
   buildReleaseMetricsForConnection,
   createActiveConnection,
 } from "./ai-proxy-live-requests";

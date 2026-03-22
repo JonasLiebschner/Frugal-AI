@@ -3,8 +3,10 @@ import test from "node:test";
 import {
   applyStreamingUpdateToConnection,
   buildActiveRequestDetail,
+  buildCompletedResponseConnectionPatch,
   buildReleaseMetricsForConnection,
   createActiveConnection,
+  patchActiveConnection,
 } from "../server/ai-proxy-live-requests";
 import { StreamingAccumulator } from "../server/ai-proxy-routing";
 import type { ProxySnapshot } from "../../shared/type-api";
@@ -189,4 +191,107 @@ test("live detail and release metrics use runtime cancellation and effective tok
   assert.deepEqual(release.responseBody, accumulator.buildResponse());
   assert.equal(release.effectiveCompletionTokenLimit, 80);
   assert.equal(release.timeToFirstTokenMs, 200);
+});
+
+test("completed JSON responses populate release metrics for middleware-routed requests", () => {
+  const connection = createActiveConnection(
+    {
+      id: "req-4",
+      receivedAt: 1000,
+      method: "POST",
+      path: "/v1/chat/completions",
+      model: "chat-routed-model",
+      routingMiddlewareId: "router-c",
+      routingMiddlewareProfile: "large",
+      stream: false,
+      requestBody: {
+        model: "middleware:router-c",
+        messages: [
+          {
+            role: "user",
+            content: "Pick the best model.",
+          },
+        ],
+      },
+    },
+    "chat.completions",
+    false,
+  );
+
+  patchActiveConnection(connection, {
+    phase: "connected",
+    backendId: "primary",
+    backendName: "Primary",
+    statusCode: 200,
+    ...buildCompletedResponseConnectionPatch({
+      id: "chatcmpl-final",
+      model: "chat-routed-model",
+      choices: [
+        {
+          index: 0,
+          finish_reason: "stop",
+          message: {
+            role: "assistant",
+            content: "Done.",
+          },
+        },
+      ],
+      usage: {
+        prompt_tokens: 26,
+        completion_tokens: 36,
+        total_tokens: 62,
+      },
+      timings: {
+        prompt_ms: 12,
+        predicted_ms: 34,
+        prompt_per_second: 2166.67,
+        predicted_per_second: 1058.82,
+      },
+    }),
+  }, 1600);
+
+  const detail = buildActiveRequestDetail(connection, backendSnapshots, 1600);
+  const release = buildReleaseMetricsForConnection(connection, backendSnapshots, 1600);
+
+  assert.equal(detail.entry.routingMiddlewareId, "router-c");
+  assert.equal(detail.entry.routingMiddlewareProfile, "large");
+  assert.equal(detail.entry.promptTokens, 26);
+  assert.equal(detail.entry.completionTokens, 36);
+  assert.equal(detail.entry.totalTokens, 62);
+  assert.equal(detail.entry.finishReason, "stop");
+  assert.equal(detail.entry.metricsExact, true);
+  assert.deepEqual(detail.responseBody, {
+    id: "chatcmpl-final",
+    model: "chat-routed-model",
+    choices: [
+      {
+        index: 0,
+        finish_reason: "stop",
+        message: {
+          role: "assistant",
+          content: "Done.",
+        },
+      },
+    ],
+    usage: {
+      prompt_tokens: 26,
+      completion_tokens: 36,
+      total_tokens: 62,
+    },
+    timings: {
+      prompt_ms: 12,
+      predicted_ms: 34,
+      prompt_per_second: 2166.67,
+      predicted_per_second: 1058.82,
+    },
+  });
+  assert.equal(release.promptTokens, 26);
+  assert.equal(release.completionTokens, 36);
+  assert.equal(release.totalTokens, 62);
+  assert.equal(release.promptMs, 12);
+  assert.equal(release.generationMs, 34);
+  assert.equal(release.promptTokensPerSecond, 2166.67);
+  assert.equal(release.completionTokensPerSecond, 1058.82);
+  assert.equal(release.finishReason, "stop");
+  assert.equal(release.metricsExact, true);
 });

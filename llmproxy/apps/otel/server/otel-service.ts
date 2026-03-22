@@ -1,6 +1,5 @@
 import type { Tracer } from "@opentelemetry/api";
-import { BatchSpanProcessor, BasicTracerProvider, type SpanExporter } from "@opentelemetry/sdk-trace-base";
-import { resourceFromAttributes } from "@opentelemetry/resources";
+import type { BasicTracerProvider, SpanExporter } from "@opentelemetry/sdk-trace-base";
 
 import { toErrorMessage } from "../../shared/server/core-utils";
 import { createOtelConfigService } from "./otel-config-service";
@@ -51,7 +50,7 @@ class RuntimeOtelTracesService implements OtelTracesService {
   public async updateConfig(config: OtelConfig): Promise<void> {
     const previousProvider = this.provider;
     this.provider = config.enabled
-      ? this.createProvider(config)
+      ? await this.createProvider(config)
       : undefined;
     this.config = config;
     this.tracers.clear();
@@ -117,7 +116,12 @@ class RuntimeOtelTracesService implements OtelTracesService {
     await provider.shutdown();
   }
 
-  private createProvider(config: OtelConfig): BasicTracerProvider {
+  private async createProvider(config: OtelConfig): Promise<BasicTracerProvider> {
+    const [{ BatchSpanProcessor, BasicTracerProvider }, { resourceFromAttributes }] = await Promise.all([
+      importExternalModule<typeof import("@opentelemetry/sdk-trace-base")>("@opentelemetry/sdk-trace-base"),
+      importExternalModule<typeof import("@opentelemetry/resources")>("@opentelemetry/resources"),
+    ]);
+
     return new BasicTracerProvider({
       resource: resourceFromAttributes(buildResourceAttributes(config)),
       spanProcessors: [
@@ -202,6 +206,10 @@ function createOtlpTraceExporter(
 ): SpanExporter {
   return new RequestDebugOtlpHttpTraceExporter(
     config,
-    requestDebugTracker,
+      requestDebugTracker,
   );
+}
+
+function importExternalModule<T>(specifier: string): Promise<T> {
+  return Function("modulePath", "return import(modulePath);")(specifier) as Promise<T>;
 }

@@ -1,11 +1,8 @@
 import type {
   Attributes,
+  SpanKind,
   SpanStatus,
   TimeInput,
-} from "@opentelemetry/api";
-import {
-  SpanKind,
-  SpanStatusCode,
 } from "@opentelemetry/api";
 
 import type {
@@ -17,6 +14,14 @@ import { isRecord } from "../../shared/server/type-guards";
 import { resolveRequestedCompletionLimit } from "./ai-client-diagnostic-http";
 
 export const aiClientOtelScopeName = "llmproxy.ai-client";
+const OTEL_SPAN_KIND_INTERNAL = 0 as SpanKind;
+const OTEL_SPAN_KIND_SERVER = 1 as SpanKind;
+const OTEL_SPAN_KIND_CLIENT = 2 as SpanKind;
+const OTEL_SPAN_KIND_PRODUCER = 3 as SpanKind;
+const OTEL_SPAN_KIND_CONSUMER = 4 as SpanKind;
+const OTEL_STATUS_CODE_UNSET = 0 as SpanStatus["code"];
+const OTEL_STATUS_CODE_OK = 1 as SpanStatus["code"];
+const OTEL_STATUS_CODE_ERROR = 2 as SpanStatus["code"];
 
 interface GenAiCaptureOptions {
   captureMessageContent: boolean;
@@ -62,14 +67,15 @@ export function buildAiClientGenAiRequestTrace(
   const request = asRecord(requestBody);
   const response = asRecord(responseBody);
   const operationName = resolveOperationName(entry.path);
-  const requestModel = readString(request?.model) ?? entry.model;
-  const responseModel = readString(response?.model) ?? requestModel;
+  const originalRequestModel = readString(request?.model);
+  const requestModel = resolveRequestModel(detail);
+  const responseModel = readString(response?.model) ?? entry.model ?? requestModel;
   const endTime = toTraceEndTime(entry.time);
   const startTime = endTime - Math.max(0, entry.latencyMs);
 
   return {
     name: buildSpanName(operationName, requestModel),
-    kind: SpanKind.CLIENT,
+    kind: OTEL_SPAN_KIND_CLIENT,
     startTime,
     endTime,
     status: resolveSpanStatus(detail),
@@ -106,6 +112,7 @@ export function buildAiClientGenAiRequestTrace(
       "llmproxy.request.latency_ms": entry.latencyMs,
       "llmproxy.request.queued_ms": entry.queuedMs,
       "llmproxy.request.metrics_exact": entry.metricsExact,
+      "llmproxy.request.original_model": resolveOriginalRequestModel(originalRequestModel, requestModel),
       "llmproxy.energy.usage.wh": entry.energyUsageWh,
       "llmproxy.routing.middleware.id": entry.routingMiddlewareId,
       "llmproxy.routing.middleware.profile": entry.routingMiddlewareProfile,
@@ -175,15 +182,15 @@ function serializeTraceTime(value: TimeInput | undefined): string | undefined {
 
 function resolveSpanKindText(kind: SpanKind): string {
   switch (kind) {
-    case SpanKind.CLIENT:
+    case OTEL_SPAN_KIND_CLIENT:
       return "CLIENT";
-    case SpanKind.SERVER:
+    case OTEL_SPAN_KIND_SERVER:
       return "SERVER";
-    case SpanKind.PRODUCER:
+    case OTEL_SPAN_KIND_PRODUCER:
       return "PRODUCER";
-    case SpanKind.CONSUMER:
+    case OTEL_SPAN_KIND_CONSUMER:
       return "CONSUMER";
-    case SpanKind.INTERNAL:
+    case OTEL_SPAN_KIND_INTERNAL:
     default:
       return "INTERNAL";
   }
@@ -191,11 +198,11 @@ function resolveSpanKindText(kind: SpanKind): string {
 
 function resolveSpanStatusCodeText(code: SpanStatus["code"]): string {
   switch (code) {
-    case SpanStatusCode.OK:
+    case OTEL_STATUS_CODE_OK:
       return "OK";
-    case SpanStatusCode.ERROR:
+    case OTEL_STATUS_CODE_ERROR:
       return "ERROR";
-    case SpanStatusCode.UNSET:
+    case OTEL_STATUS_CODE_UNSET:
     default:
       return "UNSET";
   }
@@ -478,6 +485,23 @@ function buildSpanName(
     : operationName;
 }
 
+function resolveRequestModel(
+  detail: RequestLogDetail,
+): string | undefined {
+  return detail.entry.model ?? readString(asRecord(detail.requestBody)?.model);
+}
+
+function resolveOriginalRequestModel(
+  originalRequestModel: string | undefined,
+  requestModel: string | undefined,
+): string | undefined {
+  if (!originalRequestModel || originalRequestModel === requestModel) {
+    return undefined;
+  }
+
+  return originalRequestModel;
+}
+
 function resolveProviderName(connection?: ConnectionConfig): string | undefined {
   switch (connection?.connector ?? "openai") {
     case "openai":
@@ -577,12 +601,12 @@ function resolveSpanStatus(detail: RequestLogDetail): SpanStatus {
 
   if (entry.outcome === "success") {
     return {
-      code: SpanStatusCode.UNSET,
+      code: OTEL_STATUS_CODE_UNSET,
     };
   }
 
   return {
-    code: SpanStatusCode.ERROR,
+    code: OTEL_STATUS_CODE_ERROR,
     ...(entry.error ? { message: entry.error } : {}),
   };
 }

@@ -1,8 +1,8 @@
 import type { H3Event } from "h3";
 import { compactJsonForRetention } from "../../../shared/server/retained-json";
 import type { BackendLease, JsonValue } from "../../../shared/type-api";
+import { buildCompletedResponseConnectionPatch } from "../ai-proxy-live-requests";
 import type { LiveRequestState } from "../ai-proxy-types";
-import { pipeClientResponseStream } from "./proxy-streaming-client";
 import {
   buildClientUpstreamErrorBuffer,
   parseRetainedUpstreamResponseBody,
@@ -109,7 +109,16 @@ export async function handleProxyUpstreamResponse(
     return clientResponseBuffer;
   }
 
-  await pipeClientResponseStream(event, upstreamResponse.body);
+  const responseBuffer = Buffer.from(await upstreamResponse.arrayBuffer());
+  const retainedResponseBody = parseRetainedUpstreamResponseBody(
+    responseBuffer,
+    upstreamResponse.headers.get("content-type"),
+  );
+  requestState.updateConnection(
+    requestId,
+    buildCompletedResponseConnectionPatch(retainedResponseBody as JsonValue | undefined),
+    true,
+  );
   releaseProxyLease({
     lease,
     requestState,
@@ -117,5 +126,7 @@ export async function handleProxyUpstreamResponse(
     receivedAt,
     outcome: upstreamOutcome,
     statusCode: upstreamResponse.status,
+    responseBody: retainedResponseBody as JsonValue | undefined,
   });
+  return responseBuffer;
 }

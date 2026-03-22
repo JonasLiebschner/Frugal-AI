@@ -3,6 +3,12 @@ import test from "node:test";
 
 import type { ConnectionConfig, RequestLogDetail } from "../../shared/type-api";
 import {
+  buildActiveRequestDetail,
+  buildCompletedResponseConnectionPatch,
+  createActiveConnection,
+  patchActiveConnection,
+} from "../../ai-proxy/server/ai-proxy-live-requests";
+import {
   buildAiClientGenAiRequestTrace,
 } from "../server/ai-client-capability";
 
@@ -91,6 +97,7 @@ test("metadata-only GenAI OTel traces omit prompt and tool content by default", 
   assert.equal(span.attributes?.["llmproxy.request.outcome"], "success");
   assert.equal(span.attributes?.["llmproxy.request.latency_ms"], 120);
   assert.equal(span.attributes?.["llmproxy.request.queued_ms"], 4);
+  assert.equal(span.attributes?.["llmproxy.request.original_model"], undefined);
   assert.equal(span.attributes?.["llmproxy.energy.usage.wh"], 0.0832);
   assert.equal(span.attributes?.["llmproxy.routing.middleware.id"], "external-model-router");
   assert.equal(span.attributes?.["llmproxy.routing.middleware.profile"], "large");
@@ -262,4 +269,195 @@ test("GenAI OTel traces normalize OpenAI wrapper tool definitions and separate i
       strict: true,
     },
   ]);
+});
+
+test("GenAI OTel traces keep direct-model semantics when middleware selectors are used", () => {
+  const span = buildAiClientGenAiRequestTrace({
+    ...TEST_DETAIL,
+    entry: {
+      ...TEST_DETAIL.entry,
+      model: "chat-routed-model",
+    },
+    requestBody: {
+      model: "middleware:external-model-router",
+      messages: [
+        {
+          role: "user",
+          content: "Route this request.",
+        },
+      ],
+      max_tokens: 128,
+    },
+    responseBody: {
+      id: "chatcmpl-otel-middleware",
+      model: "chat-routed-model-2026-03-22",
+      usage: {
+        prompt_tokens: 26,
+        completion_tokens: 36,
+        total_tokens: 62,
+      },
+      choices: [
+        {
+          finish_reason: "stop",
+          message: {
+            role: "assistant",
+            content: "Done.",
+          },
+        },
+      ],
+    },
+  }, TEST_CONNECTION, {
+    captureMessageContent: false,
+    captureToolContent: false,
+  });
+
+  assert.equal(span.name, "chat chat-routed-model");
+  assert.equal(span.attributes?.["gen_ai.request.model"], "chat-routed-model");
+  assert.equal(span.attributes?.["gen_ai.response.model"], "chat-routed-model-2026-03-22");
+  assert.equal(span.attributes?.["llmproxy.request.original_model"], "middleware:external-model-router");
+  assert.equal(span.attributes?.["llmproxy.routing.middleware.id"], "external-model-router");
+  assert.equal(span.attributes?.["llmproxy.routing.middleware.profile"], "large");
+  assert.equal(span.attributes?.["gen_ai.usage.input_tokens"], 26);
+  assert.equal(span.attributes?.["gen_ai.usage.output_tokens"], 36);
+});
+
+test("middleware-routed requests retain the same usage metrics and span fields as direct-model requests", () => {
+  const backendSnapshots = [
+    {
+      id: "primary",
+      name: "Primary",
+      baseUrl: "https://models.example.com",
+      connector: "openai" as const,
+      enabled: true,
+      healthy: true,
+      maxConcurrency: 2,
+      activeRequests: 0,
+      availableSlots: 2,
+      totalRequests: 0,
+      successfulRequests: 0,
+      failedRequests: 0,
+      cancelledRequests: 0,
+      configuredModels: ["chat-routed-model"],
+      discoveredModels: ["chat-routed-model"],
+      discoveredModelDetails: [],
+    },
+  ];
+  const responseBody = {
+    id: "chatcmpl-otel-parity",
+    model: "chat-routed-model-2026-03-22",
+    usage: {
+      prompt_tokens: 26,
+      completion_tokens: 36,
+      total_tokens: 62,
+    },
+    choices: [
+      {
+        finish_reason: "stop",
+        message: {
+          role: "assistant",
+          content: "Done.",
+        },
+      },
+    ],
+  };
+
+  const directConnection = createActiveConnection(
+    {
+      id: "req-otel-direct",
+      receivedAt: 1000,
+      method: "POST",
+      path: "/v1/chat/completions",
+      model: "chat-routed-model",
+      stream: false,
+      requestBody: {
+        model: "chat-routed-model",
+        messages: [
+          {
+            role: "user",
+            content: "Route this request.",
+          },
+        ],
+        max_tokens: 128,
+      },
+    },
+    "chat.completions",
+    false,
+  );
+  patchActiveConnection(directConnection, {
+    phase: "connected",
+    backendId: "primary",
+    backendName: "Primary",
+    statusCode: 200,
+    ...buildCompletedResponseConnectionPatch(responseBody),
+  }, 1120);
+
+  const middlewareConnection = createActiveConnection(
+    {
+      id: "req-otel-middleware-parity",
+      receivedAt: 1000,
+      method: "POST",
+      path: "/v1/chat/completions",
+      model: "middleware:external-model-router",
+      stream: false,
+      requestBody: {
+        model: "middleware:external-model-router",
+        messages: [
+          {
+            role: "user",
+            content: "Route this request.",
+          },
+        ],
+        max_tokens: 128,
+      },
+    },
+    "chat.completions",
+    false,
+  );
+  patchActiveConnection(middlewareConnection, {
+    phase: "connected",
+    backendId: "primary",
+    backendName: "Primary",
+    model: "chat-routed-model",
+    routingMiddlewareId: "external-model-router",
+    routingMiddlewareProfile: "large",
+    statusCode: 200,
+    ...buildCompletedResponseConnectionPatch(responseBody),
+  }, 1120);
+
+  const directDetail = buildActiveRequestDetail(directConnection, backendSnapshots, 1120);
+  const middlewareDetail = buildActiveRequestDetail(middlewareConnection, backendSnapshots, 1120);
+
+  assert.equal(directDetail.entry.promptTokens, 26);
+  assert.equal(directDetail.entry.completionTokens, 36);
+  assert.equal(directDetail.entry.totalTokens, 62);
+  assert.equal(middlewareDetail.entry.promptTokens, 26);
+  assert.equal(middlewareDetail.entry.completionTokens, 36);
+  assert.equal(middlewareDetail.entry.totalTokens, 62);
+  assert.equal(middlewareDetail.entry.routingMiddlewareId, "external-model-router");
+  assert.equal(middlewareDetail.entry.routingMiddlewareProfile, "large");
+
+  const directSpan = buildAiClientGenAiRequestTrace(directDetail, TEST_CONNECTION, {
+    captureMessageContent: false,
+    captureToolContent: false,
+  });
+  const middlewareSpan = buildAiClientGenAiRequestTrace(middlewareDetail, TEST_CONNECTION, {
+    captureMessageContent: false,
+    captureToolContent: false,
+  });
+
+  for (const key of [
+    "gen_ai.request.model",
+    "gen_ai.response.model",
+    "gen_ai.response.id",
+    "gen_ai.usage.input_tokens",
+    "gen_ai.usage.output_tokens",
+    "gen_ai.response.finish_reasons",
+  ] as const) {
+    assert.deepEqual(middlewareSpan.attributes?.[key], directSpan.attributes?.[key], key);
+  }
+
+  assert.equal(directSpan.attributes?.["llmproxy.request.original_model"], undefined);
+  assert.equal(middlewareSpan.attributes?.["llmproxy.request.original_model"], "middleware:external-model-router");
+  assert.equal(middlewareSpan.attributes?.["llmproxy.routing.middleware.id"], "external-model-router");
+  assert.equal(middlewareSpan.attributes?.["llmproxy.routing.middleware.profile"], "large");
 });

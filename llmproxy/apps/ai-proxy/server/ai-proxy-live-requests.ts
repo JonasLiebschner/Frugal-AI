@@ -2,6 +2,8 @@ import { LiveRequestState as AiProxyLiveRequestState } from "./ai-proxy-live-req
 
 export { AiProxyLiveRequestState };
 export {
+  patchActiveConnection,
+  buildCompletedResponseConnectionPatch,
   applyStreamingUpdateToConnection,
   buildActiveRequestDetail,
   buildReleaseMetricsForConnection,

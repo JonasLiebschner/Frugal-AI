@@ -88,6 +88,42 @@ export function applyStreamingUpdateToConnection(
   connection.lastUpdatedAt = now;
 }
 
+export function buildCompletedResponseConnectionPatch(
+  responseBody: JsonValue | undefined,
+): Partial<Omit<ActiveConnectionRuntime, "id" | "receivedAt">> {
+  const response = asRecord(responseBody);
+  const usage = asRecord(response?.usage);
+  const timings = asRecord(response?.timings);
+  const promptTokens = readFiniteNumber(usage?.prompt_tokens) ?? readFiniteNumber(timings?.prompt_n);
+  const completionTokens = readFiniteNumber(usage?.completion_tokens) ?? readFiniteNumber(timings?.predicted_n);
+  const totalTokens =
+    readFiniteNumber(usage?.total_tokens)
+    ?? (promptTokens !== undefined && completionTokens !== undefined ? promptTokens + completionTokens : undefined);
+  const promptMs = readFiniteNumber(timings?.prompt_ms);
+  const generationMs = readFiniteNumber(timings?.predicted_ms);
+  const promptTokensPerSecond = readFiniteNumber(timings?.prompt_per_second);
+  const completionTokensPerSecond = readFiniteNumber(timings?.predicted_per_second);
+  const finishReason = resolveResponseFinishReason(response);
+  const metricsExact =
+    completionTokens !== undefined
+    || (promptTokens !== undefined && totalTokens !== undefined)
+      ? true
+      : undefined;
+
+  return {
+    responseBody: compactJsonForRetention(responseBody),
+    ...(promptTokens !== undefined ? { promptTokens } : {}),
+    ...(completionTokens !== undefined ? { completionTokens } : {}),
+    ...(totalTokens !== undefined ? { totalTokens } : {}),
+    ...(promptMs !== undefined ? { promptMs } : {}),
+    ...(generationMs !== undefined ? { generationMs } : {}),
+    ...(promptTokensPerSecond !== undefined ? { promptTokensPerSecond } : {}),
+    ...(completionTokensPerSecond !== undefined ? { completionTokensPerSecond } : {}),
+    ...(finishReason !== undefined ? { finishReason } : {}),
+    ...(metricsExact !== undefined ? { metricsExact } : {}),
+  };
+}
+
 export function buildReleaseMetricsForConnection(
   connection: ActiveConnectionRuntime | undefined,
   backends: ProxySnapshot["backends"],
@@ -251,4 +287,37 @@ function resolveConnectionResponseBody(connection: ActiveConnectionRuntime): Jso
   }
 
   return undefined;
+}
+
+function resolveResponseFinishReason(
+  response: Record<string, unknown> | undefined,
+): string | undefined {
+  const choices = Array.isArray(response?.choices) ? response.choices : undefined;
+  if (!choices) {
+    return undefined;
+  }
+
+  for (const choice of choices) {
+    const choiceRecord = asRecord(choice);
+    const finishReason = typeof choiceRecord?.finish_reason === "string"
+      ? choiceRecord.finish_reason
+      : undefined;
+    if (finishReason) {
+      return finishReason;
+    }
+  }
+
+  return undefined;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined;
+}
+
+function readFiniteNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
 }

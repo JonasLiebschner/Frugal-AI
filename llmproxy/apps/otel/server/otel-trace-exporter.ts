@@ -1,5 +1,3 @@
-import { ExportResultCode, getStringFromEnv, parseKeyPairsIntoRecord } from "@opentelemetry/core";
-import { ProtobufTraceSerializer } from "@opentelemetry/otlp-transformer";
 import type { ReadableSpan, SpanExporter } from "@opentelemetry/sdk-trace-base";
 
 import type {
@@ -8,6 +6,10 @@ import type {
   RequestOtelExportResult,
 } from "../../shared/type-api";
 import type { OtelConfig } from "./otel-types";
+
+const OTEL_EXPORT_RESULT_SUCCESS = 0;
+const OTEL_EXPORT_RESULT_FAILED = 1;
+let otlpTransformerModulePromise: Promise<typeof import("@opentelemetry/otlp-transformer")> | undefined;
 
 export interface OtelTraceDebugContext {
   requestId: string;
@@ -109,8 +111,8 @@ export class RequestDebugDelegatingSpanExporter implements SpanExporter {
 
     try {
       this.delegate.export(spans, (result) => {
-        this.tracker.markExportFinished(spans, {
-          outcome: result.code === ExportResultCode.SUCCESS ? "success" : "failed",
+      this.tracker.markExportFinished(spans, {
+          outcome: result.code === OTEL_EXPORT_RESULT_SUCCESS ? "success" : "failed",
           exportedAt: new Date().toISOString(),
           ...(result.error
             ? {
@@ -129,7 +131,7 @@ export class RequestDebugDelegatingSpanExporter implements SpanExporter {
         error: error instanceof Error ? error.message : String(error),
       });
       resultCallback({
-        code: ExportResultCode.FAILED,
+        code: OTEL_EXPORT_RESULT_FAILED,
         error: error instanceof Error ? error : new Error(String(error)),
       });
     }
@@ -174,6 +176,7 @@ export class RequestDebugOtlpHttpTraceExporter implements SpanExporter {
   ): Promise<void> {
     const endpoint = resolveOtlpTracesEndpoint(this.config);
     const headers = resolveOtlpTracesHeaders(this.config);
+    const { ProtobufTraceSerializer } = await loadOtlpTransformerModule();
     const payload = ProtobufTraceSerializer.serializeRequest(spans) ?? new Uint8Array();
     this.tracker.markExportStarted(spans);
 
@@ -201,7 +204,7 @@ export class RequestDebugOtlpHttpTraceExporter implements SpanExporter {
 
       this.tracker.markExportFinished(spans, result);
       resultCallback({
-        code: response.ok ? ExportResultCode.SUCCESS : ExportResultCode.FAILED,
+        code: response.ok ? OTEL_EXPORT_RESULT_SUCCESS : OTEL_EXPORT_RESULT_FAILED,
         ...(response.ok
           ? {}
           : { error: new Error(`OTLP trace export failed with status ${response.status}.`) }),
@@ -214,7 +217,7 @@ export class RequestDebugOtlpHttpTraceExporter implements SpanExporter {
         error: message,
       });
       resultCallback({
-        code: ExportResultCode.FAILED,
+        code: OTEL_EXPORT_RESULT_FAILED,
         error: error instanceof Error ? error : new Error(message),
       });
     } finally {
@@ -269,13 +272,13 @@ function resolveOtlpTracesEndpoint(config: OtelConfig): string {
     return config.endpoint;
   }
 
-  const signalSpecificUrl = normalizeSpecificEndpoint(getStringFromEnv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"));
+  const signalSpecificUrl = normalizeSpecificEndpoint(readEnvString("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"));
   if (signalSpecificUrl) {
     return signalSpecificUrl;
   }
 
   const genericUrl = appendSignalPath(
-    getStringFromEnv("OTEL_EXPORTER_OTLP_ENDPOINT"),
+    readEnvString("OTEL_EXPORTER_OTLP_ENDPOINT"),
     "v1/traces",
   );
   return genericUrl ?? "http://localhost:4318/v1/traces";
@@ -283,8 +286,8 @@ function resolveOtlpTracesEndpoint(config: OtelConfig): string {
 
 function resolveOtlpTracesHeaders(config: OtelConfig): Record<string, string> {
   return {
-    ...parseKeyPairsIntoRecord(getStringFromEnv("OTEL_EXPORTER_OTLP_HEADERS")),
-    ...parseKeyPairsIntoRecord(getStringFromEnv("OTEL_EXPORTER_OTLP_TRACES_HEADERS")),
+    ...parseHeaderKeyPairs(readEnvString("OTEL_EXPORTER_OTLP_HEADERS")),
+    ...parseHeaderKeyPairs(readEnvString("OTEL_EXPORTER_OTLP_TRACES_HEADERS")),
     ...(config.headers ?? {}),
     "Content-Type": "application/x-protobuf",
     Accept: "application/x-protobuf, application/json",
@@ -329,6 +332,7 @@ async function readResponseBody(response: Response): Promise<JsonValue | undefin
 
   const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
   if (contentType.includes("application/x-protobuf")) {
+    const { ProtobufTraceSerializer } = await loadOtlpTransformerModule();
     return toJsonValue(ProtobufTraceSerializer.deserializeResponse(bytes));
   }
 
@@ -347,6 +351,51 @@ function parseTextResponseBody(value: string): JsonValue {
   } catch {
     return trimmed;
   }
+}
+
+function readEnvString(name: string): string | undefined {
+  const value = process.env[name];
+  return typeof value === "string" && value.length > 0
+    ? value
+    : undefined;
+}
+
+function parseHeaderKeyPairs(value: string | undefined): Record<string, string> {
+  if (!value) {
+    return {};
+  }
+
+  return value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0)
+    .reduce<Record<string, string>>((result, entry) => {
+      const separatorIndex = entry.indexOf("=");
+      if (separatorIndex <= 0) {
+        return result;
+      }
+
+      const key = entry.slice(0, separatorIndex).trim();
+      const headerValue = entry.slice(separatorIndex + 1).trim();
+      if (!key || !headerValue) {
+        return result;
+      }
+
+      result[key] = headerValue;
+      return result;
+    }, {});
+}
+
+async function loadOtlpTransformerModule(): Promise<typeof import("@opentelemetry/otlp-transformer")> {
+  if (!otlpTransformerModulePromise) {
+    otlpTransformerModulePromise = importExternalModule<typeof import("@opentelemetry/otlp-transformer")>("@opentelemetry/otlp-transformer");
+  }
+
+  return otlpTransformerModulePromise;
+}
+
+function importExternalModule<T>(specifier: string): Promise<T> {
+  return Function("modulePath", "return import(modulePath);")(specifier) as Promise<T>;
 }
 
 function toJsonValue(value: unknown): JsonValue | undefined {
