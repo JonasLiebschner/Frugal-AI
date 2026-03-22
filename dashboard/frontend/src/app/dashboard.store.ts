@@ -120,39 +120,40 @@ export class DashboardStore {
         }))
       };
 
-      const series = Array.from(groupedByRouting.entries()).flatMap(([routingMethod, requests], index) => {
+      const actualSeries = Array.from(groupedByRouting.entries()).map(([routingMethod, requests], index) => {
         const color = this.routingSeriesColor(index);
 
-        return [
-          {
-            type: 'line' as const,
-            smooth: true,
-            symbol: 'circle',
-            symbolSize: 6,
-            connectNulls: false,
-            name: `${routingMethod} Actual`,
-            itemStyle: { color },
-            lineStyle: { color, width: 2 },
-            data: requests.map((request) => [request.createdAt, request.actual[metricDefinition.key]])
-          },
-          {
+        return {
+          type: 'line' as const,
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 6,
+          connectNulls: false,
+          name: `${routingMethod} Actual`,
+          itemStyle: { color },
+          lineStyle: { color, width: 2 },
+          data: requests.map((request) => [request.createdAt, request.actual[metricDefinition.key]])
+        };
+      });
+      const comparisonSeries = chartRequests.length === 0
+        ? []
+        : [{
             type: 'line' as const,
             smooth: true,
             symbol: 'circle',
             symbolSize: 5,
             connectNulls: false,
-            name: `${routingMethod} Comparison`,
-            itemStyle: { color },
-            lineStyle: { color, width: 2, type: 'dashed' as const, opacity: 0.65 },
-            data: requests.map((request) => [request.createdAt, request.comparison[metricDefinition.key]])
-          }
-        ];
-      });
+            name: `${this.comparisonModel()} Comparison`,
+            itemStyle: { color: isDark ? '#d8e4ea' : '#4b5563' },
+            lineStyle: { color: isDark ? '#d8e4ea' : '#4b5563', width: 2, type: 'dashed' as const, opacity: 0.8 },
+            data: chartRequests.map((request) => [request.createdAt, request.comparison[metricDefinition.key]])
+          }];
+      const series = [...actualSeries, ...comparisonSeries];
 
       return {
         key: metric.metricKey,
         title: metric.metricLabel,
-        subtitle: `Over time by routing method vs ${this.comparisonModel()}`,
+        subtitle: `Actual by routing method over time vs shared ${this.comparisonModel()} comparison`,
         options: {
           tooltip: { trigger: 'axis' },
           legend: { top: 4, textStyle: { color: isDark ? '#c4d1df' : '#56544f' } },

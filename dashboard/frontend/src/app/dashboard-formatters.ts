@@ -23,7 +23,7 @@ export function formatWater(waterMl: number): string {
 }
 
 export function formatScore(score: number | null | undefined): string {
-  return score == null ? '' : `${score.toFixed(1)} / 5`;
+  return score == null ? '' : `${Math.round(score)} / 5`;
 }
 
 export function formatTreesSaved(treesSaved: number): string {
