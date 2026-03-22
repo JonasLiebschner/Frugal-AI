@@ -7,17 +7,17 @@
 
 ## Most Interesting Takeaways
 
-- Best middleware by accuracy: `middleware:llm` at 56.67% (17/30).
-- Best middleware by proxy energy per correct answer: `middleware:llm` at 978.90.
-- Most expensive middleware overall: `middleware:simple` at 112231.47 proxy units.
+- Best middleware by accuracy: `middleware:simple` at 53.33% (16/30).
+- Best middleware by proxy energy per correct answer: `middleware:llm` at 831.97.
+- Most expensive middleware overall: `middleware:simple` at 201222.16 proxy units.
 
 ## Middleware Scoreboard
 
 | Middleware | Accuracy | Correct | Completion Tokens | Reasoning Tokens | Avg Duration (ms) | Proxy Energy | Proxy / Correct |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `middleware:simple` | 50.00% | 15/30 | 37026 | 36966 | 12816.3 | 112231.47 | 7482.10 |
-| `middleware:onnx` | 53.33% | 16/30 | 17956 | 17911 | 6180.1 | 49564.80 | 3097.80 |
-| `middleware:llm` | 56.67% | 17/30 | 10904 | 10873 | 3837.3 | 16641.35 | 978.90 |
+| `middleware:simple` | 53.33% | 16/30 | 64438 | 64380 | 87868.4 | 201222.16 | 12576.38 |
+| `middleware:onnx` | 53.33% | 16/30 | 29230 | 29187 | 9787.9 | 88335.58 | 5520.97 |
+| `middleware:llm` | 53.33% | 16/30 | 10669 | 10638 | 3483.5 | 13311.50 | 831.97 |
 
 ## Accuracy
 
@@ -26,7 +26,7 @@ xychart-beta
     title "Middleware Accuracy"
     x-axis ["middleware:simple", "middleware:onnx", "middleware:llm"]
     y-axis "accuracy %" 0 --> 100
-    bar [50, 53.33, 56.67]
+    bar [53.33, 53.33, 53.33]
 ```
 
 ## Total Proxy Energy
@@ -35,8 +35,8 @@ xychart-beta
 xychart-beta
     title "Middleware Total Proxy Energy"
     x-axis ["middleware:simple", "middleware:onnx", "middleware:llm"]
-    y-axis "proxy energy" 0 --> 129067
-    bar [112231.47, 49564.8, 16641.35]
+    y-axis "proxy energy" 0 --> 231406
+    bar [201222.16, 88335.58, 13311.5]
 ```
 
 ## Proxy Energy Per Correct Answer
@@ -45,8 +45,8 @@ xychart-beta
 xychart-beta
     title "Middleware Proxy Energy Per Correct"
     x-axis ["middleware:simple", "middleware:onnx", "middleware:llm"]
-    y-axis "proxy / correct" 0 --> 8605
-    bar [7482.1, 3097.8, 978.9]
+    y-axis "proxy / correct" 0 --> 14463
+    bar [12576.38, 5520.97, 831.97]
 ```
 
 ## Routing Details
@@ -54,26 +54,26 @@ xychart-beta
 ### middleware:simple
 
 - Routed backends: `minimax-m2.5-229b` (30)
-- Accuracy: 50.00% (15/30)
-- Output tokens: 37026 total, 36966 reasoning, 60 answer
-- Average duration: 12816.3 ms
-- Proxy energy: 112231.47 total, 7482.10 per correct answer
-- Agreement with direct models: small 21/30, large 30/30
+- Accuracy: 53.33% (16/30)
+- Output tokens: 64438 total, 64380 reasoning, 58 answer
+- Average duration: 87868.4 ms
+- Proxy energy: 201222.16 total, 12576.38 per correct answer
+- Agreement with direct models: small 18/30, large 29/30
 
 ### middleware:onnx
 
 - Routed backends: `gpt-oss-120b-working` (15), `minimax-m2.5-229b` (15)
 - Accuracy: 53.33% (16/30)
-- Output tokens: 17956 total, 17911 reasoning, 45 answer
-- Average duration: 6180.1 ms
-- Proxy energy: 49564.80 total, 3097.80 per correct answer
-- Agreement with direct models: small 29/30, large 22/30
+- Output tokens: 29230 total, 29187 reasoning, 43 answer
+- Average duration: 9787.9 ms
+- Proxy energy: 88335.58 total, 5520.97 per correct answer
+- Agreement with direct models: small 25/30, large 22/30
 
 ### middleware:llm
 
 - Routed backends: `gpt-oss-120b-working` (29), `minimax-m2.5-229b` (1)
-- Accuracy: 56.67% (17/30)
-- Output tokens: 10904 total, 10873 reasoning, 31 answer
-- Average duration: 3837.3 ms
-- Proxy energy: 16641.35 total, 978.90 per correct answer
-- Agreement with direct models: small 30/30, large 21/30
+- Accuracy: 53.33% (16/30)
+- Output tokens: 10669 total, 10638 reasoning, 31 answer
+- Average duration: 3483.5 ms
+- Proxy energy: 13311.50 total, 831.97 per correct answer
+- Agreement with direct models: small 29/30, large 19/30

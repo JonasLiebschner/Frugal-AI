@@ -88,6 +88,7 @@ What it does:
   - `middleware:simple`
   - `middleware:onnx`
   - `middleware:llm`
+  - `middleware:vs`
 - for middleware rows, it only uses the middleware call to determine which backend model was selected
 - the scored answer for middleware is then taken from the cached direct baseline result of that selected backend
 - stores diagnostics-backed metrics when available:
@@ -198,6 +199,7 @@ Default weights currently used:
   - `middleware:simple` = `1`
   - `middleware:onnx` = `1.2`
   - `middleware:llm` = `1.1`
+  - `middleware:vs` = `1.1`
 
 These are heuristics, not measured power values.
 

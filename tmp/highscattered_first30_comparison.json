@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-22T11:03:29.442Z",
+  "generatedAt": "2026-03-22T12:38:51.368Z",
   "endpoint": "https://llmproxy.frugalai.haupt.dev/v1/chat/completions",
   "dataset": "/Users/marbaced/tmp/cfhack2026/frugal-code/evaluation_data/evaluation_dataset_highScattered.csv",
   "rowsEvaluated": 30,
@@ -10,68 +10,68 @@
     "middleware:onnx",
     "middleware:llm"
   ],
-  "directAgreementRows": 21,
-  "directDisagreementRows": 9,
+  "directAgreementRows": 18,
+  "directDisagreementRows": 12,
   "summaries": [
     {
       "name": "gpt-oss-120b-working",
       "kind": "direct",
-      "accuracy": 0.5666666666666667,
-      "correct": 17,
+      "accuracy": 0.5,
+      "correct": 15,
       "total": 30,
       "thinkingRows": 30,
       "tokenSplitRows": 30,
       "totalPromptTokens": 0,
-      "totalCompletionTokens": 10030,
-      "totalReasoningTokensKnown": 10000,
+      "totalCompletionTokens": 10613,
+      "totalReasoningTokensKnown": 10583,
       "totalAnswerTokensKnown": 30,
-      "totalDurationMs": 102142,
-      "averageDurationMs": 3404.733333333333,
+      "totalDurationMs": 102036,
+      "averageDurationMs": 3401.2,
       "routedModels": {
         "gpt-oss-120b-working": 30
       },
       "agreesWithSmall": 30,
-      "agreesWithLarge": 21
+      "agreesWithLarge": 18
     },
     {
       "name": "minimax-m2.5-229b",
       "kind": "direct",
-      "accuracy": 0.5,
-      "correct": 15,
+      "accuracy": 0.5333333333333333,
+      "correct": 16,
       "total": 30,
       "thinkingRows": 30,
       "tokenSplitRows": 30,
       "totalPromptTokens": 0,
-      "totalCompletionTokens": 37026,
-      "totalReasoningTokensKnown": 36966,
-      "totalAnswerTokensKnown": 60,
-      "totalDurationMs": 384490,
-      "averageDurationMs": 12816.333333333334,
+      "totalCompletionTokens": 64438,
+      "totalReasoningTokensKnown": 64380,
+      "totalAnswerTokensKnown": 58,
+      "totalDurationMs": 2636053,
+      "averageDurationMs": 87868.43333333333,
       "routedModels": {
         "minimax-m2.5-229b": 30
       },
-      "agreesWithSmall": 21,
-      "agreesWithLarge": 30
+      "agreesWithSmall": 18,
+      "agreesWithLarge": 29
     },
     {
       "name": "middleware:simple",
       "kind": "middleware",
-      "accuracy": 0.5,
-      "correct": 15,
+      "accuracy": 0.5333333333333333,
+      "correct": 16,
       "total": 30,
       "thinkingRows": 30,
       "tokenSplitRows": 30,
       "totalPromptTokens": 0,
-      "totalCompletionTokens": 37026,
-      "totalReasoningTokensKnown": 36966,
-      "totalAnswerTokensKnown": 60,
-      "totalDurationMs": 384490,
-      "averageDurationMs": 12816.333333333334,
+      "totalCompletionTokens": 64438,
+      "totalReasoningTokensKnown": 64380,
+      "totalAnswerTokensKnown": 58,
+      "totalDurationMs": 2636053,
+      "averageDurationMs": 87868.43333333333,
       "routedModels": {
         "minimax-m2.5-229b": 30
       },
-      "agreesWithSmall": 21,
-      "agreesWithLarge": 30
+      "agreesWithSmall": 18,
+      "agreesWithLarge": 29
     },
     {
       "name": "middleware:onnx",
@@ -82,38 +82,38 @@
       "thinkingRows": 30,
       "tokenSplitRows": 30,
       "totalPromptTokens": 0,
-      "totalCompletionTokens": 17956,
-      "totalReasoningTokensKnown": 17911,
-      "totalAnswerTokensKnown": 45,
-      "totalDurationMs": 185404,
-      "averageDurationMs": 6180.133333333333,
+      "totalCompletionTokens": 29230,
+      "totalReasoningTokensKnown": 29187,
+      "totalAnswerTokensKnown": 43,
+      "totalDurationMs": 293637,
+      "averageDurationMs": 9787.9,
       "routedModels": {
         "gpt-oss-120b-working": 15,
         "minimax-m2.5-229b": 15
       },
-      "agreesWithSmall": 29,
+      "agreesWithSmall": 25,
       "agreesWithLarge": 22
     },
     {
       "name": "middleware:llm",
       "kind": "middleware",
-      "accuracy": 0.5666666666666667,
-      "correct": 17,
+      "accuracy": 0.5333333333333333,
+      "correct": 16,
       "total": 30,
       "thinkingRows": 30,
       "tokenSplitRows": 30,
       "totalPromptTokens": 0,
-      "totalCompletionTokens": 10904,
-      "totalReasoningTokensKnown": 10873,
+      "totalCompletionTokens": 10669,
+      "totalReasoningTokensKnown": 10638,
       "totalAnswerTokensKnown": 31,
-      "totalDurationMs": 115120,
-      "averageDurationMs": 3837.3333333333335,
+      "totalDurationMs": 104506,
+      "averageDurationMs": 3483.5333333333333,
       "routedModels": {
         "gpt-oss-120b-working": 29,
         "minimax-m2.5-229b": 1
       },
-      "agreesWithSmall": 30,
-      "agreesWithLarge": 21
+      "agreesWithSmall": 29,
+      "agreesWithLarge": 19
     }
   ]
 }

@@ -10,7 +10,9 @@
       "direct": 1,
       "middleware:simple": 1,
       "middleware:onnx": 1.2,
-      "middleware:llm": 1.1
+      "middleware:llm": 1.1,
+      "middleware:vs": 1.1,
+      "middleware:svc": 1.1
     }
   },
   "summaries": [
@@ -18,43 +20,43 @@
       "entity": "gpt-oss-120b-working",
       "kind": "direct",
       "rows": 30,
-      "correct": 17,
-      "accuracy": 0.5666666666666667,
+      "correct": 15,
+      "accuracy": 0.5,
       "selectedModels": {
         "gpt-oss-120b-working": 30
       },
-      "totalLoadUnits": 10132.141999999998,
-      "totalProxyEnergy": 10132.141999999998,
-      "proxyEnergyPerRow": 337.7380666666666,
-      "proxyEnergyPerCorrect": 596.0083529411763
+      "totalLoadUnits": 10715.035999999996,
+      "totalProxyEnergy": 10715.035999999996,
+      "proxyEnergyPerRow": 357.16786666666655,
+      "proxyEnergyPerCorrect": 714.3357333333331
     },
     {
       "entity": "minimax-m2.5-229b",
       "kind": "direct",
       "rows": 30,
-      "correct": 15,
-      "accuracy": 0.5,
+      "correct": 16,
+      "accuracy": 0.5333333333333333,
       "selectedModels": {
         "minimax-m2.5-229b": 30
       },
-      "totalLoadUnits": 37410.48999999999,
-      "totalProxyEnergy": 112231.46999999996,
-      "proxyEnergyPerRow": 3741.0489999999986,
-      "proxyEnergyPerCorrect": 7482.097999999997
+      "totalLoadUnits": 67074.053,
+      "totalProxyEnergy": 201222.15899999993,
+      "proxyEnergyPerRow": 6707.405299999998,
+      "proxyEnergyPerCorrect": 12576.384937499995
     },
     {
       "entity": "middleware:simple",
       "kind": "middleware",
       "rows": 30,
-      "correct": 15,
-      "accuracy": 0.5,
+      "correct": 16,
+      "accuracy": 0.5333333333333333,
       "selectedModels": {
         "minimax-m2.5-229b": 30
       },
-      "totalLoadUnits": 37410.48999999999,
-      "totalProxyEnergy": 112231.46999999996,
-      "proxyEnergyPerRow": 3741.0489999999986,
-      "proxyEnergyPerCorrect": 7482.097999999997
+      "totalLoadUnits": 67074.053,
+      "totalProxyEnergy": 201222.15899999993,
+      "proxyEnergyPerRow": 6707.405299999998,
+      "proxyEnergyPerCorrect": 12576.384937499995
     },
     {
       "entity": "middleware:onnx",
@@ -66,25 +68,25 @@
         "gpt-oss-120b-working": 15,
         "minimax-m2.5-229b": 15
       },
-      "totalLoadUnits": 18141.404000000002,
-      "totalProxyEnergy": 49564.80000000001,
-      "proxyEnergyPerRow": 1652.1600000000003,
-      "proxyEnergyPerCorrect": 3097.8000000000006
+      "totalLoadUnits": 29523.637,
+      "totalProxyEnergy": 88335.58439999999,
+      "proxyEnergyPerRow": 2944.51948,
+      "proxyEnergyPerCorrect": 5520.9740249999995
     },
     {
       "entity": "middleware:llm",
       "kind": "middleware",
       "rows": 30,
-      "correct": 17,
-      "accuracy": 0.5666666666666667,
+      "correct": 16,
+      "accuracy": 0.5333333333333333,
       "selectedModels": {
         "gpt-oss-120b-working": 29,
         "minimax-m2.5-229b": 1
       },
-      "totalLoadUnits": 11019.119999999999,
-      "totalProxyEnergy": 16641.345600000004,
-      "proxyEnergyPerRow": 554.7115200000002,
-      "proxyEnergyPerCorrect": 978.9026823529414
+      "totalLoadUnits": 10773.505999999998,
+      "totalProxyEnergy": 13311.496,
+      "proxyEnergyPerRow": 443.7165333333333,
+      "proxyEnergyPerCorrect": 831.9685
     }
   ]
 }

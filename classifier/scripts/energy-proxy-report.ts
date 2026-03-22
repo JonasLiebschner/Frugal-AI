@@ -203,6 +203,8 @@ function buildDefaultConfig(report: ComparisonReport): EnergyConfig {
       "middleware:simple": 1,
       "middleware:onnx": 1.2,
       "middleware:llm": 1.1,
+      "middleware:vs": 1.1,
+      "middleware:svc": 1.1,
     },
   };
 }

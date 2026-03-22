@@ -1,7 +1,9 @@
 import { isAbsolute, resolve } from "node:path";
 import { createHash } from "node:crypto";
+import { mkdir } from "node:fs/promises";
 
 interface EvalRow {
+  rowIndex: number;
   prompt: string;
   trueLabel: string;
   scattering: number | null;
@@ -119,6 +121,14 @@ interface ComparisonReport {
 
 interface CachedResultEnvelope {
   savedAt: string;
+  datasetPath: string;
+  rowIndex: number;
+  trueLabel: string;
+  scattering: number | null;
+  subject: string | null;
+  promptHash: string;
+  mode: "direct" | "middleware-routing";
+  requestedModel: string;
   result: ModelResult;
 }
 
@@ -136,6 +146,15 @@ class RetryableHttpError extends Error {
   }
 }
 
+class HttpResponseError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 class MissingAnswerError extends Error {}
 
 const DEFAULT_ENDPOINT = "https://llmproxy.frugalai.haupt.dev/v1/chat/completions";
@@ -143,14 +162,18 @@ const DEFAULT_DATASET = resolve(process.cwd(), "../evaluation_data/evaluation_da
 const DEFAULT_LIMIT = 30;
 const DEFAULT_SMALL_MODEL = "gpt-oss-120b-working";
 const DEFAULT_LARGE_MODEL = "minimax-m2.5-229b";
-const DEFAULT_MIDDLEWARES = ["middleware:simple", "middleware:onnx", "middleware:llm"];
+const DEFAULT_MIDDLEWARES = [
+  "middleware:simple",
+  "middleware:onnx",
+  "middleware:llm",
+];
 const DEFAULT_BASELINE_MAX_TOKENS = 10000;
 const DEFAULT_MIDDLEWARE_INITIAL_TOKENS = 32;
 const DEFAULT_MIDDLEWARE_MAX_TOKENS = 32;
 const DEFAULT_TIMEOUT_MS = 300000;
 const DEFAULT_MAX_RETRIES = 10;
 const DEFAULT_RETRY_DELAY_MS = 10000;
-const CACHE_VERSION = 3;
+const CACHE_VERSION = 5;
 const ANSWER_ONLY_SYSTEM_PROMPT =
   "You are solving a multiple-choice question. Reply with exactly one uppercase letter: A, B, C, or D. No explanation.";
 
@@ -320,7 +343,8 @@ async function loadDataset(path: string, limit: number): Promise<EvalRow[]> {
   const scatteringIndex = header.indexOf("scattering");
   const subjectIndex = header.indexOf("mmlu_subject");
 
-  return rows.slice(1, limit + 1).map((row) => ({
+  return rows.slice(1, limit + 1).map((row, index) => ({
+    rowIndex: index + 1,
     prompt: row[promptIndex] ?? "",
     trueLabel: (row[trueLabelIndex] ?? "").trim().toUpperCase(),
     scattering:
@@ -372,6 +396,8 @@ function hashPrompt(prompt: string): string {
 }
 
 function buildCacheKey(
+  datasetPath: string,
+  rowIndex: number,
   endpoint: string,
   model: string,
   prompt: string,
@@ -379,7 +405,7 @@ function buildCacheKey(
   maxTokens: number,
   mode: "direct" | "middleware-routing",
 ): string {
-  return `${CACHE_VERSION}::${mode}::${endpoint}::${model}::${initialTokens}::${maxTokens}::${hashPrompt(prompt)}`;
+  return `${CACHE_VERSION}::${mode}::${datasetPath}::${rowIndex}::${endpoint}::${model}::${initialTokens}::${maxTokens}::${hashPrompt(prompt)}`;
 }
 
 function normalizeModelId(model: string): string {
@@ -454,7 +480,7 @@ async function fetchCompletion(
     if (response.status === 429 || response.status === 503) {
       throw new RetryableHttpError(response.status, message);
     }
-    throw new Error(message);
+    throw new HttpResponseError(response.status, message);
   }
 
   return {
@@ -540,6 +566,7 @@ async function completeWithRetries(
 
 async function evaluateModel(
   rows: EvalRow[],
+  datasetPath: string,
   endpoint: string,
   model: string,
   kind: "direct" | "middleware",
@@ -555,7 +582,7 @@ async function evaluateModel(
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]!;
-    const cacheKey = buildCacheKey(endpoint, model, row.prompt, initialTokens, maxTokens, "direct");
+    const cacheKey = buildCacheKey(datasetPath, row.rowIndex, endpoint, model, row.prompt, initialTokens, maxTokens, "direct");
     const cached = cache.entries[cacheKey];
     if (cached) {
       results.push(cached.result);
@@ -627,6 +654,14 @@ async function evaluateModel(
     results.push(result);
     cache.entries[cacheKey] = {
       savedAt: new Date().toISOString(),
+      datasetPath,
+      rowIndex: row.rowIndex,
+      trueLabel: row.trueLabel,
+      scattering: row.scattering,
+      subject: row.subject,
+      promptHash: hashPrompt(row.prompt),
+      mode: "direct",
+      requestedModel: model,
       result,
     };
     await saveCache(cachePath, cache);
@@ -639,6 +674,7 @@ async function evaluateModel(
 
 async function evaluateMiddlewareByRouting(
   rows: EvalRow[],
+  datasetPath: string,
   endpoint: string,
   middleware: string,
   initialTokens: number,
@@ -653,10 +689,11 @@ async function evaluateMiddlewareByRouting(
   directResults: Record<string, ModelResult[]>,
 ): Promise<ModelResult[]> {
   const results: ModelResult[] = [];
+  let middlewareUnavailableReason: string | null = null;
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]!;
-    const cacheKey = buildCacheKey(endpoint, middleware, row.prompt, initialTokens, maxTokens, "middleware-routing");
+    const cacheKey = buildCacheKey(datasetPath, row.rowIndex, endpoint, middleware, row.prompt, initialTokens, maxTokens, "middleware-routing");
     const cached = cache.entries[cacheKey];
     if (cached) {
       results.push(cached.result);
@@ -666,55 +703,150 @@ async function evaluateMiddlewareByRouting(
       continue;
     }
 
-    const completion = await completeWithRetries(
-      endpoint,
-      middleware,
-      row.prompt,
-      timeoutMs,
-      initialTokens,
-      maxTokens,
-      maxRetries,
-      retryDelayMs,
-    );
+    if (middlewareUnavailableReason !== null) {
+      const result: ModelResult = {
+        name: middleware,
+        kind: "middleware",
+        answer: null,
+        correct: false,
+        truncated: false,
+        proxyRequestId: null,
+        routedModel: middleware,
+        finishReason: "middleware_unavailable",
+        thinkingObserved: false,
+        promptTokens: null,
+        completionTokens: null,
+        reasoningTokens: null,
+        answerTokens: null,
+        totalTokens: null,
+        durationMs: 0,
+        providerLatencyMs: null,
+        queuedMs: null,
+        generationMs: null,
+        timeToFirstTokenMs: null,
+        metricsExact: null,
+      };
+      results.push(result);
+      cache.entries[cacheKey] = {
+        savedAt: new Date().toISOString(),
+        datasetPath,
+        rowIndex: row.rowIndex,
+        trueLabel: row.trueLabel,
+        scattering: row.scattering,
+        subject: row.subject,
+        promptHash: hashPrompt(row.prompt),
+        mode: "middleware-routing",
+        requestedModel: middleware,
+        result,
+      };
+      await saveCache(cachePath, cache);
+      console.warn(`[${middleware}] ${i + 1}/${rows.length} recorded as unavailable: ${middlewareUnavailableReason}`);
+      continue;
+    }
 
-    const routedModel = completion.body.model ?? middleware;
-    const selectedBaselineModel = resolveBaselineModelForRoute(routedModel, smallModel, largeModel);
-    const selectedResult = selectedBaselineModel ? directResults[selectedBaselineModel]?.[i] ?? null : null;
-    const choice = completion.body.choices?.[0];
-    const reasoning = getReasoning(choice);
+    const startedAt = Date.now();
+    let result: ModelResult;
 
-    const result: ModelResult = {
-      name: middleware,
-      kind: "middleware",
-      answer: selectedResult?.answer ?? null,
-      correct: selectedResult?.correct ?? false,
-      truncated: selectedResult?.truncated ?? false,
-      proxyRequestId: completion.requestId,
-      routedModel,
-      finishReason: choice?.finish_reason ?? null,
-      thinkingObserved: reasoning !== null,
-      promptTokens: selectedResult?.promptTokens ?? null,
-      completionTokens: selectedResult?.completionTokens ?? null,
-      reasoningTokens: selectedResult?.reasoningTokens ?? null,
-      answerTokens: selectedResult?.answerTokens ?? null,
-      totalTokens: selectedResult?.totalTokens ?? null,
-      durationMs: selectedResult?.durationMs ?? 0,
-      providerLatencyMs: selectedResult?.providerLatencyMs ?? null,
-      queuedMs: selectedResult?.queuedMs ?? null,
-      generationMs: selectedResult?.generationMs ?? null,
-      timeToFirstTokenMs: selectedResult?.timeToFirstTokenMs ?? null,
-      metricsExact: selectedResult?.metricsExact ?? null,
-    };
+    try {
+      const completion = await completeWithRetries(
+        endpoint,
+        middleware,
+        row.prompt,
+        timeoutMs,
+        initialTokens,
+        maxTokens,
+        maxRetries,
+        retryDelayMs,
+      );
+
+      const routedModel = completion.body.model ?? middleware;
+      const selectedBaselineModel = resolveBaselineModelForRoute(routedModel, smallModel, largeModel);
+      const selectedResult = selectedBaselineModel ? directResults[selectedBaselineModel]?.[i] ?? null : null;
+      const choice = completion.body.choices?.[0];
+      const reasoning = getReasoning(choice);
+
+      result = {
+        name: middleware,
+        kind: "middleware",
+        answer: selectedResult?.answer ?? null,
+        correct: selectedResult?.correct ?? false,
+        truncated: selectedResult?.truncated ?? false,
+        proxyRequestId: completion.requestId,
+        routedModel,
+        finishReason: choice?.finish_reason ?? null,
+        thinkingObserved: reasoning !== null,
+        promptTokens: selectedResult?.promptTokens ?? null,
+        completionTokens: selectedResult?.completionTokens ?? null,
+        reasoningTokens: selectedResult?.reasoningTokens ?? null,
+        answerTokens: selectedResult?.answerTokens ?? null,
+        totalTokens: selectedResult?.totalTokens ?? null,
+        durationMs: selectedResult?.durationMs ?? 0,
+        providerLatencyMs: selectedResult?.providerLatencyMs ?? null,
+        queuedMs: selectedResult?.queuedMs ?? null,
+        generationMs: selectedResult?.generationMs ?? null,
+        timeToFirstTokenMs: selectedResult?.timeToFirstTokenMs ?? null,
+        metricsExact: selectedResult?.metricsExact ?? null,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const durationMs = Date.now() - startedAt;
+      const middlewareFailure =
+        (error instanceof HttpResponseError && (error.status === 404 || error.status >= 500 || message.toLowerCase().includes("not found"))) ||
+        (error instanceof RetryableHttpError && error.status >= 500);
+
+      if (!middlewareFailure) {
+        throw error;
+      }
+
+      if (
+        (error instanceof HttpResponseError && error.status >= 500) ||
+        (error instanceof RetryableHttpError && error.status >= 500)
+      ) {
+        middlewareUnavailableReason = message;
+      }
+
+      result = {
+        name: middleware,
+        kind: "middleware",
+        answer: null,
+        correct: false,
+        truncated: false,
+        proxyRequestId: null,
+        routedModel: middleware,
+        finishReason: `http_${error.status}`,
+        thinkingObserved: false,
+        promptTokens: null,
+        completionTokens: null,
+        reasoningTokens: null,
+        answerTokens: null,
+        totalTokens: null,
+        durationMs,
+        providerLatencyMs: null,
+        queuedMs: null,
+        generationMs: null,
+        timeToFirstTokenMs: null,
+        metricsExact: null,
+      };
+      console.warn(`[${middleware}] ${i + 1}/${rows.length} routing failure recorded: ${message}`);
+    }
 
     results.push(result);
     cache.entries[cacheKey] = {
       savedAt: new Date().toISOString(),
+      datasetPath,
+      rowIndex: row.rowIndex,
+      trueLabel: row.trueLabel,
+      scattering: row.scattering,
+      subject: row.subject,
+      promptHash: hashPrompt(row.prompt),
+      mode: "middleware-routing",
+      requestedModel: middleware,
       result,
     };
     await saveCache(cachePath, cache);
     const status = result.correct ? "ok" : result.truncated ? "truncated" : "miss";
     console.log(
-      `[${middleware}] ${i + 1}/${rows.length} ${status} expected=${row.trueLabel} got=${result.answer ?? "?"} routed=${routedModel}`,
+      `[${middleware}] ${i + 1}/${rows.length} ${status} expected=${row.trueLabel} got=${result.answer ?? "?"} routed=${result.routedModel}`,
     );
   }
 
@@ -1048,6 +1180,7 @@ function renderMarkdown(report: ComparisonReport): string {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  await mkdir(args.outputDir, { recursive: true });
   const rows = await loadDataset(args.dataset, args.limit);
   const cachePath = resolve(args.outputDir, "highscattered_first30_result_cache.json");
   const cache = await loadCache(cachePath);
@@ -1063,6 +1196,7 @@ async function main() {
   for (const model of directModels) {
     const results = await evaluateModel(
       rows,
+      args.dataset,
       args.endpoint,
       model,
       "direct",
@@ -1085,6 +1219,7 @@ async function main() {
   for (const middleware of DEFAULT_MIDDLEWARES) {
     const results = await evaluateMiddlewareByRouting(
       rows,
+      args.dataset,
       args.endpoint,
       middleware,
       args.middlewareInitialTokens,
