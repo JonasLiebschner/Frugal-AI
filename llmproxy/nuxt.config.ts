@@ -1,0 +1,20 @@
+export default defineNuxtConfig({
+  extends: [
+    "./apps/plugins",
+    "./apps/json-schema",
+    "./apps/config",
+    "./apps/otel",
+    "./apps/ajv",
+    "./apps/code-editor",
+    "./apps/sse",
+    "./apps/tool-registry",
+    "./apps/ai-request-middleware",
+    "./apps/ai-client",
+    "./apps/ai-proxy",
+    "./apps/ai-server",
+    "./apps/ai-agents",
+    "./apps/mcp-client",
+    "./apps/mcp-server",
+    "./apps/llmproxy",
+  ],
+});

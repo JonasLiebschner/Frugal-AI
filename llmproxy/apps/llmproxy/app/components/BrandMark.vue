@@ -1,0 +1,88 @@
+<template>
+  <svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="llmproxy-mark-shell" x1="38" y1="28" x2="214" y2="228" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#1F2937" />
+        <stop offset="0.52" stop-color="#111827" />
+        <stop offset="1" stop-color="#0B1220" />
+      </linearGradient>
+      <linearGradient id="llmproxy-mark-stroke" x1="30" y1="38" x2="226" y2="220" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#FBBF24" />
+        <stop offset="0.58" stop-color="#F59E0B" />
+        <stop offset="1" stop-color="#D97706" />
+      </linearGradient>
+      <linearGradient id="llmproxy-mark-lane-top" x1="58" y1="92" x2="186" y2="92" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#FDE68A" />
+        <stop offset="0.55" stop-color="#FBBF24" />
+        <stop offset="1" stop-color="#F59E0B" />
+      </linearGradient>
+      <linearGradient id="llmproxy-mark-lane-bottom" x1="58" y1="164" x2="186" y2="164" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#FCD34D" />
+        <stop offset="0.58" stop-color="#F59E0B" />
+        <stop offset="1" stop-color="#EA580C" />
+      </linearGradient>
+      <linearGradient id="llmproxy-mark-core" x1="106" y1="70" x2="150" y2="186" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#FFF7ED" />
+        <stop offset="0.38" stop-color="#FDE68A" />
+        <stop offset="1" stop-color="#F59E0B" />
+      </linearGradient>
+      <radialGradient id="llmproxy-mark-glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(128 128) rotate(90) scale(92)">
+        <stop stop-color="#F59E0B" stop-opacity="0.24" />
+        <stop offset="1" stop-color="#F59E0B" stop-opacity="0" />
+      </radialGradient>
+    </defs>
+
+    <rect x="20" y="20" width="216" height="216" rx="56" fill="url(#llmproxy-mark-shell)" />
+    <rect x="20" y="20" width="216" height="216" rx="56" stroke="url(#llmproxy-mark-stroke)" stroke-width="8" />
+    <rect x="34" y="34" width="188" height="188" rx="42" stroke="#FFF7ED" stroke-opacity="0.18" stroke-width="2" />
+
+    <g opacity="0.16" stroke="#FFF7ED" stroke-width="2">
+      <path d="M58 72H198" />
+      <path d="M58 128H198" />
+      <path d="M58 184H198" />
+    </g>
+
+    <circle cx="128" cy="128" r="82" fill="url(#llmproxy-mark-glow)" />
+
+    <path
+      d="M72 92H96C105 92 111 94 117 100L128 111"
+      stroke="url(#llmproxy-mark-lane-top)"
+      stroke-width="12"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M128 111L139 100C145 94 151 92 160 92H184"
+      stroke="url(#llmproxy-mark-lane-top)"
+      stroke-width="12"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M72 164H96C105 164 111 162 117 156L128 145"
+      stroke="url(#llmproxy-mark-lane-bottom)"
+      stroke-width="12"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M128 145L139 156C145 162 151 164 160 164H184"
+      stroke="url(#llmproxy-mark-lane-bottom)"
+      stroke-width="12"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <circle cx="62" cy="92" r="10" fill="#FFF7ED" stroke="#FBBF24" stroke-width="5" />
+    <circle cx="62" cy="164" r="10" fill="#FFF7ED" stroke="#F59E0B" stroke-width="5" />
+    <circle cx="194" cy="92" r="10" fill="#FFF7ED" stroke="#FBBF24" stroke-width="5" />
+    <circle cx="194" cy="164" r="10" fill="#FFF7ED" stroke="#F59E0B" stroke-width="5" />
+
+    <rect x="106" y="70" width="44" height="116" rx="22" fill="url(#llmproxy-mark-core)" stroke="#FFF7ED" stroke-width="4" />
+    <rect x="114" y="92" width="28" height="12" rx="6" fill="#111827" opacity="0.88" />
+    <rect x="114" y="122" width="28" height="12" rx="6" fill="#111827" opacity="0.88" />
+    <rect x="114" y="152" width="28" height="12" rx="6" fill="#111827" opacity="0.88" />
+
+    <path d="M128 100V156" stroke="#FFF7ED" stroke-opacity="0.32" stroke-width="2" stroke-linecap="round" />
+  </svg>
+</template>

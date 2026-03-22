@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "middlewares": {
+      "type": "array",
+      "title": "Routing middlewares",
+      "description": "External HTTP middlewares consulted before ai-client selects a routed model.",
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/httpRoutingMiddleware"
+      }
+    }
+  },
+  "$defs": {
+    "httpRoutingMiddleware": {
+      "type": "object",
+      "title": "HTTP routing middleware",
+      "required": ["id", "url"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Middleware id",
+          "description": "Stable unique identifier for this routing middleware."
+        },
+        "url": {
+          "type": "string",
+          "title": "Middleware URL",
+          "description": "HTTP endpoint that classifies a parsed query and returns whether a small or large model should be used.",
+          "format": "uri"
+        },
+        "models": {
+          "type": "object",
+          "title": "Classification model mapping",
+          "description": "Maps middleware classification results to concrete routed model ids.",
+          "required": ["small", "large"],
+          "properties": {
+            "small": {
+              "type": "string",
+              "title": "Small model",
+              "description": "Concrete model id to use when the middleware returns \"small\".",
+              "minLength": 1,
+              "examples": ["gpt-4.1-mini"]
+            },
+            "large": {
+              "type": "string",
+              "title": "Large model",
+              "description": "Concrete model id to use when the middleware returns \"large\".",
+              "minLength": 1,
+              "examples": ["gpt-5"]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

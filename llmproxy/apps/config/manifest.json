@@ -1,0 +1,8 @@
+{
+  "name": "config",
+  "version": "1.0.0",
+  "type": "builtin",
+  "dependencies": {
+    "json-schema": "^1.0.0"
+  }
+}

@@ -1,0 +1,353 @@
+{
+  "type": "object",
+  "description": "Arguments for one non-streaming chat request to exactly one target model. Each chat_with_model tool call must contain exactly one JSON object for exactly one model. Never concatenate multiple JSON objects, never send an array of request objects, and never bundle multiple models into one payload. If you need multiple models, emit multiple separate chat_with_model tool calls as multiple separate tool_calls entries, one entry per model.",
+  "properties": {
+    "model": {
+      "type": "string",
+      "description": "Exactly one target model id for this call. Do not pass multiple model ids here, do not pass an array, and do not concatenate multiple request objects. If you want multiple models, emit multiple separate chat_with_model tool calls as multiple tool_calls entries, one per model."
+    },
+    "messages": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered chat history for this one request to this one target model. Reuse the same messages in separate tool calls when querying several models, instead of combining several request payloads into one arguments object. When comparing several models, create one tool_calls entry per target model and reuse the same messages array in each entry.",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["system"] },
+              "content": {
+                "oneOf": [
+                  { "type": "string", "description": "Simple string content." },
+                  {
+                    "type": "array",
+                    "minItems": 1,
+                    "description": "Ordered multimodal content parts. Each part must be either text or image_url.",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "description": "One text content part.",
+                          "properties": {
+                            "type": { "type": "string", "enum": ["text"] },
+                            "text": { "type": "string", "description": "Text for this content part." }
+                          },
+                          "required": ["type", "text"],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "description": "One image content part.",
+                          "properties": {
+                            "type": { "type": "string", "enum": ["image_url"] },
+                            "image_url": {
+                              "type": "object",
+                              "description": "Image URL payload in the normal OpenAI chat-completions shape.",
+                              "properties": {
+                                "url": { "type": "string", "description": "Image URL or data URL." },
+                                "detail": { "type": "string", "enum": ["auto", "low", "high"], "description": "Optional OpenAI-compatible image detail hint." }
+                              },
+                              "required": ["url"],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": ["type", "image_url"],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "name": { "type": "string", "description": "Optional participant name." }
+            },
+            "required": ["role", "content"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["developer"] },
+              "content": {
+                "oneOf": [
+                  { "type": "string", "description": "Simple string content." },
+                  {
+                    "type": "array",
+                    "minItems": 1,
+                    "description": "Ordered multimodal content parts. Each part must be either text or image_url.",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "description": "One text content part.",
+                          "properties": {
+                            "type": { "type": "string", "enum": ["text"] },
+                            "text": { "type": "string", "description": "Text for this content part." }
+                          },
+                          "required": ["type", "text"],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "description": "One image content part.",
+                          "properties": {
+                            "type": { "type": "string", "enum": ["image_url"] },
+                            "image_url": {
+                              "type": "object",
+                              "description": "Image URL payload in the normal OpenAI chat-completions shape.",
+                              "properties": {
+                                "url": { "type": "string", "description": "Image URL or data URL." },
+                                "detail": { "type": "string", "enum": ["auto", "low", "high"], "description": "Optional OpenAI-compatible image detail hint." }
+                              },
+                              "required": ["url"],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": ["type", "image_url"],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "name": { "type": "string", "description": "Optional participant name." }
+            },
+            "required": ["role", "content"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["user"] },
+              "content": {
+                "oneOf": [
+                  { "type": "string", "description": "Simple string content." },
+                  {
+                    "type": "array",
+                    "minItems": 1,
+                    "description": "Ordered multimodal content parts. Each part must be either text or image_url.",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "description": "One text content part.",
+                          "properties": {
+                            "type": { "type": "string", "enum": ["text"] },
+                            "text": { "type": "string", "description": "Text for this content part." }
+                          },
+                          "required": ["type", "text"],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "description": "One image content part.",
+                          "properties": {
+                            "type": { "type": "string", "enum": ["image_url"] },
+                            "image_url": {
+                              "type": "object",
+                              "description": "Image URL payload in the normal OpenAI chat-completions shape.",
+                              "properties": {
+                                "url": { "type": "string", "description": "Image URL or data URL." },
+                                "detail": { "type": "string", "enum": ["auto", "low", "high"], "description": "Optional OpenAI-compatible image detail hint." }
+                              },
+                              "required": ["url"],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": ["type", "image_url"],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "name": { "type": "string", "description": "Optional participant name." }
+            },
+            "required": ["role", "content"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["assistant"] },
+              "content": {
+                "oneOf": [
+                  { "type": "string", "description": "Assistant text content." },
+                  { "type": "null", "description": "Use null when the assistant turn only carries tool_calls." },
+                  {
+                    "type": "array",
+                    "minItems": 1,
+                    "description": "Ordered multimodal content parts. Each part must be either text or image_url.",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "description": "One text content part.",
+                          "properties": {
+                            "type": { "type": "string", "enum": ["text"] },
+                            "text": { "type": "string", "description": "Text for this content part." }
+                          },
+                          "required": ["type", "text"],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "description": "One image content part.",
+                          "properties": {
+                            "type": { "type": "string", "enum": ["image_url"] },
+                            "image_url": {
+                              "type": "object",
+                              "description": "Image URL payload in the normal OpenAI chat-completions shape.",
+                              "properties": {
+                                "url": { "type": "string", "description": "Image URL or data URL." },
+                                "detail": { "type": "string", "enum": ["auto", "low", "high"], "description": "Optional OpenAI-compatible image detail hint." }
+                              },
+                              "required": ["url"],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": ["type", "image_url"],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "name": { "type": "string", "description": "Optional participant name." },
+              "refusal": {
+                "oneOf": [
+                  { "type": "string", "description": "Optional refusal text." },
+                  { "type": "null" }
+                ]
+              },
+              "tool_calls": {
+                "type": "array",
+                "minItems": 1,
+                "description": "Assistant tool calls emitted in this turn.",
+                "items": {
+                  "type": "object",
+                  "description": "One assistant tool call in the normal OpenAI-compatible chat shape.",
+                  "properties": {
+                    "id": { "type": "string", "description": "Unique tool call ID." },
+                    "type": { "type": "string", "enum": ["function"] },
+                    "function": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string", "description": "Tool function name." },
+                        "arguments": { "type": "string", "description": "JSON-encoded function arguments string." }
+                      },
+                      "required": ["name", "arguments"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["id", "type", "function"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["role"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["tool"] },
+              "content": { "type": "string", "description": "Tool result payload, usually JSON serialized as a string." },
+              "tool_call_id": { "type": "string", "description": "ID of the assistant tool call this tool result answers." },
+              "name": { "type": "string", "description": "Optional tool name." }
+            },
+            "required": ["role", "content", "tool_call_id"],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "temperature": { "type": "number" },
+    "top_p": { "type": "number" },
+    "top_k": { "type": "integer" },
+    "min_p": { "type": "number" },
+    "repeat_penalty": { "type": "number" },
+    "seed": { "type": "integer" },
+    "stop": {
+      "oneOf": [
+        { "type": "string", "description": "One stop sequence." },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Multiple stop sequences."
+        }
+      ]
+    },
+    "max_tokens": { "type": "integer" },
+    "max_completion_tokens": { "type": "integer" },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "One function tool definition in the normal OpenAI-compatible chat-completions shape.",
+        "properties": {
+          "type": { "type": "string", "enum": ["function"] },
+          "function": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string", "description": "Function name exposed to the model." },
+              "description": { "type": "string", "description": "Optional human-readable function description." },
+              "parameters": {
+                "type": "object",
+                "description": "JSON Schema object for the function arguments.",
+                "additionalProperties": true
+              }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["type", "function"],
+        "additionalProperties": false
+      }
+    },
+    "tool_choice": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["auto", "none", "required"],
+          "description": "Standard OpenAI-compatible tool_choice mode."
+        },
+        {
+          "type": "object",
+          "description": "Force one specific function tool.",
+          "properties": {
+            "type": { "type": "string", "enum": ["function"] },
+            "function": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "description": "Function name to force." }
+              },
+              "required": ["name"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["type", "function"],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "required": ["model", "messages"],
+  "examples": [
+    {
+      "model": "qwen3.5-35b-a3b",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Say hello briefly and clearly reveal your own model identity."
+        }
+      ]
+    }
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,10 @@
+{
+  "name": "code-editor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "dependencies": {
+    "ace-code": "^1.43.4"
+  }
+}

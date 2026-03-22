@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "description": "ID of the request to inspect."
+    }
+  },
+  "required": ["request_id"],
+  "additionalProperties": false
+}

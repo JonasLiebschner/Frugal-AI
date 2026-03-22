@@ -1,0 +1,5 @@
+{
+  "name": "llmproxy-shared",
+  "private": true,
+  "type": "module"
+}

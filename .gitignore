@@ -600,3 +600,8 @@ fabric.properties
 uv.lock
 
 !classifier/**
+
+llmproxy/node_modules
+llmproxy/.data
+llmproxy/.nuxt
+llmproxy/.idea

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "otel app config",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enable OTLP trace export for OpenTelemetry request spans."
+    },
+    "endpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "Explicit OTLP/HTTP traces endpoint. When omitted, standard OTEL_EXPORTER_OTLP_* environment variables and defaults apply."
+    },
+    "headers": {
+      "type": "object",
+      "writeOnly": true,
+      "description": "Optional OTLP exporter headers, for example authorization headers.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 10000,
+      "description": "Maximum OTLP trace export timeout per batch in milliseconds."
+    },
+    "serviceName": {
+      "type": "string",
+      "default": "llmproxy",
+      "description": "OpenTelemetry resource service.name used for exported records."
+    },
+    "serviceNamespace": {
+      "type": "string",
+      "description": "Optional OpenTelemetry resource service.namespace."
+    },
+    "deploymentEnvironment": {
+      "type": "string",
+      "description": "Optional OpenTelemetry resource deployment.environment.name."
+    },
+    "captureMessageContent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Include gen_ai.input.messages and gen_ai.output.messages. Disabled by default because these fields can contain sensitive prompt or response content."
+    },
+    "captureToolContent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Include GenAI tool definitions and tool call payload details. Disabled by default because these fields can contain sensitive data and can be large."
+    }
+  },
+  "additionalProperties": false
+}

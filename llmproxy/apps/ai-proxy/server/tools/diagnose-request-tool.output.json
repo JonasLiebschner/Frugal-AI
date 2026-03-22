@@ -1,0 +1,78 @@
+{
+  "type": "object",
+  "description": "Structured diagnostic report for one AI proxy request.",
+  "properties": {
+    "requestId": {
+      "type": "string"
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "live": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array"
+    },
+    "recommendedPrompts": {
+      "type": "array"
+    },
+    "facts": {
+      "type": "array"
+    },
+    "signals": {
+      "type": "object",
+      "properties": {
+        "maxTokensReached": {
+          "type": "boolean"
+        },
+        "repetitionDetected": {
+          "type": "boolean"
+        },
+        "malformedToolCall": {
+          "type": "boolean"
+        },
+        "toolResultError": {
+          "type": "boolean"
+        },
+        "interruptedResponse": {
+          "type": "boolean"
+        },
+        "requestRejected": {
+          "type": "boolean"
+        },
+        "upstreamError": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "maxTokensReached",
+        "repetitionDetected",
+        "malformedToolCall",
+        "toolResultError",
+        "interruptedResponse",
+        "requestRejected",
+        "upstreamError"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "requestId",
+    "generatedAt",
+    "live",
+    "status",
+    "summary",
+    "findings",
+    "recommendedPrompts",
+    "facts",
+    "signals"
+  ],
+  "additionalProperties": true
+}

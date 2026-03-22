@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "description": "OpenAI-compatible non-streaming chat completion payload returned by the AI proxy.",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "object": {
+      "type": "string",
+      "const": "chat.completion"
+    },
+    "created": {
+      "type": "integer"
+    },
+    "model": {
+      "type": "string"
+    },
+    "choices": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "usage": {
+      "type": "object"
+    }
+  },
+  "required": ["object", "model", "choices"],
+  "additionalProperties": true
+}

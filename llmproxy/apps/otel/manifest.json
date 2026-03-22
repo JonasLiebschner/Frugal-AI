@@ -1,0 +1,8 @@
+{
+  "name": "otel",
+  "version": "1.0.0",
+  "type": "builtin",
+  "dependencies": {
+    "config": "^1.0.0"
+  }
+}

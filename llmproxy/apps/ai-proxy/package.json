@@ -1,0 +1,12 @@
+{
+  "name": "ai-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "dependencies": {
+    "ai-client": "1.0.0",
+    "tool-registry": "1.0.0",
+    "sse": "1.0.0"
+  }
+}

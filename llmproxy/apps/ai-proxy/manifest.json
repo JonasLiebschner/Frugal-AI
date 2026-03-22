@@ -1,0 +1,18 @@
+{
+  "name": "ai-proxy",
+  "version": "1.0.0",
+  "type": "builtin",
+  "dependencies": {
+    "ai-client": "^1.0.0"
+  },
+  "recommended": {
+    "ai-agents": "^1.0.0",
+    "tool-registry": "^1.0.0",
+    "sse": "^1.0.0"
+  },
+  "serverPluginsFor": {
+    "ai-agents": "^1.0.0",
+    "tool-registry": "^1.0.0",
+    "sse": "^1.0.0"
+  }
+}

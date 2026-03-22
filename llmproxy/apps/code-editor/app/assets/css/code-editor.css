@@ -1,0 +1,39 @@
+@layer components {
+  .inline-code-viewer-host {
+    width: 100%;
+    height: 320px;
+    min-height: 320px;
+    border: 0;
+    border-radius: 1rem;
+    background: var(--inline-code-viewer-background, linear-gradient(180deg, rgba(255, 251, 247, 0.96), rgba(255, 245, 238, 0.92)));
+    overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  }
+
+  .inline-code-viewer-host.ace_editor,
+  .inline-code-viewer-host .ace_editor,
+  .inline-code-viewer-host .ace_scroller,
+  .inline-code-viewer-host .ace_content {
+    font-family: "IBM Plex Mono", "Consolas", monospace;
+  }
+
+  .inline-code-viewer-host.ace_editor .ace_gutter,
+  .inline-code-viewer-host .ace_gutter,
+  .inline-code-viewer-host.ace_editor .ace_gutter-layer,
+  .inline-code-viewer-host .ace_gutter-layer {
+    background: var(--inline-code-viewer-gutter-bg, rgba(250, 237, 228, 0.96));
+    border-right: 0;
+  }
+
+  .inline-code-viewer-host.ace_editor .ace_gutter-cell,
+  .inline-code-viewer-host .ace_gutter-cell,
+  .inline-code-viewer-host.ace_editor .ace_gutter-active-line,
+  .inline-code-viewer-host .ace_gutter-active-line {
+    background: transparent;
+  }
+
+  .inline-code-viewer-host.ace_editor .ace_fold-widget,
+  .inline-code-viewer-host .ace_fold-widget {
+    cursor: pointer;
+  }
+}

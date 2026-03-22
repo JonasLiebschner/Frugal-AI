@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "description": "ID of the request to diagnose."
+    }
+  },
+  "required": ["request_id"],
+  "additionalProperties": false
+}

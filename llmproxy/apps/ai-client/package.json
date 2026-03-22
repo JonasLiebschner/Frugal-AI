@@ -1,0 +1,10 @@
+{
+  "name": "ai-client",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "dependencies": {
+    "config": "1.0.0"
+  }
+}

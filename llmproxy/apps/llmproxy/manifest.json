@@ -1,0 +1,19 @@
+{
+  "name": "llmproxy",
+  "version": "0.1.0",
+  "type": "builtin",
+  "dependencies": {
+    "ai-client": "^1.0.0",
+    "ai-proxy": "^1.0.0",
+    "ai-server": "^1.0.0",
+    "code-editor": "^1.0.0"
+  },
+  "recommended": {
+    "sse": "^1.0.0",
+    "mcp-server": "^1.0.0",
+    "ai-agents": "^1.0.0"
+  },
+  "serverPluginsFor": {
+    "sse": "^1.0.0"
+  }
+}

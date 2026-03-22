@@ -1,0 +1,11 @@
+{
+  "name": "tool-registry",
+  "version": "1.0.0",
+  "type": "builtin",
+  "dependencies": {
+    "ajv": "^1.0.0"
+  },
+  "recommended": {
+    "mcp-server": "^1.0.0"
+  }
+}

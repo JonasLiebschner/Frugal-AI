@@ -1,0 +1,5 @@
+{
+  "type": "object",
+  "description": "Stored detail payload for one AI proxy request, including request, response, and retained metadata.",
+  "additionalProperties": true
+}

@@ -1,0 +1,16 @@
+{
+  "name": "mcp-server",
+  "version": "1.0.0",
+  "type": "builtin",
+  "dependencies": {
+    "ajv": "^1.0.0"
+  },
+  "recommended": {
+    "tool-registry": "^1.0.0",
+    "ai-agents": "^1.0.0"
+  },
+  "serverPluginsFor": {
+    "tool-registry": "^1.0.0",
+    "ai-agents": "^1.0.0"
+  }
+}

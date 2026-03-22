@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mcp-client config",
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "headerMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "transport": {
+      "type": "string",
+      "enum": ["streamable-http"],
+      "default": "streamable-http"
+    },
+    "server": {
+      "type": "object",
+      "required": ["id", "title", "endpoint"],
+      "properties": {
+        "id": {
+          "title": "Server id",
+          "description": "Stable unique id used for config updates and remote manifest lookups.",
+          "allOf": [
+            {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          ],
+          "examples": ["remote-docs"]
+        },
+        "title": {
+          "title": "Server title",
+          "description": "Human-readable label shown in the dashboard and diagnostics.",
+          "allOf": [
+            {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          ],
+          "examples": ["Remote Docs"]
+        },
+        "endpoint": {
+          "title": "Endpoint URL",
+          "description": "Full streamable HTTP endpoint of the remote MCP server.",
+          "allOf": [
+            {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          ],
+          "examples": ["https://example.com/mcp"]
+        },
+        "description": {
+          "title": "Description",
+          "description": "Optional explanatory text for operators.",
+          "type": "string",
+          "examples": ["Shared remote documentation tools"]
+        },
+        "transport": {
+          "title": "Transport",
+          "description": "Outbound MCP transport used to connect to the remote server.",
+          "$ref": "#/$defs/transport"
+        },
+        "protocolVersion": {
+          "title": "Protocol version",
+          "description": "Optional MCP protocol version hint sent during initialization.",
+          "type": "string",
+          "examples": ["2025-11-25"]
+        },
+        "headers": {
+          "title": "Headers",
+          "description": "Optional static headers sent on every outbound MCP request.",
+          "$ref": "#/$defs/headerMap",
+          "examples": [
+            {
+              "authorization": "Bearer <token>"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "servers": {
+      "title": "Servers",
+      "description": "Configured remote MCP servers that the outbound client can connect to.",
+      "type": "array",
+      "items": {
+        "title": "Server",
+        "$ref": "#/$defs/server"
+      }
+    }
+  },
+  "additionalProperties": false
+}

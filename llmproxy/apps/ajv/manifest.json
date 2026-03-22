@@ -1,0 +1,8 @@
+{
+  "name": "ajv",
+  "type": "builtin",
+  "dependencies": {
+    "json-schema": "^1.0.0",
+    "plugins": "^1.0.0"
+  }
+}

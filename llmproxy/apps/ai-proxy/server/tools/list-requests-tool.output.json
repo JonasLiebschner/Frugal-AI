@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "description": "List of live or recent AI proxy request summaries.",
+  "properties": {
+    "requests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "live": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "model": {},
+          "backend": {},
+          "finish_reason": {},
+          "has_detail": {
+            "type": "boolean"
+          }
+        },
+        "required": ["id", "time", "live", "status", "method", "path", "has_detail"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": ["requests"],
+  "additionalProperties": false
+}

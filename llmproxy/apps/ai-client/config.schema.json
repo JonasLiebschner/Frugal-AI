@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ai-client config",
+  "$defs": {
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nonEmptyString"
+      }
+    },
+    "headerMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "connection": {
+      "type": "object",
+      "required": ["id", "name", "baseUrl"],
+      "properties": {
+        "id": {
+          "title": "Connection id",
+          "description": "Stable unique id used for config updates, routing metadata, and diagnostics.",
+          "allOf": [
+            {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          ],
+          "examples": ["local-openai"]
+        },
+        "name": {
+          "title": "Connection name",
+          "description": "Human-readable label shown in the dashboard and diagnostic output.",
+          "allOf": [
+            {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          ],
+          "examples": ["Local OpenAI"]
+        },
+        "baseUrl": {
+          "title": "Base URL",
+          "description": "Root URL of the upstream connection. Trailing slashes are trimmed during normalization.",
+          "allOf": [
+            {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          ],
+          "examples": ["http://127.0.0.1:8080"]
+        },
+        "connector": {
+          "title": "Connector",
+          "description": "Protocol adapter used for this backend.",
+          "type": "string",
+          "enum": ["openai", "ollama", "llama.cpp"],
+          "default": "openai"
+        },
+        "enabled": {
+          "title": "Enabled",
+          "description": "Whether the connection is eligible for routing and health monitoring.",
+          "type": "boolean",
+          "default": true
+        },
+        "maxConcurrency": {
+          "title": "Max concurrency",
+          "description": "Maximum number of simultaneous leased requests allowed on this connection.",
+          "allOf": [
+            {
+              "$ref": "#/$defs/positiveInteger"
+            }
+          ],
+          "default": 1
+        },
+        "healthPath": {
+          "title": "Health path",
+          "description": "Optional connector-specific path used for health checks instead of the built-in default.",
+          "allOf": [
+            {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          ],
+          "examples": ["/v1/models"]
+        },
+        "models": {
+          "title": "Models",
+          "description": "Explicitly allowed model ids or wildcard patterns for this connection.",
+          "$ref": "#/$defs/modelList",
+          "examples": [["*", "gpt-*"]]
+        },
+        "headers": {
+          "title": "Headers",
+          "description": "Static string headers sent to the upstream connection for every request.",
+          "$ref": "#/$defs/headerMap",
+          "examples": [
+            {
+              "x-api-key": "..."
+            }
+          ]
+        },
+        "apiKey": {
+          "title": "API key",
+          "description": "Secret upstream credential. This field is write-only and must never be re-exposed by public config reads.",
+          "type": "string",
+          "writeOnly": true
+        },
+        "apiKeyEnv": {
+          "title": "API key env",
+          "description": "Optional environment variable name whose value takes precedence over the stored API key.",
+          "allOf": [
+            {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          ],
+          "examples": ["OPENAI_API_KEY"]
+        },
+        "timeoutMs": {
+          "title": "Request timeout override",
+          "description": "Optional per-connection request timeout override in milliseconds.",
+          "$ref": "#/$defs/positiveInteger"
+        },
+        "monitoringTimeoutMs": {
+          "title": "Monitoring timeout override",
+          "description": "Optional per-connection health check timeout override in milliseconds.",
+          "$ref": "#/$defs/positiveInteger"
+        },
+        "monitoringIntervalMs": {
+          "title": "Monitoring interval override",
+          "description": "Optional per-connection health check interval override in milliseconds.",
+          "$ref": "#/$defs/positiveInteger"
+        },
+        "energyUsageUrl": {
+          "title": "Energy usage URL",
+          "description": "Optional absolute URL of a backend energy endpoint returning current total power draw as JSON with a numeric total_power_w field. Used to estimate per-request energy usage in watt-hours.",
+          "allOf": [
+            {
+              "$ref": "#/$defs/nonEmptyString"
+            }
+          ],
+          "examples": ["http://127.0.0.1:9100/energy"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "requestTimeoutMs": {
+      "title": "Request timeout",
+      "description": "Maximum time in milliseconds that an upstream request may run before the AI client aborts it.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/positiveInteger"
+        }
+      ],
+      "default": 600000
+    },
+    "queueTimeoutMs": {
+      "title": "Queue timeout",
+      "description": "Maximum time in milliseconds that a request may wait for a free connection slot.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/positiveInteger"
+        }
+      ],
+      "default": 30000
+    },
+    "healthCheckIntervalMs": {
+      "title": "Health check interval",
+      "description": "Interval in milliseconds between connection health refreshes when a connection does not override it locally.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/positiveInteger"
+        }
+      ],
+      "default": 10000
+    },
+    "recentRequestLimit": {
+      "title": "Recent request limit",
+      "description": "Maximum number of recent requests retained in memory for diagnostics and the dashboard.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/positiveInteger"
+        }
+      ],
+      "default": 1000
+    },
+    "connections": {
+      "title": "Connections",
+      "description": "Configured upstream AI connections that the AI client may route requests to.",
+      "type": "array",
+      "items": {
+        "title": "Connection",
+        "$ref": "#/$defs/connection"
+      }
+    }
+  },
+  "additionalProperties": false
+}

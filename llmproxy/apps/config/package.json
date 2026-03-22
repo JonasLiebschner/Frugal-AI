@@ -1,0 +1,10 @@
+{
+  "name": "config",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "dependencies": {
+    "json-schema": "1.0.0"
+  }
+}

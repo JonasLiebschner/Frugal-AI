@@ -1,0 +1,7 @@
+{
+  "name": "mcp-client",
+  "version": "1.0.0",
+  "type": "builtin",
+  "dependencies": {},
+  "recommended": {}
+}

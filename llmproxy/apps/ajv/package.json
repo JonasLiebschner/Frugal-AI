@@ -1,0 +1,13 @@
+{
+  "name": "ajv",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "dependencies": {
+    "ajv8": "npm:ajv@^8.18.0",
+    "ajv-formats": "^3.0.1",
+    "json-schema": "1.0.0",
+    "plugins": "1.0.0"
+  }
+}

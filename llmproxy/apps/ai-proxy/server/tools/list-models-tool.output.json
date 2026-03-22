@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "description": "OpenAI-compatible models list payload returned by the AI proxy.",
+  "properties": {
+    "object": {
+      "type": "string",
+      "const": "list"
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string",
+            "const": "model"
+          },
+          "created": {
+            "type": "integer"
+          },
+          "owned_by": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "object", "created", "owned_by"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": ["object", "data"],
+  "additionalProperties": true
+}

@@ -1,0 +1,10 @@
+{
+  "name": "ai-client",
+  "version": "1.0.0",
+  "type": "builtin",
+  "dependencies": {
+    "ai-request-middleware": "^1.0.0",
+    "config": "^1.0.0",
+    "otel": "^1.0.0"
+  }
+}

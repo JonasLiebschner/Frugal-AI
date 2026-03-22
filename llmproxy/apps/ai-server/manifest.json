@@ -1,0 +1,8 @@
+{
+  "name": "ai-server",
+  "version": "1.0.0",
+  "type": "builtin",
+  "dependencies": {
+    "ai-proxy": "^1.0.0"
+  }
+}

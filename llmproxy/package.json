@@ -1,0 +1,63 @@
+{
+  "name": "llmproxy-host",
+  "version": "0.1.0",
+  "description": "OpenAI-compatible proxy and load balancer for local LLM backends.",
+  "private": true,
+  "workspaces": [
+    "apps/plugins",
+    "apps/json-schema",
+    "apps/config",
+    "apps/otel",
+    "apps/ajv",
+    "apps/code-editor",
+    "apps/sse",
+    "apps/tool-registry",
+    "apps/ai-request-middleware",
+    "apps/mcp-client",
+    "apps/mcp-server",
+    "apps/ai-client",
+    "apps/ai-proxy",
+    "apps/ai-server",
+    "apps/ai-agents",
+    "apps/llmproxy"
+  ],
+  "scripts": {
+    "build": "nuxt build",
+    "build:debug": "cross-env DEBUG=nuxt:*,vite:* nuxt build",
+    "dev": "nuxt dev",
+    "dev:debug": "cross-env DEBUG=nuxt:*,vite:*,nitro:* nuxi dev --verbose",
+    "dev:debug:vite": "cross-env DEBUG=vite:* nuxi dev",
+    "dev:debug:hmr": "cross-env DEBUG=vite:hmr nuxi dev",
+    "dev:debug:transform": "cross-env DEBUG=vite:transform npx nuxi dev",
+    "generate": "nuxt generate",
+    "prepare": "npx nuxi prepare",
+    "preview": "nuxt preview",
+    "start": "node .output/server/index.mjs",
+    "analyze": "npx nuxi analyze",
+    "check:architecture": "node ./scripts/check-architecture.cjs",
+    "smoke:production": "node ./scripts/smoke-production.cjs",
+    "build:test": "npm --workspace llmproxy run build:test",
+    "test": "npm --workspace llmproxy run test",
+    "test:memory": "npm --workspace llmproxy run test:memory",
+    "test:chaos-memory": "npm --workspace llmproxy run test:chaos-memory",
+    "test:streams-500": "npm --workspace llmproxy run test:streams-500",
+    "test:streams-500:dashboard": "npm --workspace llmproxy run test:streams-500:dashboard",
+    "typecheck": "npx nuxi prepare && vue-tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nuxt": "^4.3.1",
+    "typescript": "^5.5.3",
+    "vue-tsc": "^3.2.5"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.213.0",
+    "@opentelemetry/otlp-transformer": "^0.213.0",
+    "@opentelemetry/resources": "^2.6.0",
+    "@opentelemetry/sdk-trace-base": "^2.6.0"
+  }
+}

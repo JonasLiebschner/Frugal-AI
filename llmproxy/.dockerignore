@@ -1,0 +1,16 @@
+.git
+.gitignore
+.idea
+.vscode
+.run
+.nuxt
+.output
+node_modules
+dist
+test-results
+tmp
+llmproxy.config.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
