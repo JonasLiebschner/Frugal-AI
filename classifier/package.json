@@ -4,6 +4,11 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "eval:router": "bun run scripts/router-eval.ts",
+    "eval:compare": "bun run scripts/baseline-middleware-compare.ts",
+    "eval:energy": "bun run scripts/energy-proxy-report.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

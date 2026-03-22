@@ -1,0 +1,119 @@
+{
+  "generatedAt": "2026-03-22T11:03:29.442Z",
+  "endpoint": "https://llmproxy.frugalai.haupt.dev/v1/chat/completions",
+  "dataset": "/Users/marbaced/tmp/cfhack2026/frugal-code/evaluation_data/evaluation_dataset_highScattered.csv",
+  "rowsEvaluated": 30,
+  "smallModel": "gpt-oss-120b-working",
+  "largeModel": "minimax-m2.5-229b",
+  "middlewareModels": [
+    "middleware:simple",
+    "middleware:onnx",
+    "middleware:llm"
+  ],
+  "directAgreementRows": 21,
+  "directDisagreementRows": 9,
+  "summaries": [
+    {
+      "name": "gpt-oss-120b-working",
+      "kind": "direct",
+      "accuracy": 0.5666666666666667,
+      "correct": 17,
+      "total": 30,
+      "thinkingRows": 30,
+      "tokenSplitRows": 30,
+      "totalPromptTokens": 0,
+      "totalCompletionTokens": 10030,
+      "totalReasoningTokensKnown": 10000,
+      "totalAnswerTokensKnown": 30,
+      "totalDurationMs": 102142,
+      "averageDurationMs": 3404.733333333333,
+      "routedModels": {
+        "gpt-oss-120b-working": 30
+      },
+      "agreesWithSmall": 30,
+      "agreesWithLarge": 21
+    },
+    {
+      "name": "minimax-m2.5-229b",
+      "kind": "direct",
+      "accuracy": 0.5,
+      "correct": 15,
+      "total": 30,
+      "thinkingRows": 30,
+      "tokenSplitRows": 30,
+      "totalPromptTokens": 0,
+      "totalCompletionTokens": 37026,
+      "totalReasoningTokensKnown": 36966,
+      "totalAnswerTokensKnown": 60,
+      "totalDurationMs": 384490,
+      "averageDurationMs": 12816.333333333334,
+      "routedModels": {
+        "minimax-m2.5-229b": 30
+      },
+      "agreesWithSmall": 21,
+      "agreesWithLarge": 30
+    },
+    {
+      "name": "middleware:simple",
+      "kind": "middleware",
+      "accuracy": 0.5,
+      "correct": 15,
+      "total": 30,
+      "thinkingRows": 30,
+      "tokenSplitRows": 30,
+      "totalPromptTokens": 0,
+      "totalCompletionTokens": 37026,
+      "totalReasoningTokensKnown": 36966,
+      "totalAnswerTokensKnown": 60,
+      "totalDurationMs": 384490,
+      "averageDurationMs": 12816.333333333334,
+      "routedModels": {
+        "minimax-m2.5-229b": 30
+      },
+      "agreesWithSmall": 21,
+      "agreesWithLarge": 30
+    },
+    {
+      "name": "middleware:onnx",
+      "kind": "middleware",
+      "accuracy": 0.5333333333333333,
+      "correct": 16,
+      "total": 30,
+      "thinkingRows": 30,
+      "tokenSplitRows": 30,
+      "totalPromptTokens": 0,
+      "totalCompletionTokens": 17956,
+      "totalReasoningTokensKnown": 17911,
+      "totalAnswerTokensKnown": 45,
+      "totalDurationMs": 185404,
+      "averageDurationMs": 6180.133333333333,
+      "routedModels": {
+        "gpt-oss-120b-working": 15,
+        "minimax-m2.5-229b": 15
+      },
+      "agreesWithSmall": 29,
+      "agreesWithLarge": 22
+    },
+    {
+      "name": "middleware:llm",
+      "kind": "middleware",
+      "accuracy": 0.5666666666666667,
+      "correct": 17,
+      "total": 30,
+      "thinkingRows": 30,
+      "tokenSplitRows": 30,
+      "totalPromptTokens": 0,
+      "totalCompletionTokens": 10904,
+      "totalReasoningTokensKnown": 10873,
+      "totalAnswerTokensKnown": 31,
+      "totalDurationMs": 115120,
+      "averageDurationMs": 3837.3333333333335,
+      "routedModels": {
+        "gpt-oss-120b-working": 29,
+        "minimax-m2.5-229b": 1
+      },
+      "agreesWithSmall": 30,
+      "agreesWithLarge": 21
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "config": {
+    "tokenUnitWeight": 1,
+    "durationMsUnitWeight": 0.001,
+    "modelFactors": {
+      "gpt-oss-120b-working": 1,
+      "minimax-m2.5-229b": 3
+    },
+    "middlewareMultipliers": {
+      "direct": 1,
+      "middleware:simple": 1,
+      "middleware:onnx": 1.2,
+      "middleware:llm": 1.1
+    }
+  },
+  "summaries": [
+    {
+      "entity": "gpt-oss-120b-working",
+      "kind": "direct",
+      "rows": 30,
+      "correct": 17,
+      "accuracy": 0.5666666666666667,
+      "selectedModels": {
+        "gpt-oss-120b-working": 30
+      },
+      "totalLoadUnits": 10132.141999999998,
+      "totalProxyEnergy": 10132.141999999998,
+      "proxyEnergyPerRow": 337.7380666666666,
+      "proxyEnergyPerCorrect": 596.0083529411763
+    },
+    {
+      "entity": "minimax-m2.5-229b",
+      "kind": "direct",
+      "rows": 30,
+      "correct": 15,
+      "accuracy": 0.5,
+      "selectedModels": {
+        "minimax-m2.5-229b": 30
+      },
+      "totalLoadUnits": 37410.48999999999,
+      "totalProxyEnergy": 112231.46999999996,
+      "proxyEnergyPerRow": 3741.0489999999986,
+      "proxyEnergyPerCorrect": 7482.097999999997
+    },
+    {
+      "entity": "middleware:simple",
+      "kind": "middleware",
+      "rows": 30,
+      "correct": 15,
+      "accuracy": 0.5,
+      "selectedModels": {
+        "minimax-m2.5-229b": 30
+      },
+      "totalLoadUnits": 37410.48999999999,
+      "totalProxyEnergy": 112231.46999999996,
+      "proxyEnergyPerRow": 3741.0489999999986,
+      "proxyEnergyPerCorrect": 7482.097999999997
+    },
+    {
+      "entity": "middleware:onnx",
+      "kind": "middleware",
+      "rows": 30,
+      "correct": 16,
+      "accuracy": 0.5333333333333333,
+      "selectedModels": {
+        "gpt-oss-120b-working": 15,
+        "minimax-m2.5-229b": 15
+      },
+      "totalLoadUnits": 18141.404000000002,
+      "totalProxyEnergy": 49564.80000000001,
+      "proxyEnergyPerRow": 1652.1600000000003,
+      "proxyEnergyPerCorrect": 3097.8000000000006
+    },
+    {
+      "entity": "middleware:llm",
+      "kind": "middleware",
+      "rows": 30,
+      "correct": 17,
+      "accuracy": 0.5666666666666667,
+      "selectedModels": {
+        "gpt-oss-120b-working": 29,
+        "minimax-m2.5-229b": 1
+      },
+      "totalLoadUnits": 11019.119999999999,
+      "totalProxyEnergy": 16641.345600000004,
+      "proxyEnergyPerRow": 554.7115200000002,
+      "proxyEnergyPerCorrect": 978.9026823529414
+    }
+  ]
+}
