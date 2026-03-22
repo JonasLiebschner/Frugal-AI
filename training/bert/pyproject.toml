@@ -1,0 +1,22 @@
+[project]
+name = "2026-cloudfest-hackathon"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "torch>=2.3.0",
+    "transformers>=4.45.0",
+    "datasets>=2.21.0",
+    "accelerate>=0.34.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.8.0",
+    "scikit-learn>=1.5.0",
+    "numpy>=1.26.0",
+    "onnx>=1.16.0",
+    "onnxscript>=0.1.0",
+    "onnxruntime>=1.19.0",
+    "openai>=2.29.0",
+    "logfire[openai]>=4.0",
+]
