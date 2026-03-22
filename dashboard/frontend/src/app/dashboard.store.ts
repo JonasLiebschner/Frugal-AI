@@ -150,19 +150,28 @@ export class DashboardStore {
           }];
       const series = [...actualSeries, ...comparisonSeries];
 
-      return {
-        key: metric.metricKey,
-        title: metric.metricLabel,
-        subtitle: `Actual by routing method over time vs shared ${this.comparisonModel()} comparison`,
-        options: {
-          tooltip: { trigger: 'axis' },
+        return {
+          key: metric.metricKey,
+          title: metric.metricLabel,
+          subtitle: `Actual by routing method over time vs shared ${this.comparisonModel()} comparison`,
+          options: {
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'line' },
+            valueFormatter: (value: unknown) => typeof value === 'number' ? String(value) : ''
+          },
           legend: { top: 4, textStyle: { color: isDark ? '#c4d1df' : '#56544f' } },
           grid: { left: 24, right: 18, top: 56, bottom: 22, containLabel: true },
           xAxis: {
             type: 'time',
+            splitNumber: 4,
             axisTick: { show: false },
             axisLine: { lineStyle: { color: isDark ? '#5f7288' : '#b7b0a2' } },
-            axisLabel: { color: isDark ? '#c4d1df' : '#56544f' }
+            axisLabel: {
+              color: isDark ? '#c4d1df' : '#56544f',
+              hideOverlap: true,
+              formatter: (value: number | string) => this.formatChartTimeLabel(value)
+            }
           },
           yAxis: {
             type: 'value',
@@ -587,6 +596,20 @@ export class DashboardStore {
   private routingSeriesColor(index: number): string {
     const palette = ['#f05d23', '#2b7fff', '#18a46c', '#b256d9', '#e0a100', '#0f9aa8'];
     return palette[index % palette.length];
+  }
+
+  private formatChartTimeLabel(value: number | string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    return new Intl.DateTimeFormat(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).format(date);
   }
 
   private resolveChatModel(): string {
