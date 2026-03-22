@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { TableModule } from 'primeng/table';
 
-import { formatCost, formatDuration, formatScore, formatTimestamp, modelDelta } from '../dashboard-formatters';
+import { formatCost, formatDuration, formatScore, formatTimestamp, formatWater, modelDelta } from '../dashboard-formatters';
 import type { AiRequest } from '../dashboard.types';
 
 @Component({
@@ -21,6 +21,10 @@ import type { AiRequest } from '../dashboard.types';
         <p-table
           [value]="requests()"
           [tableStyle]="{ 'min-width': '1020px' }"
+          [paginator]="true"
+          [rows]="20"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Showing {first} to {last} of {totalRecords} requests"
           styleClass="requests-table"
           size="small"
           sortMode="multiple"
@@ -54,7 +58,7 @@ import type { AiRequest } from '../dashboard.types';
               <td>{{ req.routingMethod }}</td>
               <td>{{ req.powerWh.toFixed(1) }} Wh</td>
               <td>{{ req.co2.toFixed(1) }} g</td>
-              <td>{{ req.waterMl }} ml</td>
+              <td>{{ getWater(req.waterMl) }}</td>
               <td>{{ req.inputTokens }}</td>
               <td>{{ req.outputTokens }}</td>
               <td>{{ getDuration(req.durationMs) }}</td>
@@ -88,6 +92,7 @@ export class RequestsTableComponent {
   protected getTimestamp = formatTimestamp;
   protected getDuration = formatDuration;
   protected getCost = formatCost;
+  protected getWater = formatWater;
   protected getScore = formatScore;
 
   protected getModelDelta(request: AiRequest): string {
