@@ -1,0 +1,33 @@
+id,query,expected_answer,category,eval_fn
+1,What is 1 + 1?,2,factual,exact
+2,What is the capital of France?,Paris,factual,contains
+3,What is 15% of 80?,12,factual,numeric
+4,What is the boiling point of water in Celsius?,100,factual,exact
+5,Who wrote Romeo and Juliet?,Shakespeare,factual,contains
+6,What is the chemical symbol for gold?,Au,factual,exact
+7,In what year did World War II end?,1945,factual,exact
+8,"List the planets in solar order from the sun.","Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune",factual,llm_judge
+9,What is the speed of light in meters per second?,299792458,factual,numeric
+10,What is the largest ocean on Earth?,Pacific,factual,contains
+11,"What are the three branches of the United States federal government?","legislative executive judicial",factual,llm_judge
+12,What is the square root of 144?,12,factual,exact
+13,What does DNA stand for?,Deoxyribonucleic acid,factual,contains
+14,"If a train travels 60 km/h for 2.5 hours, how far does it travel?",150,reasoning,numeric
+15,What is the time complexity of binary search?,O(log n),reasoning,contains
+16,"A rectangle has a length of 8 and a width of 5. What is its area?",40,reasoning,numeric
+17,"If you flip a fair coin three times, what is the probability of getting exactly two heads?",0.375,reasoning,numeric
+18,"Sort the following list and return the median: [3, 1, 4, 1, 5, 9, 2, 6]",3.5,reasoning,numeric
+19,"A store sells apples for $0.75 each and oranges for $1.25 each. If you buy 4 apples and 3 oranges, what is the total cost?",6.75,reasoning,numeric
+20,"Explain why quicksort has O(n log n) average-case time complexity but O(n^2) worst-case complexity.","pivot partitioning average balanced worst already sorted",reasoning,llm_judge
+21,"You have a 3-gallon jug and a 5-gallon jug. How do you measure exactly 4 gallons of water?","fill 5-gallon pour into 3-gallon leaving 2 empty 3-gallon fill 5-gallon again pour into 3-gallon until full leaving 4",reasoning,llm_judge
+22,"If all Bloops are Razzies and all Razzies are Lazzies, are all Bloops definitely Lazzies?",Yes,reasoning,exact
+23,"Write a Python function that returns True if a string is a palindrome.","def is_palindrome(s): return s == s[::-1]",coding,llm_judge
+24,Write a Python one-liner to get the square of every even number in a list called nums.,"[x**2 for x in nums if x % 2 == 0]",coding,llm_judge
+25,"Write a Python function that takes a list and returns it reversed without using the built-in reverse method.","def reverse_list(lst): return lst[::-1]",coding,llm_judge
+26,"Write a SQL query to find all users in a table called 'users' where the email column ends with '@example.com'.","SELECT * FROM users WHERE email LIKE '%@example.com'",coding,llm_judge
+27,"Write a Python function that computes the nth Fibonacci number recursively.","def fib(n): return n if n <= 1 else fib(n-1) + fib(n-2)",coding,llm_judge
+28,"Write a JavaScript function that debounces another function by a given delay in milliseconds.","function debounce(fn, delay) { let timer; return function(...args) { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); }; }",coding,llm_judge
+29,"Given a sorted array and a target value, write a Python function that performs binary search and returns the index or -1.","def binary_search(arr, target): lo, hi = 0, len(arr)-1\n while lo <= hi:\n  mid = (lo+hi)//2\n  if arr[mid]==target: return mid\n  elif arr[mid]<target: lo=mid+1\n  else: hi=mid-1\n return -1",coding,llm_judge
+30,"Write a Python context manager class that measures and prints elapsed time for a code block.","class Timer:\n def __enter__(self): self.start = time.time(); return self\n def __exit__(self, *args): print(time.time() - self.start)",coding,llm_judge
+31,"Write a Python generator function that yields prime numbers up to a given limit n.","def primes(n): sieve = [True]*(n+1); sieve[0]=sieve[1]=False; ...",coding,llm_judge
+32,"Implement a Python function that flattens a nested list of arbitrary depth.","def flatten(lst): for x in lst: yield from flatten(x) if isinstance(x, list) else [x]",coding,llm_judge
