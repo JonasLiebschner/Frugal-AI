@@ -7,13 +7,14 @@ public sealed record AiRequest(
     AiRequestBase Base,
     [property: JsonPropertyName("comparison")]
     RequestMetadata ComparisonMetadata
-) : AiRequestBase(Base.Id, Base.Model, Base.RoutingMethod, Base.Prompt, Base.InputTokens, Base.OutputTokens,
+) : AiRequestBase(Base.Id, Base.Model, Base.RoutingMethod, Base.RoutingOutcome, Base.Prompt, Base.InputTokens, Base.OutputTokens,
     Base.DurationMs, Base.ValidationScore, Base.CreatedAt, Base.ActualMetadata);
 
 public record AiRequestBase(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("model")] string Model,
     [property: JsonPropertyName("routingMethod")] string RoutingMethod,
+    [property: JsonPropertyName("routingOutcome")] string? RoutingOutcome,
     [property: JsonPropertyName("prompt")] string Prompt,
     [property: JsonPropertyName("inputTokens")] int InputTokens,
     [property: JsonPropertyName("outputTokens")] int OutputTokens,

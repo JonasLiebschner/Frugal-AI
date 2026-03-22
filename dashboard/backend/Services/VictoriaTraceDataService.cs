@@ -62,61 +62,23 @@ internal class VictoriaTraceDataService(
 
         foreach (var source in sources)
         {
-            var model = GetString(source,
-                "gen_ai_request_model",
-                "attributes.gen_ai.request.model",
-                "span.attributes.gen_ai.request.model",
-                "resource.attributes.gen_ai.request.model",
-                "span_attr:gen_ai.request.model",
-                "llm.model_name");
-
+            var model = GetString(source, "span_attr:gen_ai.response.model");
+            if (string.IsNullOrWhiteSpace(model))
+                continue;
+            
             var prompt = GetPrompt(source);
 
-            var routingMethod = GetString(source,
-                "routing.method",
-                "routing_method") ?? "unknown";
-
-            var id = GetString(source,
-                "traceId",
-                "trace_id",
-                "span.traceId",
-                "span_id",
-                "_stream_id") ?? Guid.NewGuid().ToString("N");
-
-            var createdAt = GetDateTimeOffset(source,
-                "start_timestamp",
-                "created_at",
-                "@timestamp",
-                "timestamp",
-                "startTime",
-                "start_time",
-                "start_time_unix_nano",
-                "_time") ?? DateTimeOffset.UtcNow;
-
-            var inputTokens = GetInt(source,
-                "gen_ai_usage_input_tokens",
-                "attributes.gen_ai.usage.input_tokens",
-                "span.attributes.gen_ai.usage.input_tokens",
-                "span_attr:gen_ai.usage.input_tokens",
-                "llm.token_count.prompt") ?? 0;
-
-            var outputTokens = GetInt(source,
-                "gen_ai_usage_output_tokens",
-                "attributes.gen_ai.usage.output_tokens",
-                "span.attributes.gen_ai.usage.output_tokens",
-                "span_attr:gen_ai.usage.output_tokens",
-                "llm.token_count.completion") ?? 0;
-
+            var routingMethod = GetString(source, "span_attr:llmproxy.routing.middleware.id") ?? "direct";
+            var routingOutcome = GetString(source, "span_attr:llmproxy.routing.middleware.profile");
+            var id = GetString(source,"traceId") ?? Guid.NewGuid().ToString("N");
+            var createdAt = GetDateTimeOffset(source, "startTime") ?? DateTimeOffset.UtcNow;
+            var inputTokens = GetInt(source, "span_attr:gen_ai.usage.input_tokens") ?? 0;
+            var outputTokens = GetInt(source, "span_attr:gen_ai.usage.output_tokens") ?? 0;
             var durationMs = GetDurationMs(source);
-            
-            var costUsd = GetDouble(source, "operation_cost") ?? GetViaModel(model ?? string.Empty, inputTokens, outputTokens);
+            var costUsd = GetDouble(source, "operation_cost") ?? GetViaModel(model, inputTokens, outputTokens);
 
-            if (string.IsNullOrWhiteSpace(model))
-            {
-                continue;
-            }
             
-            var powerWh = 0.1;
+            var powerWh =GetDouble(source, "span_attr:llmproxy.power_usage") ?? 0.1;
             var environmentalMetric =  new RequestMetadata(
                 powerWh,
                 powerWh * 0.27, //  E_query (Wh) * CIF (kgC02/kWh)
@@ -124,10 +86,11 @@ internal class VictoriaTraceDataService(
                 0,
                 costUsd);
 
-            requests.Add(new AiRequestBase(
+            requests.Add(new(
                 id,
                 model,
                 routingMethod,
+                routingOutcome,
                 prompt,
                 inputTokens,
                 outputTokens,
@@ -298,23 +261,14 @@ internal class VictoriaTraceDataService(
 
     private static string GetPrompt(JsonNode source)
     {
-        var directPrompt = GetString(source,
-            "prompt",
-            "attributes.gen_ai.prompt",
-            "span.attributes.gen_ai.prompt",
-            "attributes.gen_ai.request.prompt",
-            "attributes.request_data.prompt",
-            "attributes.request_data.input",
-            "request_data.prompt",
-            "llm.prompt");
+        var directPrompt = GetString(source, "span_attr:gen_ai.prompt");
         if (!string.IsNullOrWhiteSpace(directPrompt))
         {
             return directPrompt;
         }
 
-        var requestMessagesNode = GetNodeByPath(source, "attributes.request_data.messages")
-                                  ?? GetNodeByPath(source, "request_data.messages")
-                                  ?? GetNodeByPath(source, "span_attr:request_data.messages");
+        var requestMessagesNode = GetNodeByPath(source, "span_attr:request_data.messages")
+                                  ?? GetNodeByPath(source, "span_attr:gen_ai.input.messages");
 
         JsonArray? messages = requestMessagesNode as JsonArray;
         if (messages is null &&
@@ -348,7 +302,7 @@ internal class VictoriaTraceDataService(
                 continue;
             }
 
-            var userContent = ReadMessageContent(messageNode["content"]);
+            var userContent = ReadMessageText(messageNode);
             if (!string.IsNullOrWhiteSpace(userContent))
             {
                 return userContent;
@@ -362,7 +316,7 @@ internal class VictoriaTraceDataService(
                 continue;
             }
 
-            var content = ReadMessageContent(messageNode["content"]);
+            var content = ReadMessageText(messageNode);
             if (!string.IsNullOrWhiteSpace(content))
             {
                 return content;
@@ -370,6 +324,17 @@ internal class VictoriaTraceDataService(
         }
 
         return string.Empty;
+    }
+
+    private static string? ReadMessageText(JsonObject messageNode)
+    {
+        var content = ReadMessageContent(messageNode["content"]);
+        if (!string.IsNullOrWhiteSpace(content))
+        {
+            return content;
+        }
+
+        return ReadMessageContent(messageNode["parts"]);
     }
 
     private static string? ReadMessageContent(JsonNode? contentNode)
@@ -395,7 +360,7 @@ internal class VictoriaTraceDataService(
             if (part is JsonObject partObject &&
                 string.Equals(partObject["type"]?.ToString(), "text", StringComparison.OrdinalIgnoreCase))
             {
-                var partText = partObject["text"]?.ToString();
+                var partText = partObject["text"]?.ToString() ?? partObject["content"]?.ToString();
                 if (!string.IsNullOrWhiteSpace(partText))
                 {
                     parts.Add(partText);
@@ -525,27 +490,16 @@ internal class VictoriaTraceDataService(
 
     private static int GetDurationMs(JsonNode source)
     {
-        var explicitMs = GetInt(source,
-            "attributes.gen_ai.response.duration_ms",
-            "span.attributes.gen_ai.response.duration_ms",
-            "span_attr:gen_ai.response.duration_ms",
-            "duration_ms");
+        var explicitMs = GetInt(source, "span_attr:gen_ai.response.duration_ms");
         if (explicitMs.HasValue)
         {
             return explicitMs.Value;
         }
 
-        var startNano = GetLong(source, "start_time_unix_nano");
-        var endNano = GetLong(source, "end_time_unix_nano");
-        if (startNano.HasValue && endNano.HasValue && endNano.Value >= startNano.Value)
+        var durationNs = GetLong(source, "duration");
+        if (durationNs.HasValue)
         {
-            return (int)Math.Max(0, Math.Round((endNano.Value - startNano.Value) / 1_000_000d));
-        }
-
-        var durationNano = GetLong(source, "duration");
-        if (durationNano.HasValue)
-        {
-            return (int)Math.Max(0, Math.Round(durationNano.Value / 1_000_000d));
+            return (int)Math.Max(0, Math.Round(durationNs.Value / 1_000_000d));
         }
 
         return 0;
