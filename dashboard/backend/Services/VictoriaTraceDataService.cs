@@ -78,7 +78,7 @@ internal class VictoriaTraceDataService(
             var costUsd = GetDouble(source, "operation_cost") ?? GetViaModel(model, inputTokens, outputTokens);
             var responseId = GetString(source, "span_attr:gen_ai.response.id") ?? id;
             
-            var powerWh =GetDouble(source, "span_attr:llmproxy.power_usage") ?? 0.1;
+            var powerWh =GetDouble(source, "span_attr:llmproxy.energy.usage.wh") ?? 0.1;
             var environmentalMetric =  new RequestMetadata(
                 powerWh,
                 powerWh * 0.27, //  E_query (Wh) * CIF (kgC02/kWh)
