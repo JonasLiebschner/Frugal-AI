@@ -117,6 +117,18 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Build and push llmproxy image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./llmproxy
+          file: ./llmproxy/Dockerfile
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta_vs.outputs.tags }}
+          labels: ${{ steps.meta_vs.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+
       - name: Docker metadata (svc-middleware)
         id: meta_svc
         uses: docker/metadata-action@v5
