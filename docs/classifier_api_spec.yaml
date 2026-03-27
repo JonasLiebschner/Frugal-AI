@@ -1,0 +1,116 @@
+openapi: 3.1.0
+info:
+  title: Router Classification API
+  description: Classifies an incoming query to determine whether it should be routed to a small or large language model.
+  version: 1.0.0
+
+paths:
+  /api/v1/classify:
+    post:
+      operationId: classifyQuery
+      summary: Classify a query for model routing
+      description: >
+        Accepts a natural language query and returns a routing decision indicating
+        whether the query should be handled by a small or large model.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassifyRequest'
+            examples:
+              simple_query:
+                summary: Simple factual query routed to a less powerful model
+                value:
+                  query: "What is the capital of France?"
+                  additionalData:
+                    userId: "abc123"
+                    preferredModelFamily: "gpt"
+              complex_query:
+                summary: Complex reasoning query routed to a more powerful model
+                value:
+                  query: "Analyze the trade-offs between transformer-based and state-space models for long-context reasoning tasks."
+                  additionalData:
+                    userId: "xyz789"
+                    preferredModelFamily: "claude"
+      responses:
+        '200':
+          description: Classification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifyResponse'
+              examples:
+                small_model:
+                  summary: Simple query routed to a less powerful model.
+                  value:
+                    result: "small"
+                    additionalData:
+                      confidence: 0.97
+                      reason: "Query is a simple factual lookup with no reasoning required."
+                large_model:
+                  summary: Complex query routed to a more powerful model.
+                  value:
+                    result: "large"
+                    additionalData:
+                      confidence: 0.91
+                      reason: "Query requires deep domain knowledge and multi-step reasoning."
+        '400':
+          description: Bad request — missing or invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ClassifyRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: The input query to classify for model routing.
+          minLength: 1
+          examples: ["Explain the thermodynamic principles behind black hole evaporation."]
+        additionalData:
+          type: object
+          description: Arbitrary key-value data to pass alongside the query (e.g. session context, user metadata).
+          additionalProperties: true
+
+    ClassifyResponse:
+      type: object
+      required:
+        - result
+      properties:
+        result:
+          type: string
+          enum:
+            - small
+            - large
+          description: >
+            Routing decision for the query.
+            - `small`: the query can be handled by a lightweight model.
+            - `large`: the query requires a large, more capable model.
+          examples: ["large"]
+        additionalData:
+          type: object
+          description: Arbitrary key-value data returned by the classifier (e.g. confidence score, reasoning, model suggestions).
+          additionalProperties: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message.
+          examples: ["Missing required field: query"]
