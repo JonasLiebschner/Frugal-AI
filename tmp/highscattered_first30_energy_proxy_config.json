@@ -1,0 +1,16 @@
+{
+  "tokenUnitWeight": 1,
+  "durationMsUnitWeight": 0.001,
+  "modelFactors": {
+    "gpt-oss-120b-working": 1,
+    "minimax-m2.5-229b": 3
+  },
+  "middlewareMultipliers": {
+    "direct": 1,
+    "middleware:simple": 1,
+    "middleware:onnx": 1.2,
+    "middleware:llm": 1.1,
+    "middleware:vs": 1.1,
+    "middleware:svc": 1.1
+  }
+}
