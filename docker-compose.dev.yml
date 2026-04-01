@@ -99,6 +99,12 @@ services:
       - MONGODB_URI=${MIDDLEWARE_VS_MONGODB_URI:-}
       - MONGODB_API_KEY=${MIDDLEWARE_VS_MONGODB_API_KEY:-}
       - MONGODB_DATABASE=${MIDDLEWARE_VS_MONGODB_DATABASE:-frugal}
+  middleware-oldschool:
+    build:
+      context: ./classifier
+      dockerfile: oldschool-middleware/Dockerfile
+    ports:
+      - "3005:3005"
 
 volumes:
   vt-data:
